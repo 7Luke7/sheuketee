@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+@font-face {
+  font-family: "normal-font";
+  src: url("../../public/fonts/normal-font.ttf");
+}
+
+@font-face {
+  font-family: "boldest-font";
+  src: url("../../public/fonts/boldest-font.ttf");
+}
+
+@font-face {
+  font-family: "bolder-font";
+  src: url("../../public/fonts/bolder-font.ttf");
+}
+
+@font-face {
+  font-family: "thin-font";
+  src: url("../../public/fonts/thin-font.ttf");
+}
