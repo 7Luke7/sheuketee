@@ -10,7 +10,7 @@ export const Hero = () => {
                 მოძებნე სამუშაო<br/>
                 იმუშავე დამოუკიდებლად
             </h1>
-            <p role="text" class="w-[500px] mt-4 text-gray text-lg font-bold font-[normal-font]">
+            <p role="text" class="w-[500px] mt-4 text-gr text-lg font-bold font-[normal-font]">
                 დაივიწყე ძველი წესები. შეხვდი დამკვეთებს. აიმაღლე რეპუტაცია. გამოიმუშავე თანხა.
             </p>
             <div class="mt-4">

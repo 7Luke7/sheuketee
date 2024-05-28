@@ -1,8 +1,10 @@
+import {Categories} from "~/Components/Categories"
 import { Footer } from "~/Components/Footer"
 import { Header } from "~/Components/Header"
 import { SecondHero } from "~/Components/Hero_Second"
 import { Hero } from "~/Components/Hero_Section"
-import { ThirdHero } from "~/Components/Third_Hero"
+import {HirerLanding} from "~/Components/HirerLanding"
+import {WorkerLanding} from "~/Components/WorkerLanding"
 
 const Landing = () => {
     return <>
@@ -11,7 +13,9 @@ const Landing = () => {
             <Hero></Hero>
             <div class="flex flex-col items-center">
                 <SecondHero></SecondHero>
-                <ThirdHero></ThirdHero>
+                <Categories></Categories>
+                <HirerLanding></HirerLanding>
+                <WorkerLanding></WorkerLanding>
             </div>
             <Footer></Footer>
         </div>

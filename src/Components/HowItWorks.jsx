@@ -7,7 +7,7 @@ import interview from "../../public/svg-images/interview.svg"
 import job_hunt from "../../public/svg-images/job_hunt.svg"
 import { A } from "@solidjs/router"
 
-export const ThirdHero = () => {
+export const HowItWorks = () => {
     return <div class="mt-24 w-full flex flex-col items-center shadow-2xl rounded-3xl bg-white p-8">
     <h2 class="font-[font-boldest] font-bold mt-3 text-2xl">როგორ მუშაობს</h2>
     <div class="mt-12 flex flex-col w-full gap-y-5">
@@ -15,7 +15,7 @@ export const ThirdHero = () => {
             <img src={newPost} alt="Post a job" />
             <div>
                 <h2 class="font-[font-bolder] text-xl font-bold">დამკვეთი განათავსებს შეკვეთას</h2>
-                <ul class="font-[font-normal] text-lg text-gray mt-3 list-disc ml-5">
+                <ul class="font-[font-normal] text-lg text-gr mt-3 list-disc ml-5">
                     <li>გაიარე რეგისტრაცია</li>
                     <li>შექმენი პოსტი</li>
                 </ul>
@@ -25,11 +25,11 @@ export const ThirdHero = () => {
                 </div>
             </div>
         </div>
-        <div class="flex justify-center h-[40px] w-[5px] bg-slate-300"></div>
+        <div class="h-[40px] w-[5px] bg-slate-300"></div>
         <div class="flex justify-center gap-x-12 border-l-4 border-slate-300 pl-8">
               <div>
                 <h2 class="font-[font-bolder] text-xl font-bold">იპოვე ხელოსანი</h2>
-                <ul class="font-[font-normal] text-lg text-gray mt-3 list-disc ml-5">
+                <ul class="font-[font-normal] text-lg text-gr mt-3 list-disc ml-5">
                     <li>შეარჩიე გამოცდილი ხელოსანი</li>
                     <li>დაათვალიერე შეფასებები</li>
                 </ul>
@@ -44,7 +44,7 @@ export const ThirdHero = () => {
             <img src={jobComplete} alt="Job complete" />
             <div>
                 <h2 class="font-[font-bolder] text-xl font-bold">დასრულება</h2>
-                <ul class="font-[font-normal] text-lg text-gray mt-3 list-disc ml-5">
+                <ul class="font-[font-normal] text-lg text-gr mt-3 list-disc ml-5">
                     <li>პროექტის დასრულება</li>
                     <li>მიღება და შეფასება</li>
                 </ul>
@@ -57,7 +57,7 @@ export const ThirdHero = () => {
         <div class="flex justify-center gap-x-12 border-l-4 border-slate-300 pl-8">
             <div>
                 <h2 class="font-[font-bolder] text-xl font-bold">დასრულება</h2>
-                <ul class="font-[font-normal] text-lg text-gray mt-3 list-disc ml-5">
+                <ul class="font-[font-normal] text-lg text-gr mt-3 list-disc ml-5">
                     <li>პროექტის დასრულება</li>
                     <li>მიღება და შეფასება</li>
                 </ul>
@@ -72,7 +72,7 @@ export const ThirdHero = () => {
             <img src={interview} alt="Job complete" />
             <div>
                 <h2 class="font-[font-bolder] text-xl font-bold">დასრულება</h2>
-                <ul class="font-[font-normal] text-lg text-gray mt-3 list-disc ml-5">
+                <ul class="font-[font-normal] text-lg text-gr mt-3 list-disc ml-5">
                     <li>პროექტის დასრულება</li>
                     <li>მიღება და შეფასება</li>
                 </ul>
@@ -85,7 +85,7 @@ export const ThirdHero = () => {
         <div class="flex justify-center gap-x-12 border-l-4 border-slate-300 pl-8">
             <div>
                 <h2 class="font-[font-bolder] text-xl font-bold">დასრულება</h2>
-                <ul class="font-[font-normal] text-lg text-gray mt-3 list-disc ml-5">
+                <ul class="font-[font-normal] text-lg text-gr mt-3 list-disc ml-5">
                     <li>პროექტის დასრულება</li>
                     <li>მიღება და შეფასება</li>
                 </ul>
@@ -100,7 +100,7 @@ export const ThirdHero = () => {
             <img src={jobDone} alt="Job complete" />
             <div>
                 <h2 class="font-[font-bolder] text-xl font-bold">დასრულება</h2>
-                <ul class="font-[font-normal] text-lg text-gray mt-3 list-disc ml-5">
+                <ul class="font-[font-normal] text-lg text-gr mt-3 list-disc ml-5">
                     <li>პროექტის დასრულება</li>
                     <li>მიღება და შეფასება</li>
                 </ul>

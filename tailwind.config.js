@@ -5,12 +5,15 @@ module.exports = {
   ],
   theme: {
     extend: {
+      rotate: {
+        '180': '180deg',
+      },
       colors: {
         "dark-green-hover": "#14a800",
         "dark-green": "#108a00",
-        "gray": "#6e6967"
+        "gr": "#6e6967"
       },
-    },
+    }, 
   },
   plugins: [],
 }

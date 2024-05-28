@@ -99,11 +99,11 @@ export const PeopleWorking = () => {
             <div class="flex items-center h-full justify-between">
                 <div class="gap-x-2 flex items-center">
                     <img class="rounded-[50%] w-[28px] h-[28px]" src={user.profile_image}></img>
-                    <p class="text-gray font-[boldest-font]">{user.firstname + " " + user.lastName}</p>
+                    <p class="text-gr font-[boldest-font]">{user.firstname + " " + user.lastName}</p>
                 </div>
-                <p class="text-gray font-[normal-font]">{user.timestamp}</p>
+                <p class="text-gr font-[normal-font]">{user.timestamp}</p>
             </div>
-            <p class="py-3 text-gray font-[normal-font]">{user.job_description.length > 120 ? user.job_description.substring(0, 120) + "..." : user.job_description}</p>
+            <p class="py-3 text-gr font-[normal-font]">{user.job_description.length > 120 ? user.job_description.substring(0, 120) + "..." : user.job_description}</p>
             <div class="flex">
                 <Index each={new Array(user.review_given)}>
                     {() => {
@@ -119,7 +119,7 @@ export const PeopleWorking = () => {
                         </div>
                     }}
                 </Index>
-                <A class="text-gray px-3 flex items-center underline font-[thin-font] text-sm font-bold" href={`/job/${1}`}>იხილე მეტი</A>
+                <A class="text-gr px-3 flex items-center underline font-[thin-font] text-sm font-bold" href={`/job/${1}`}>იხილე მეტი</A>
             </div>
             </div>
         </swiper-slide>

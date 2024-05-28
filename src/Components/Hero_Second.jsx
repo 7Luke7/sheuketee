@@ -14,8 +14,8 @@ export const SecondHero = () => {
                         <img width={24} height={24} src={Pen}></img>
                     </div>
                     <div>
-                        <p class="text-gray font-[boldest-font]">მოქნილი განრიგი</p>
-                        <span class="py-3 text-gray font-[normal-font]">შეათავსეთ მუშაობა ცხოვრების სხვა აქტივობებთან.</span>
+                        <p class="text-gr font-[boldest-font]">მოქნილი განრიგი</p>
+                        <span class="py-3 text-gr font-[normal-font]">შეათავსეთ მუშაობა ცხოვრების სხვა აქტივობებთან.</span>
                     </div>
                 </div>
                 <div class="mt-5 flex gap-x-2">
@@ -23,8 +23,8 @@ export const SecondHero = () => {
                         <img width={24} height={24} src={Pin}></img>
                     </div>
                     <div>
-                        <p class="text-gray font-[boldest-font]">გამოევლინეთ უნარები</p>
-                        <span class="py-3 text-gray font-[normal-font]">უნარები ფასდება დამკვეთის მიერ რაც გიმაღლებთ რეპუტაციას.</span>
+                        <p class="text-gr font-[boldest-font]">გამოევლინეთ უნარები</p>
+                        <span class="py-3 text-gr font-[normal-font]">უნარები ფასდება დამკვეთის მიერ რაც გიმაღლებთ რეპუტაციას.</span>
                     </div>
                 </div>
                 <div class="mt-5 flex gap-x-2">
@@ -32,8 +32,8 @@ export const SecondHero = () => {
                         <img width={24} height={24} src={Star}></img>
                     </div>
                     <div>
-                        <p class="text-gray font-[boldest-font]">გახდი დამოუკიდებელი</p>
-                        <span class="py-3 text-gray font-[normal-font]">იმუშავე როცა გინდა როგორც გინდა ვისთანაც გინდა.</span>
+                        <p class="text-gr font-[boldest-font]">გახდი დამოუკიდებელი</p>
+                        <span class="py-3 text-gr font-[normal-font]">იმუშავე როცა გინდა როგორც გინდა ვისთანაც გინდა.</span>
                     </div>
                 </div>
                 <div class="mt-5 flex items-center gap-x-2">
@@ -49,8 +49,8 @@ export const SecondHero = () => {
                         <img width={24} height={24} src={Pen}></img>
                     </div>
                     <div>
-                        <p class="text-gray font-[boldest-font]">მოძებნე ხელოსანი</p>
-                        <span class="py-3 text-gray font-[normal-font]">მოძებნე ხელოსანი შენს ქალაქში, რაიონში, სოფელში.</span>
+                        <p class="text-gr font-[boldest-font]">მოძებნე ხელოსანი</p>
+                        <span class="py-3 text-gr font-[normal-font]">მოძებნე ხელოსანი შენს ქალაქში, რაიონში, სოფელში.</span>
                     </div>
                 </div>
                 <div class="mt-5 flex gap-x-2">
@@ -58,8 +58,8 @@ export const SecondHero = () => {
                         <img width={24} height={24} src={Pin}></img>
                     </div>
                     <div>
-                        <p class="text-gray font-[boldest-font]">შეარჩიე ხელოსანი</p>
-                        <span class="py-3 text-gray font-[normal-font]">გაარჩიეთ ხელოსნის პროფილი: განხილვები, კომენტარები.</span>
+                        <p class="text-gr font-[boldest-font]">შეარჩიე ხელოსანი</p>
+                        <span class="py-3 text-gr font-[normal-font]">გაარჩიეთ ხელოსნის პროფილი: განხილვები, კომენტარები.</span>
                     </div>
                 </div>
                 <div class="mt-5 flex gap-x-2">
@@ -67,8 +67,8 @@ export const SecondHero = () => {
                         <img width={24} height={24} src={Star}></img>
                     </div>
                     <div>
-                        <p class="text-gray font-[boldest-font]">თანხის გადახდის წესები</p>
-                        <span class="py-3 text-gray font-[normal-font]">თანხის გადახდა ხდება შუამავლის(ჩვენი) დახმარებით.</span>
+                        <p class="text-gr font-[boldest-font]">თანხის გადახდის წესები</p>
+                        <span class="py-3 text-gr font-[normal-font]">თანხის გადახდა ხდება შუამავლის(ჩვენი) დახმარებით.</span>
                     </div>
                 </div>
                 <div class="mt-5 flex items-center gap-x-2">
