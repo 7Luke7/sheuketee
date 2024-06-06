@@ -1,11 +1,10 @@
-import { A, createAsync } from "@solidjs/router"
+import { A } from "@solidjs/router"
 import { For, Show, createSignal } from "solid-js"
-import { work_categories } from "~/lib/json_data"
 import dropdownGreenSVG from "../../../public/svg-images/svgexport-13.svg"
+import jobs from "./jobs_list"
 
-export const WorkDropdown = ({hook}) => {
+export const WorkDropdown = () => {
     const [showCat, setShowCat] = createSignal()
-    const jobs = createAsync(work_categories)
 
     const handleCategories = (m, i) => {
         setShowCat({
@@ -16,9 +15,9 @@ export const WorkDropdown = ({hook}) => {
 
     return <div id="options-menu" class="hidden pt-5 group-hover:block absolute top-full left-0 z-50">
         <ul class="rounded-lg flex shadow-2xl bg-white max-h-[235px] pt-3 pb-5 px-2">
-            <Show when={jobs()}>
+            <Show when={jobs}>
                 <div class="w-[200px]">
-                    <For each={jobs().flatMap(obj => Object.keys(obj))}>
+                    <For each={jobs.flatMap(obj => Object.keys(obj))}>
                         {(m, i) => {
                             return <A href="#" onMouseEnter={() => handleCategories(m, i)} class="text-left">
                             <li class="flex p-2 justify-between items-center hover:bg-[rgb(243,244,246)] rounded-[16px] gap-x-2">
@@ -32,7 +31,7 @@ export const WorkDropdown = ({hook}) => {
             </Show>
             <Show when={showCat()}>
                 <div class="flex w-[320px] px-3 h-[40px] flex-wrap">
-                    <For each={jobs()[showCat().index][showCat().catName]}>
+                    <For each={jobs[showCat().index][showCat().catName]}>
                         {(c) => {
                             return <A href="#" class="text-left">
                             <li class="p-2 hover:bg-[rgb(243,244,246)] rounded-[16px] gap-x-2">
