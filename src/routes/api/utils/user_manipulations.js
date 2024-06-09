@@ -1,17 +1,19 @@
 "use server"
-import { redisClient } from "~/entry-server";
-import { User } from "../models/User";
 
-export const get_user_by_session = async (session) => {
-    try {   
-        const sess = await redisClient.get(session);
-        if (!sess) {
-            return 401
-        }
-        const user_id = JSON.parse(sess) 
-        const user = await User.findById(user_id.userId)
-        return user
-    } catch (error) {
-        console.log(error)
-    }
-}
+export const create_serializable_object = (user) => {
+    return {
+        ...user._doc,
+        _id: user._id.toString(),
+        createdAt: user.createdAt.toISOString(),
+        updatedAt: user.updatedAt.toISOString()
+    };
+};
+
+export const create_serializable_object_secure = (user) => {
+    const {password, __v, _id, notificationDevices, ...restUser} = user._doc
+    return {
+        ...restUser,
+        createdAt: user.createdAt.toISOString(),
+        updatedAt: user.updatedAt.toISOString()
+    };
+};

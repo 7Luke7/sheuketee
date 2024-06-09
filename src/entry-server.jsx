@@ -26,7 +26,7 @@ export const s3 = new S3Client({ credentials: {
     secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
   }, region: process.env.S3_SERVER_REGION });
 
-export default createHandler(() => (
+  export default createHandler(() => (
   <StartServer
     document={({ assets, children, scripts }) => (
       <html lang="en">

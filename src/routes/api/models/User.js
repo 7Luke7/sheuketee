@@ -33,6 +33,10 @@ const UserSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true
+  },
+  step: {
+    type: Number,
+    default: 0
   }
 },{timestamps: true});
 

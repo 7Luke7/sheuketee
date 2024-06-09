@@ -74,6 +74,12 @@ export const verify_code = async (verify_input) => {
 
         const user = await get_user_by_session(sessionId)
 
+        if (!user().email) {
+            return json("ამჟამად ვერიფიკაცია მხოლოდ მეილით არის შესაძლებელი, გთხოვთ დაამატოთ მეილი.", {
+                status: 400
+            })
+        }
+
         if (!user) {
             return json("სესია ამოიწურა თავიდან შედით ექაუნთში.", {
                 status: 401

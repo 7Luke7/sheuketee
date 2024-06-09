@@ -13,8 +13,8 @@ export const WorkDropdown = () => {
         })
     }
 
-    return <div id="options-menu" class="hidden pt-5 group-hover:block absolute top-full left-0 z-50">
-        <ul class="rounded-lg flex shadow-2xl bg-white max-h-[235px] pt-3 pb-5 px-2">
+    return <div id="options-menu" class="hidden pt-[13px] group-hover:block absolute top-full left-0 z-50">
+        <ul class="rounded-b-lg flex shadow-2xl bg-white max-h-[235px] pt-3 pb-5 px-2">
             <Show when={jobs}>
                 <div class="w-[200px]">
                     <For each={jobs.flatMap(obj => Object.keys(obj))}>

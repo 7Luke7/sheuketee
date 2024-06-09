@@ -1,4 +1,4 @@
-import { A, createAsync } from "@solidjs/router"
+import { A, createAsync, useParams } from "@solidjs/router"
 import { Search } from "./Search"
 import { Match, Switch, createEffect, createSignal, onCleanup } from "solid-js"
 import peopleIcon from "../../public/svg-images/svgexport-9.svg"
@@ -11,12 +11,12 @@ import bellSVG from "../../public/svg-images/bell.svg"
 import { WorkDropdown } from "./header-comps/WorkDropdown"
 import defaultProfileSVG from "../../public/default_profile.png"
 import logoutSVG from "../../public/svg-images/box-arrow-right.svg"
-import { verify_user } from "~/routes/api/session_management"
-import { get_user_profile_image, logout_user } from "~/routes/api/user"
+import { get_account, get_user_profile_image, logout_user } from "~/routes/api/user"
 
 export const Header = () => {
-    const user = createAsync(verify_user)
-    const get_profile_image = createAsync(get_user_profile_image)
+    const params = useParams()
+    const user = createAsync(get_account)
+    const get_profile_image = createAsync(() => get_user_profile_image(params.id))
     const [displayOptions, setDisplayOption] = createSignal(false)
     const [chosenQuery, setChosenQuery] = createSignal("ხელოსანი")
     const [value, setValue] = createSignal("")
@@ -65,20 +65,22 @@ export const Header = () => {
 
     return <>
         <header class="border-b sticky top-0 left-0 right-0 z-50 bg-white border-slate-300">
-            <div class="flex itmes-center py-3 m-auto w-[90%]">
-                <A href="/" class="text-xl leading-[25px] text-dark-green font-bold font-[thin-font]">შეუკეთე</A>
+            <div class="flex h-[45px] itmes-center m-auto w-[90%]">
                 <div class="flex w-full justify-between items-center font-[normal-font]">
-                    <nav class="px-3 flex justify-around font-[thin-font] font-bold text-sm gap-x-3">
-                        <div class="relative group flex items-center">
-                            <div class="flex cursor-pointer items-center">
+                    <nav class="px-3 flex font-[thin-font] font-bold text-sm gap-x-3 items-center">
+                        <A href="/" class="text-dark-green font-[thin-font] font-bold text-xl">შეუკეთე</A>
+                        <div class="relative group">
+                            <div class="cursor-pointer flex">
                                 <A href="/talent">მოძებნე ხელოსანი</A>
                                 <img class="transform transition-transform duration-300 group-hover:rotate-180" src={dropdownSVG} alt="dropdown icon"></img>
                             </div>
                             <WorkDropdown></WorkDropdown>
                         </div>
-                        <div class="flex group relative items-center">
-                            <A href="/work">მოძებნე სამუშაო</A>
-                            <img class="transform transition-transform duration-300 group-hover:rotate-180" src={dropdownSVG}></img>
+                        <div class="group relative">
+                            <div class=" cursor-pointer flex">
+                                <A href="/work">მოძებნე სამუშაო</A>
+                                <img class="transform transition-transform duration-300 group-hover:rotate-180" src={dropdownSVG}></img>
+                            </div>
                             <WorkDropdown></WorkDropdown>
                         </div>
                         <A href="/namushevari">გაყიდე ნამუშევარი</A>
@@ -148,7 +150,7 @@ export const Header = () => {
                 </button>
             </div>}
             {displayAccountDropdown() && <div id="account-menu" class="shadow-2xl flex flex-col gap-y-2 rounded-b-lg p-3 absolute border-t border-slate-300 right-[0%] z-50 bg-white opacity-100 w-[230px]">
-                <A href={`/profile/${user().profId}`} class="p-2 flex items-center gap-x-2 font-[thin-font] font-bold hover:bg-[rgb(243,244,246)] rounded-[16px] text-left w-full">
+                <A href={user().role === "დამკვეთი" ? `/damkveti/${user().profId}` : `/xelosani/${user().profId}`} class="p-2 flex items-center gap-x-2 font-[thin-font] font-bold hover:bg-[rgb(243,244,246)] rounded-[16px] text-left w-full">
                     <img src={person}></img>
                     <p>პროფილი</p>
                 </A>
@@ -167,67 +169,67 @@ export const Header = () => {
                     <img class="rounded-[50%] w-[28px] h-[28px]" src={defaultProfileSVG}></img>
                     <div class="flex flex-col">
                         <p class="font-bold text-sm font-[thin-font]">ლუკა ჩიკვაიძე</p>
-                        <p class="font-bold text-gr text-xs font-[thin-font]">მაქსიმუმ 60 ჩარაქთერი</p>
+                        <p class="font-bold break-all text-gr text-xs font-[thin-font]">მაქსიმუმ 60 ჩარაქთერი</p>
                     </div>
                 </button>
                 <button class="text-left w-full border-t font-[thin-font] items-center hover:bg-[rgb(243,244,246)] rounded-[16px] gap-x-2 flex font-bold border-b p-2">
                     <img class="rounded-[50%] w-[28px] h-[28px]" src={defaultProfileSVG}></img>
                     <div class="flex flex-col">
                         <p class="font-bold text-sm font-[thin-font]">ლუკა ჩიკვაიძე</p>
-                        <p class="font-bold text-gr text-xs font-[thin-font]">მაქსიმუმ 60 ჩარაქთერი</p>
+                        <p class="font-bold break-all text-gr text-xs font-[thin-font]">მაქსიმუმ 60 ჩარაქთერი</p>
                     </div>
                 </button>
                 <button class="text-left w-full border-t font-[thin-font] items-center hover:bg-[rgb(243,244,246)] rounded-[16px] gap-x-2 flex font-bold border-b p-2">
                     <img class="rounded-[50%] w-[28px] h-[28px]" src={defaultProfileSVG}></img>
                     <div class="flex flex-col">
                         <p class="font-bold text-sm font-[thin-font]">ლუკა ჩიკვაიძე</p>
-                        <p class="font-bold text-gr text-xs font-[thin-font]">მაქსიმუმ 60 ჩარაქთერი</p>
+                        <p class="font-bold break-all text-gr text-xs font-[thin-font]">მაქსიმუმ 60 ჩარაქთერი</p>
                     </div>
                 </button>
                 <button class="text-left w-full border-t font-[thin-font] items-center hover:bg-[rgb(243,244,246)] rounded-[16px] gap-x-2 flex font-bold border-b p-2">
                     <img class="rounded-[50%] w-[28px] h-[28px]" src={defaultProfileSVG}></img>
                     <div class="flex flex-col">
                         <p class="font-bold text-sm font-[thin-font]">ლუკა ჩიკვაიძე</p>
-                        <p class="font-bold text-gr text-xs font-[thin-font]">მაქსიმუმ 60 ჩარაქთერი</p>
+                        <p class="font-bold break-all text-gr text-xs font-[thin-font]">მაქსიმუმ 60 ჩარაქთერი</p>
                     </div>
                 </button>
                 <button class="text-left w-full border-t font-[thin-font] items-center hover:bg-[rgb(243,244,246)] rounded-[16px] gap-x-2 flex font-bold border-b p-2">
                     <img class="rounded-[50%] w-[28px] h-[28px]" src={defaultProfileSVG}></img>
                     <div class="flex flex-col">
                         <p class="font-bold text-sm font-[thin-font]">ლუკა ჩიკვაიძე</p>
-                        <p class="font-bold text-gr text-xs font-[thin-font]">მაქსიმუმ 60 ჩარაქთერი</p>
+                        <p class="font-bold break-all text-gr text-xs font-[thin-font]">მაქსიმუმ 60 ჩარაქთერი</p>
                     </div>
                 </button>
                 <div class="py-1 px-2">
-                <A href="/message" class="text-blue-500 font-[thin-font] font-bold text-sm underline">ნახე ყველა</A>
+                    <A href="/message" class="text-blue-500 font-[thin-font] font-bold text-sm underline">ნახე ყველა</A>
                 </div>
             </div>}
             {displayNotificationDropdown() && <div id="notification-menu" class="absolute shadow-2xl flex flex-col gap-y-2 rounded-b-lg px-4 py-3 border-t border-slate-300 right-[1%] z-50 bg-white opacity-100 w-[490px]">
                 <h2 class="font-[bolder-font] text-gray-800">შეტყობინებები (5)</h2>
                 <button class="p-2 font-[thin-font] gap-x-2 font-bold hover:bg-[rgb(243,244,246)] text-left w-full border-b pb-2">
                     <p class="font-bold text-sm font-[thin-font]">ლუკა ჩიკვაიძე</p>
-                    <p class="font-bold text-gr text-xs font-[thin-font]">მაქსიმუმ 60 ჩარაქთერი</p>
+                    <p class="font-bold break-all text-gr text-xs font-[thin-font]">მაქსიმუმ 60 ჩარაქთერი</p>
                 </button>
                 <button class="p-2 font-[thin-font] gap-x-2 font-bold hover:bg-[rgb(243,244,246)] text-left w-full border-b pb-2">
                     <p class="font-bold text-sm font-[thin-font]">ლუკა ჩიკვაიძე</p>
-                    <p class="font-bold text-gr text-xs font-[thin-font]">მაქსიმუმ 60 ჩარაქთერი</p>
+                    <p class="font-bold break-all text-gr text-xs font-[thin-font]">მაქსიმუმ 60 ჩარაქთერი</p>
                 </button>
                 <button class="p-2 font-[thin-font] gap-x-2 font-bold hover:bg-[rgb(243,244,246)] text-left w-full border-b pb-2">
                     <p class="font-bold text-sm font-[thin-font]">ლუკა ჩიკვაიძე</p>
-                    <p class="font-bold text-gr text-xs font-[thin-font]">მაქსიმუმ 60 ჩარაქთერი</p>
+                    <p class="font-bold break-all text-gr text-xs font-[thin-font]">მაქსიმუმ 60 ჩარაქთერი</p>
                 </button>
                 <button class="p-2 font-[thin-font] gap-x-2 font-bold hover:bg-[rgb(243,244,246)] text-left w-full border-b pb-2">
                     <p class="font-bold text-sm font-[thin-font]">ლუკა ჩიკვაიძე</p>
-                    <p class="font-bold text-gr text-xs font-[thin-font]">მაქსიმუმ 60 ჩარაქთერი</p>
+                    <p class="font-bold break-all text-gr text-xs font-[thin-font]">მაქსიმუმ 60 ჩარაქთერი</p>
                 </button>
                 <button class="p-2 font-[thin-font] gap-x-2 font-bold hover:bg-[rgb(243,244,246)] text-left w-full border-b pb-2">
                     <div class="flex flex-col">
                         <p class="font-bold text-sm font-[thin-font]">ლუკა ჩიკვაიძე</p>
-                        <p class="font-bold text-gr text-xs font-[thin-font]">მაქსიმუმ 60 ჩარაქთერი</p>
+                        <p class="font-bold break-all text-gr text-xs font-[thin-font]">მაქსიმუმ 60 ჩარაქთერი</p>
                     </div>
                 </button>
-                <div class="px-2 py-1"> 
-                <A href="/message" class="text-blue-500 font-[thin-font] font-bold text-sm underline">ნახე ყველა</A>
+                <div class="px-2 py-1">
+                    <A href="/message" class="text-blue-500 font-[thin-font] font-bold text-sm underline">ნახე ყველა</A>
                 </div>
             </div>}
         </header>

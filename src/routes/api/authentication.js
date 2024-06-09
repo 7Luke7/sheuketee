@@ -37,7 +37,7 @@ export const LoginUser = async (formData) => {
             throw new Error("პაროლი არასწორია.");
         }
 
-        const sessionId = await create_session(user._id);
+        const sessionId = await create_session(user.profId, user._id);
         
         return json(JSON.stringify({ message: "წარმატებით შეხვედით." }), {
             status: 200,
@@ -130,7 +130,7 @@ export const RegisterUser =  async (formData, role) => {
         await new_user.save();
         const sessionId = await create_session(new_user.profId, new_user._id)
         
-        return json({ message: "Successfully registered" }, {
+        return json({ message: "Successfully registered", prof_id: new_user.profId }, {
             status: 200,
             headers: {
               'Set-Cookie': `sessionId=${sessionId}; Path=/; HttpOnly; Secure; SameSite=strict; Max-Age=${7 * 24 * 60 * 60}`,

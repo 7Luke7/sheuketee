@@ -1,28 +1,26 @@
-import PaginateLeftSVG from "../../../../public/svg-images/svgexport-6.svg"
-import PaginateRightSVG from "../../../../public/svg-images/svgexport-14.svg"
-import DoubleArrowLeftSVG from "../../../../public/svg-images/double-arrow-left-icon.svg"
-import CheckSVG from "../../../../public/svg-images/check.svg"
-import DoubleArrowRightSVG from "../../../../public/svg-images/double-arrow-right-icon.svg"
-import { A } from "@solidjs/router"
+import chevronRight from "../../../../public/svg-images/chevron-right.svg"
+import chevronLeft from "../../../../public/svg-images/chevron-left.svg"
 
 export const Paginate = () => {
-    return <div class="flex sticky h-[35px] bottom-0 items-center justify-center bg-gray-100">
-        <img src={DoubleArrowLeftSVG} alt="პირველი"></img>
-        <img src={PaginateLeftSVG} alt="უკან"></img>
-        <div class="flex items-center gap-x-1">
-            <A class="font-[thin-font] text-gray-900 font-bold" href="#">1</A>
-            <A class="font-[thin-font] text-gray-900 font-bold" href="#">2</A>
-            <A class="font-[thin-font] text-gray-900 font-bold" href="#">3</A>
-            <A class="font-[thin-font] text-gray-900 font-bold" href="#">4</A>
-            <A class="font-[thin-font] text-gray-900 font-bold" href="#">5</A>
-        </div>
-        <img src={PaginateRightSVG} alt="წინ"></img>
-        <img src={DoubleArrowRightSVG} alt="ბოლო"></img>
-        <p class="px-2 flex items-center font-[thin-font] text-xs text-gray-900 font-bold">
-            გაჩვენებთ <input value={5} class="text-center border outline-none w-[24px] h-[24px]" type="text">
-            5</input> 2000-დან <A class="bg-dark-green" href="#ids">
-                <img src={CheckSVG}></img>
-            </A>
-        </p>
-    </div>
+    return <div class="flex sticky bottom-0 h-[35px] items-center justify-center bg-gray-100">
+    <nav class="flex items-center gap-x-2 min-w-max">
+        <a class="text-gray-500 hover:text-gray-900 p-1 inline-flex items-center md:mr-4 mr-1" href="javascript:;">
+            <span class="w-8 h-8 rounded-full transition-all duration-150 flex justify-center items-center hover:border hover:border-dark-green-hover">
+                <img src={chevronLeft}></img>
+            </span>
+        </a>
+        <a class="w-8 h-8 text-gray-500 p-1 inline-flex items-center justify-center border border-gray-200 rounded-full transition-all duration-150 hover:text-white hover:bg-dark-green-hover hover:border-dark-green-hover " href="javascript:;" aria-current="page">1</a>
+        <a class="w-8 h-8 bg-dark-green text-white p-1 inline-flex items-center justify-center rounded-full transition-all duration-150 hover:bg-dark-green-hover hover:text-white" href="javascript:;">2</a>
+        <a class="w-8 h-8 text-gray-500 p-1 inline-flex items-center justify-center border border-gray-200 rounded-full transition-all duration-150 hover:text-white hover:bg-dark-green-hover hover:border-dark-green-hover " href="javascript:;">3</a>
+        <a class="w-8 h-8 text-gray-500 p-1 inline-flex items-center justify-center border border-gray-200 rounded-full transition-all duration-150 hover:text-white hover:bg-dark-green-hover hover:border-dark-green-hover " href="javascript:;">4</a>
+        <a class="w-8 h-8 text-gray-500 p-1 inline-flex items-center justify-center border border-gray-200 rounded-full transition-all duration-150 hover:text-white hover:bg-dark-green-hover hover:border-dark-green-hover " href="javascript:;">...</a>
+        <a class="w-8 h-8 text-gray-500 p-1 inline-flex items-center justify-center border border-gray-200 rounded-full transition-all duration-150 hover:text-white hover:bg-dark-green-hover hover:border-dark-green-hover " href="javascript:;">10</a>
+        <a class="text-gray-500 hover:text-gray-900 p-1 inline-flex items-center md:ml-4 ml-1" href="javascript:;">
+            <span class="w-8 h-8 rounded-full transition-all duration-150 flex justify-center items-center hover:border hover:border-dark-green-hover ">
+                <img src={chevronRight}></img>              
+            </span>
+        </a>
+    </nav>
+</div>
+
 }

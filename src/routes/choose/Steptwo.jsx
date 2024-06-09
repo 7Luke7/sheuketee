@@ -15,7 +15,7 @@ export const Steptwo = ({ setStep, current }) => {
       if (result.error) {
         setError(result.error);
       } else {
-        location.href = "/setup"
+        location.href = `/setup`
       }
   };
 
