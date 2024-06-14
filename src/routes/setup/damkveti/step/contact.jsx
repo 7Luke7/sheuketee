@@ -1,5 +1,5 @@
 import { createAsync } from "@solidjs/router"
-import { get_account } from "../../api/user";
+import { get_account } from "../../../api/user";
 import { Match, Show, Switch } from "solid-js";
 
 const Contact = () => {

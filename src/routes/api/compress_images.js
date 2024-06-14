@@ -1,3 +1,4 @@
+"use server"
 import sharp from "sharp"
 
 export const compress_image = async (buffer, quality, width, height) => {
@@ -11,7 +12,7 @@ export const compress_image = async (buffer, quality, width, height) => {
                 formatOptions = { quality };
                 break;
             case 'png':
-                formatOptions = { quality: Math.floor(quality / 100 * 9) }; // PNG quality is 0-9
+                formatOptions = { quality: Math.floor(quality / 100 * 9) };
                 break;
             case 'webp':
                 formatOptions = { quality };

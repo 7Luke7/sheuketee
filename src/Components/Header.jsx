@@ -1,6 +1,6 @@
 import { A, createAsync, useParams } from "@solidjs/router"
 import { Search } from "./Search"
-import { Match, Switch, createEffect, createSignal, onCleanup } from "solid-js"
+import { Match, Switch, batch, createEffect, createSignal, onCleanup } from "solid-js"
 import peopleIcon from "../../public/svg-images/svgexport-9.svg"
 import jobsIcon from "../../public/svg-images/svgexport-11.svg"
 import dropdownSVG from "../../public/svg-images/svgexport-8.svg"
@@ -11,23 +11,23 @@ import bellSVG from "../../public/svg-images/bell.svg"
 import { WorkDropdown } from "./header-comps/WorkDropdown"
 import defaultProfileSVG from "../../public/default_profile.png"
 import logoutSVG from "../../public/svg-images/box-arrow-right.svg"
-import { get_account, get_user_profile_image, logout_user } from "~/routes/api/user"
+import { logout_user } from "~/routes/api/user"
+import { header } from "~/routes/api/header"
 
 export const Header = () => {
-    const params = useParams()
-    const user = createAsync(get_account)
-    const get_profile_image = createAsync(() => get_user_profile_image(params.id))
-    const [displayOptions, setDisplayOption] = createSignal(false)
+    const user = createAsync(header)
     const [chosenQuery, setChosenQuery] = createSignal("ხელოსანი")
     const [value, setValue] = createSignal("")
     const [displayAccountDropdown, setDisplayAccountDropdown] = createSignal(false)
     const [displayNotificationDropdown, setDisplayNotificationDropdown] = createSignal(false)
     const [displayMessageDropdown, setDisplayMessageDropdown] = createSignal(false)
+    const [displayOptions, setDisplayOption] = createSignal(false)
 
     const switch_query_options = (query) => {
         if (query === "ხელოსანი" || query === "სამუშაო") {
-            setChosenQuery(query)
-            setDisplayOption(false)
+            batch(() => {
+setChosenQuery(query)
+            setDisplayOption(false)})
             document.getElementById("search_input").focus()
         } else {
             alert("მოძებნა ვერ მოხერხდება ცადეთ თავიდან")
@@ -38,11 +38,12 @@ export const Header = () => {
         if (event.target.parentElement.id === "notification-menu" || event.target.id === "notification-menu" || event.target.id === "message-menu" || event.target.parentElement.id === "message-menu" || event.target.parentElement.id === "search_query_options_button" || event.target.parentElement.id === "display-account" || event.target.parentElement.id === "display-message" || event.target.parentElement.id === "display-notif" || event.target.id === "options-menu" || event.target.parentElement.id === "options-menu" || event.target.id === "account-menu" || event.target.parentElement.id === "account-menu") {
             return
         } else {
-            setDisplayAccountDropdown(false)
-            setDisplayMessageDropdown(false)
-            setDisplayOption(false)
-            setDisplayNotificationDropdown(false)
-        }
+            batch(() => {
+                setDisplayAccountDropdown(false)
+                setDisplayMessageDropdown(false)
+                setDisplayOption(false)
+                setDisplayNotificationDropdown(false)})
+            }
     };
 
     createEffect(() => {
@@ -68,7 +69,7 @@ export const Header = () => {
             <div class="flex h-[45px] itmes-center m-auto w-[90%]">
                 <div class="flex w-full justify-between items-center font-[normal-font]">
                     <nav class="px-3 flex font-[thin-font] font-bold text-sm gap-x-3 items-center">
-                        <A href="/" class="text-dark-green font-[thin-font] font-bold text-xl">შეუკეთე</A>
+                        <A href="/" class="text-dark-green text-xl">შეუკეთე</A>
                         <div class="relative group">
                             <div class="cursor-pointer flex">
                                 <A href="/talent">მოძებნე ხელოსანი</A>
@@ -86,7 +87,6 @@ export const Header = () => {
                         <A href="/namushevari">გაყიდე ნამუშევარი</A>
                         <A href="/work">რატომ შეუკეთე</A>
                         <A href="/news">სიახლე</A>
-                        <A href="/blog">ბლოგი</A>
                     </nav>
                     <div class="px-3 font-[thin-font] text-sm items-center font-bold flex gap-x-3">
                         <Search value={value} setValue={setValue} chosenQuery={chosenQuery} setDisplayAccountDropdown={setDisplayAccountDropdown} setDisplayMessageDropdown={setDisplayMessageDropdown} setDisplayNotificationDropdown={setDisplayNotificationDropdown} setDisplayOption={setDisplayOption}></Search>
@@ -95,29 +95,33 @@ export const Header = () => {
                                 <div class="flex items-center gap-x-3">
                                     <button id="display-notif" class="relative">
                                         <img onClick={() => {
-                                            setDisplayOption(false)
+                                            batch(() => {
+                                                setDisplayOption(false)
                                             setDisplayAccountDropdown(false)
                                             setDisplayMessageDropdown(false)
                                             setDisplayNotificationDropdown((prev) => !prev)
+                                            })
                                         }} src={bellSVG}></img>
                                         <div class="bg-red-700 pointer-events-none absolute top-3 right-0 w-[8px] h-[8px] text-white font-thin text-xs font-[thin-font] rounded-[50%]"></div>
                                     </button>
                                     <button id="display-message" class="relative" onClick={() => {
-                                        setDisplayOption(false)
+                                        batch(() => {
+                                            setDisplayOption(false)
                                         setDisplayAccountDropdown(false)
                                         setDisplayNotificationDropdown(false)
-                                        setDisplayMessageDropdown((prev) => !prev)
+                                        setDisplayMessageDropdown((prev) => !prev)})
                                     }}>
                                         <img src={envelopeSVG}></img>
                                         <div class="bg-red-700 pointer-events-none absolute top-3 right-0 w-[8px] h-[8px] text-white font-thin text-xs font-[thin-font] rounded-[50%]"></div>
                                     </button>
                                     <button id="display-account" onClick={() => {
-                                        setDisplayMessageDropdown(false)
+                                        batch(() => {
+                                            setDisplayMessageDropdown(false)
                                         setDisplayOption(false)
                                         setDisplayNotificationDropdown(false)
-                                        setDisplayAccountDropdown((prev) => !prev)
+                                        setDisplayAccountDropdown((prev) => !prev)})
                                     }}>
-                                        <img class="rounded-[50%] border-2 w-[25px] h-[25px]" src={get_profile_image() || defaultProfileSVG}></img>
+                                        <img class="rounded-[50%] border-2 w-[25px] h-[25px]" src={user()?.profile_image || defaultProfileSVG}></img>
                                     </button>
                                 </div>
                             </Match>
@@ -150,7 +154,7 @@ export const Header = () => {
                 </button>
             </div>}
             {displayAccountDropdown() && <div id="account-menu" class="shadow-2xl flex flex-col gap-y-2 rounded-b-lg p-3 absolute border-t border-slate-300 right-[0%] z-50 bg-white opacity-100 w-[230px]">
-                <A href={user().role === "დამკვეთი" ? `/damkveti/${user().profId}` : `/xelosani/${user().profId}`} class="p-2 flex items-center gap-x-2 font-[thin-font] font-bold hover:bg-[rgb(243,244,246)] rounded-[16px] text-left w-full">
+                <A href={`/${user().role}/${user().profId}`} class="p-2 flex items-center gap-x-2 font-[thin-font] font-bold hover:bg-[rgb(243,244,246)] rounded-[16px] text-left w-full">
                     <img src={person}></img>
                     <p>პროფილი</p>
                 </A>

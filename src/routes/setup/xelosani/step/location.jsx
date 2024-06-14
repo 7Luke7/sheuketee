@@ -1,10 +1,10 @@
 import { createSignal } from "solid-js";
-import cities from "../../work/components/filter-comps/cities.json"
+import cities from "../../../work/components/filter-comps/cities.json"
 
 const Location = () => {
   const [state, setState] = createSignal("")
 
-  return <div class="bg-white p-2">
+  return <div class="bg-white w-full p-2">
     <div>
       <label
         htmlFor="state"

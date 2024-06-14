@@ -1,5 +1,5 @@
-import WomanSVG from "../../../../public/svg-images/woman.svg"
-import ManSVG from "../../../../public/svg-images/man.svg"
+import WomanSVG from "../../../../../public/svg-images/woman.svg"
+import ManSVG from "../../../../../public/svg-images/man.svg"
 import { createSignal } from "solid-js";
 
 const Gender = () => {

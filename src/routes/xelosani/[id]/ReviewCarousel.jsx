@@ -64,10 +64,9 @@ export const ReviewCarousel = () => {
         const swiperParams = {
             autoHeight: true,
             pagination: true,
-            loop: true,
             direction: "horizontal",
-              loop: true,
-              breakpoints: {
+            loop: true,
+            breakpoints: {
                 640: {
                     slidesPerView: 2,
                 },

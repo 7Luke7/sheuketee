@@ -1,8 +1,8 @@
 import { createAsync } from "@solidjs/router";
-import defaultProfileSVG from "../../../../public/default_profile.png"
-import CameraSVG from "../../../../public/svg-images/camera.svg"
-import { get_user_profile_image } from "../../api/user";
-import { processFile } from "../../xelosani/[id]/ProfileLeft";
+import defaultProfileSVG from "../../../../../public/default_profile.png"
+import CameraSVG from "../../../../../public/svg-images/camera.svg"
+import { get_user_profile_image } from "../../../api/user";
+import { processFile } from "../../../xelosani/[id]/ProfileLeft";
 import { Suspense } from "solid-js";
    
 const ProfilePictureStep = () => {

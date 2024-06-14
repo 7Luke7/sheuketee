@@ -1,7 +1,7 @@
-import clear from "../../../../public/svg-images/svgexport-12.svg"
-import jobs from "../../work/components/filter-comps/all_jobs.json"
+import clear from "../../../../../public/svg-images/svgexport-12.svg"
+import jobs from "../../../work/components/filter-comps/all_jobs.json"
 import { Match, Switch, createEffect, createSignal, onCleanup } from "solid-js";
-import "../../work/components/scrollbar.css"
+import "../../../work/components/scrollbar.css"
 
 const Skills = () => {
   const [allJobs, setAllJobs] = createSignal()
@@ -52,8 +52,11 @@ const Skills = () => {
           </For>
         </div>
       </Show>
-      <form class="w-full relative">
-        <input onInput={job_search} id="input" class="bg-gray-200 border border-gray-200 rounded appearance-none w-full bg-transparent outline-none block text-gray-700 font-bold font-[thin-font] leading-tight py-3 px-4" type="text" name="skill" placeholder="მოძებნე უნარი/ხელობა" />
+      <form autocomplete="off" class="w-full relative">
+        <input onInput={job_search} id="input" onClick={() => {
+          setAllJobs(jobs)
+          document.getElementById("job_scroll").style.display = "block"
+          }} class="bg-gray-200 border border-gray-200 rounded appearance-none w-full bg-transparent outline-none block text-gray-700 font-bold font-[thin-font] leading-tight py-3 px-4" type="text" name="skill" placeholder="მოძებნე უნარი/ხელობა" />
         <Show when={allJobs()}>
           <div id="job_scroll" ref={el => job_srcoll = el} class="border custom-scrollbar absolute bg-white z-[10] h-[200px] overflow-y-scroll border-t-0 border-gray-200 w-full">
             <Switch>

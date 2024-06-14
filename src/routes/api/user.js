@@ -1,33 +1,41 @@
 "use server"
 import { redisClient, s3 } from "~/entry-server";
-import { User } from "./models/User"
+import { Damkveti, Xelosani } from "./models/User"
 import { compress_image } from "./compress_images";
 import { PutObjectCommand, GetObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { getRequestEvent } from "solid-js/web";
 import { cache, json } from "@solidjs/router";
-import { create_serializable_object, create_serializable_object_secure } from "./utils/user_manipulations";
 import bcrypt from "bcrypt"
 import { verify_user } from "./session_management";
 
 export const get_account = cache(async () => {
     try {   
         const event = getRequestEvent()
-        const user_id = await verify_user(event) 
-    
-        const user = await User.findById(user_id.userId)
-        const serialized_user = create_serializable_object_secure(user)
+        const redis_user = await verify_user(event) 
 
-        return {
-            ...serialized_user,
-            status: 200
+        if (redis_user === 401) {
+            throw new Error(401)
         }
+
+        if (redis_user.role === 1) {
+            const user = await Xelosani.findById(redis_user.userId, '-_id -__v -skills -updatedAt -notificationDevices -createdAt -password -gender -age -about -stepPercent -profId')
+            return user._doc
+        } else if(redis_user.role === 2) {
+            const user = await Damkveti.findById(redis_user.userId, '-_id -__v -skills -updatedAt -notificationDevices -createdAt -password -gender -age -about -stepPercent -profId')
+            return user._doc
+        } else {
+            throw new Error("როლი არ არსებობს.")
+        }
+
         } catch (error) {
-        console.log("GET USER", error)
-    }
+            if (error.message === "401") {
+                return 401
+            }
+        }
 }, "account")
 
-export const get_user = cache(async (prof_id) => {
+export const get_xelosani = async (prof_id) => {
     try {   
         const event = getRequestEvent()
         const redis_user = await verify_user(event)  
@@ -36,64 +44,38 @@ export const get_user = cache(async (prof_id) => {
             throw new Error(401)
         }
 
-        const user = await User.findById(redis_user.userId)
-        const serialized_user = create_serializable_object(user)
-        return {...serialized_user, status: 200}
+        const {createdAt, _doc} = await Xelosani.findById(redis_user.userId, '-_id -__v -updatedAt -profId -notificationDevices -password')
+        const profile_image = await get_user_profile_image(prof_id)
+        return {..._doc, createdAt: createdAt.toISOString(), profile_image, status: 200}
     } catch (error) {
         if (error.message === "401") {
-            const user = await User.findOne({profId: prof_id})
-            const serialized_user = create_serializable_object_secure(user)
-            return {...serialized_user, status: 401}
+            const {createdAt, _doc} = await Xelosani.findOne({profId: prof_id}, '-_id -__v -profId -stepPercent -notificationDevices -updatedAt -password')
+            const profile_image = await get_user_profile_image(prof_id)
+            return {..._doc, createdAt: createdAt.toISOString(), profile_image, status: 401}
         }
-        console.log("GET USER", error)
     }
-}, "user")
-
-export const get_user_profile_image = cache(async (id) => {
+}
+export const get_user_profile_image = async (id) => {
     try {
-        const event = getRequestEvent()
-        const redis_user = await verify_user(event)
-        
-        if (redis_user === 401) {
-            throw new Error("401")
-        }
-
         const params = {
             Bucket: process.env.S3_BUCKET_NAME,
             Region: "eu-central-1",
-            Key: `${redis_user.profId}-profpic`
+            Key: `${id}-profpic`
         }
         const headCommand = new HeadObjectCommand(params);
         await s3.send(headCommand);
        
         const command = new GetObjectCommand(params);
         const url = await getSignedUrl(s3, command, { expiresIn: 3600 }); 
-        return json(url, {
-            status: 200
-        })
+        return url
     } catch (error) {
-        if (error.message === "401") {
-            const params = {
-                Bucket: process.env.S3_BUCKET_NAME,
-                Region: "eu-central-1",
-                Key: `${id}-profpic`
-            }
-            const headCommand = new HeadObjectCommand(params);
-            await s3.send(headCommand);
-           
-            const command = new GetObjectCommand(params);
-            const url = await getSignedUrl(s3, command, { expiresIn: 3600 }); 
-            return json(url, {
-                status: 200
-            })
-        }
         console.log("PROFILE IMAGE", error)
     }
-}, "profpic")
+}
 
 export const upload_profile_picture = async (buffer, redis_user) => {
     try {
-        const compressed_buffer = await compress_image(buffer, 80, 200, 200)
+        const compressed_buffer = await compress_image(buffer, 80, 190, 180)
         const params = {
             Bucket: process.env.S3_BUCKET_NAME, 
             Key: `${redis_user.profId}-profpic`,
@@ -104,7 +86,7 @@ export const upload_profile_picture = async (buffer, redis_user) => {
         };
         const upload_image = new PutObjectCommand(params) 
         await s3.send(upload_image)
-        return compressed_buffer
+        return 200
     } catch (error) {
         console.log(error) 
     }
@@ -132,38 +114,52 @@ export const toggle_notification = async (target) => {
         const event = getRequestEvent()
         const user_id = await verify_user(event)
  
-        const user = await User.findById(user_id.userId)
-
         if (target === "phone") {
-            const phone_index = user.notificationDevices.findIndex((a) => a === "phone")
-            if (typeof phone_index === "number" && phone_index >= 0) {
-                user.notificationDevices.splice(phone_index, phone_index + 1)
-                await user.save()
-                return json("მობილურზე შეტყობინებები გამოირთო", {
-                    status: 200
-                })
+            const updated_xelosani = await Xelosani.findByIdAndUpdate(user_id.userId,
+                [
+                {
+                    $set: {
+                    notificationDevices: {
+                        $cond: {
+                            if: { $in: [target, "$notificationDevices"] },
+                            then: { $filter: { input: "$notificationDevices", cond: { $ne: ["$$this", target] } } },
+                            else: { $concatArrays: ["$notificationDevices", [target]] }
+                        }
+                    }
+                    }
+                },
+                ],
+                { new: true, fields: { notificationDevices: 1 } }
+            );
+          
+            if (updated_xelosani.notificationDevices.includes(target)) {
+                return 1
             } else {
-                user.notificationDevices.push("phone")
-                await user.save()
-                return json("მობილურზე შეტყობინებები ჩაირთო", {
-                    status: 200
-                })
+                return 2
             }
         } else if (target === "email"){
-            const email_index = user.notificationDevices.findIndex((a) => a === "email")
-            if (typeof email_index === "number" && email_index >= 0) {
-                user.notificationDevices.splice(email_index, email_index + 1)
-                await user.save()
-                return json("მეილზე შეტყობინებები გამოირთო", {
-                    status: 200
-                })
-            } else {
-                user.notificationDevices.push("email")
-                await user.save()
-                return json("მეილზე შეტყობინებები ჩაირთო", {
-                    status: 200
-                })
-            } 
+                const updated_xelosani = await Xelosani.findByIdAndUpdate(user_id.userId,
+                    [
+                    {
+                        $set: {
+                        notificationDevices: {
+                            $cond: {
+                                if: { $in: [target, "$notificationDevices"] },
+                                then: { $filter: { input: "$notificationDevices", cond: { $ne: ["$$this", target] } } },
+                                else: { $concatArrays: ["$notificationDevices", [target]] }
+                            }
+                        }
+                        }
+                    },
+                    ],
+                    { new: true, fields: { notificationDevices: 1 } }
+                );
+              
+                if (updated_xelosani.notificationDevices.includes(target)) {
+                    return 1
+                } else {
+                    return 2
+                }
         } else {
             return 500
         }
@@ -177,8 +173,8 @@ export const get_notification_targets = async () => {
         const event = getRequestEvent()
         const user_id = await verify_user(event)
  
-        const user = await User.findById(user_id.userId)
-        return JSON.stringify(user.notificationDevices)
+        const user = await Xelosani.findById(user_id.userId, "notificationDevices -_id")
+        return user.notificationDevices
     } catch (error) {
         console.log(error)
     }
@@ -189,15 +185,15 @@ export const update_password = async (new_password) => {
         const event = getRequestEvent()
         const user_id = await verify_user(event)
  
-        const user = await User.findById(user_id.userId)
         const salt = await bcrypt.genSalt(8);
         const hash = await bcrypt.hash(new_password, salt);
-
-        user.password = hash
-        await user.save()
-        return json("წარმატება", {
-            status: 200
+        await Xelosani.findByIdAndUpdate(user_id.userId, {
+            $set: {
+                'password': hash
+            }
         })
+
+        return "წარმატება"
     } catch (error) {
         console.log(error)
     }
@@ -211,20 +207,20 @@ export const modify_user = async (firstname, lastname, email, phone) => {
         const event = getRequestEvent();
         const user_id = await verify_user(event)
  
-        const user = await User.findById(user_id.userId)
+        const user = await Xelosani.findById(user_id.userId)
         const validateEmail = (email) => emailRegex.test(email);
         const validatePhone = (phone) => phoneRegex.test(phone);
 
         const checkExistingEmail = async (email) => {
             if (email && email.length) {
-                return await User.findOne({ email });
+                return await Xelosani.findOne({ email });
             }
             return null;
         };
 
         const checkExistingPhone = async (phone) => {
             if (phone && phone.length) {
-                return await User.findOne({ phone });
+                return await Xelosani.findOne({ phone });
             }
             return null;
         };
@@ -264,6 +260,7 @@ export const modify_user = async (firstname, lastname, email, phone) => {
             if (email && email.length) user.email = email;
             if (phone && phone.length) user.phone = phone;
 
+            user.stepPercent = Math.ceil(user.stepPercent + 14.28)
             await user.save();
             return json({
                 state: "წარმატება",

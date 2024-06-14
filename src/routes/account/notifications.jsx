@@ -1,26 +1,13 @@
-import { createAsync, useNavigate } from "@solidjs/router";
+import { createAsync } from "@solidjs/router";
 import { get_notification_targets, toggle_notification } from "~/routes/api/user";
 import exclamationSVG from "../../../public/svg-images/exclamation.svg"
-
-const fetchNotificationTargets = async (navigate) => {
-  try {
-    const response = await get_notification_targets();
-    const data = JSON.parse(response);
-    if (data === 401) {
-      navigate("/login")
-    }
-    return data;
-  } catch (error) {
-    alert(error)
-  }
-};
 
 const toggleMailNotifications = async (emailRef) => {
   try {
     const response = await toggle_notification("email")
-    if (response === "მეილზე შეტყობინებები გამოირთო") {
+    if (response === 2) {
       emailRef.checked = false
-    } else if (response === "მეილზე შეტყობინებები ჩაირთო") {
+    } else if (response === 1) {
       emailRef.checked = true
     }
   } catch (error) {
@@ -31,9 +18,9 @@ const toggleMailNotifications = async (emailRef) => {
 const toggleMobileNotifications = async (mobileRef) => {
   try {
     const response = await toggle_notification("phone")
-    if (response === "მობილურზე შეტყობინებები გამოირთო") {
+    if (response === 2) {
       mobileRef.checked = false
-    } else if (response === "მობილურზე შეტყობინებები ჩაირთო") {
+    } else if (response === 1) {
       mobileRef.checked = true
     }
   } catch (error) {
@@ -42,8 +29,7 @@ const toggleMobileNotifications = async (mobileRef) => {
 }
 
 const Notifications = () => {
-  const navigate = useNavigate()
-  const notifTargets = createAsync(() => fetchNotificationTargets(navigate))
+  const notifTargets = createAsync(get_notification_targets)
   let emailNotif; 
   let mobileNotif;
 

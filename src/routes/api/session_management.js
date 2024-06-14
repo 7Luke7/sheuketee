@@ -2,12 +2,10 @@
 import crypto from "crypto"
 import { redisClient } from "~/entry-server";
 
-export const create_session = async (profId, userId) => {
+export const create_session = async (profId, userId, role) => {
     try {
-        const expires = Date.now() + 7 * 24 * 60 * 60 * 1000;
-
         const session_id = crypto.randomBytes(16).toString("hex")
-        await redisClient.set(session_id, JSON.stringify({ profId, userId, expires }), {PX: 7 * 24 * 60 * 60 * 1000});
+        await redisClient.set(session_id, JSON.stringify({ profId, userId, role }), {PX: 7 * 24 * 60 * 60 * 1000});
 
         return session_id
     } catch (error) {

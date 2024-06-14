@@ -1,45 +1,63 @@
 "use server"
-import {User} from "./models/User";
+import {Damkveti, Xelosani} from "./models/User";
 import bcrypt from "bcrypt"
 import { json } from "@solidjs/router";
 import { create_session } from "./session_management";
 import crypto from "crypto"
+import { HandleError } from "./utils/errors/handle_errors";
+import { CustomError } from "./utils/errors/custom_errors";
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const phoneRegex = /^\d{9}$/;
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const phoneRegex = /^\d{9}$/
 
 export const LoginUser = async (formData) => {
     const phoneEmail = formData.get("phoneEmail");
     const password = formData.get("password");
     
-    try {
-        if (!emailRegex.test(phoneEmail) && !phoneRegex.test(phoneEmail)) {
-            throw new Error("მეილი ან ტელეფონის ნომერი არასწორია.");
-        }
+    try {        
+        let role;
+        let user;
         
         if (password.length < 8) {
-            throw new Error("პაროლი უნდა შეიცავდეს მინიმუმ 8 სიმბოლოს.");
+            throw new CustomError("password", "პაროლი უნდა შეიცავდეს მინიმუმ 8 სიმბოლოს.").ExntendToErrorName("ValidationError")
         }
-
-        let user;
+        
         if (emailRegex.test(phoneEmail)) {
-            user = await User.findOne({ email: phoneEmail });
+            user = await Xelosani.findOne({ email: phoneEmail }, 'password _id profId');
+            if (user) {
+                role = 1;
+            } else {
+                user = await Damkveti.findOne({ email: phoneEmail }, 'password _id profId');
+                if (user) {
+                    role = 2;
+                }
+            }
         } else if (phoneRegex.test(phoneEmail)) {
-            user = await User.findOne({ phone: phoneEmail });
+            user = await Xelosani.findOne({ phone: phoneEmail }, 'password _id profId');
+            if (user) {
+                role = 1;
+            } else {
+                user = await Damkveti.findOne({ phone: phoneEmail }, 'password _id profId');
+                if (user) {
+                    role = 2;
+                }
+            }
+        } else {
+            throw new CustomError("email", "მეილი ან ტელეფონის ნომერი არასწორია.").ExntendToErrorName("ValidationError")
         }
 
         if (!user) {
-            throw new Error("მომხმარებელი ვერ მოიძებნა.");
+            throw new CustomError("email", "მომხმარებელი მეილით ან ტელეფონის ნომრით არ არსებობს.").ExntendToErrorName("ValidationError");
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            throw new Error("პაროლი არასწორია.");
+            throw new CustomError("password", "პაროლი არასწორია.").ExntendToErrorName("ValidationError");
         }
 
-        const sessionId = await create_session(user.profId, user._id);
+        const sessionId = await create_session(user.profId, user._id, role);
         
-        return json(JSON.stringify({ message: "წარმატებით შეხვედით." }), {
+        return json({ message: "წარმატებით შეხვედით.", role: role === 1 ? "xelosani" : "damkveti", profId: user.profId }, {
             status: 200,
             headers: {
                 'Set-Cookie': `sessionId=${sessionId}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${7 * 24 * 60 * 60}`,
@@ -47,99 +65,96 @@ export const LoginUser = async (formData) => {
             }
         });
     } catch (error) {
-        return {
-            error: error.message
+        if (error.name === "ValidationError") {
+            const errors = new HandleError(error).validation_error()
+            return {
+                errors, 
+                status: 400
+            }
+        } else {
+            new HandleError().global_error()
         }
     }
 };
 
-export const RegisterUser =  async (formData, role) => {
+export const RegisterUser = async (formData, role) => {
     const phoneEmail = formData.get("phoneEmail");
     const password = formData.get("password");
     const firstname = formData.get("firstname")
     const lastname = formData.get("lastname")
     const rules = formData.get("rules-confirmation")
-
+    
     try {
-        if (!firstname.length > 0) {
-            throw new Error("სახელი უნდა შეიცავდეს მინიმუმ 1 ასოს.");            
-        }
-        
-        if (!lastname.length > 0) {
-            throw new Error("გვარი უნდა შეიცავდეს მინიმუმ 1 ასოს.");            
-        }
-
-        if (!emailRegex.test(phoneEmail) && !phoneRegex.test(phoneEmail)) {
-            throw new Error("მეილი ან ტელეფონის ნომერი არასწორია.");
-        }
-
-        if (emailRegex.test(phoneEmail)) {
-            if (role === "ხელოსანი") {
-                const check_user = await User.findOne({email: phoneEmail, role: "ხელოსანი"})
-                if (check_user) {
-                    throw new Error("ხელოსანი მეილით უკვე არსებობს.")
-                }
-            } else if (role === "დამკვეთი")  {
-                const check_user = await User.findOne({email: phoneEmail, role: "დამკვეთი"})
-                if (check_user) {
-                    throw new Error("დამკვეთი მეილით უკვე არსებობს.")
-                }
-            } else {    
-                throw new Error("როლი არ არსებობს უნდა დაფიქსირდა შეცდომა გთხოვთ ცადოთ თავიდან.")
-            }
-        } else if(phoneRegex.test(phoneEmail)) {
-            if (role === "ხელოსანი") {
-                const check_user = await User.findOne({phone: phoneEmail, role: "ხელოსანი"})
-                if (check_user) {
-                    throw new Error("ხელოსანი ტელ. ნომრით უკვე არსებობს.")
-                }
-            } else if (role === "დამკვეთი")  {
-                const check_user = await User.findOne({phone: phoneEmail, role: "დამკვეთი"})
-                if (check_user) {
-                    throw new Error("დამკვეთი ტელ. ნომრით უკვე არსებობს.")
-                }
-            } else {
-                throw new Error("როლი არ არსებობს უნდა დაფიქსირდა შეცდომა გთხოვთ ცადოთ თავიდან.")
-            }
+        if (!rules) {
+            throw new CustomError("rules", "გთხოვთ დაეთანხმოთ სერვისის წესებსა და კონფიდენციალურობის პოლიტიკას.").ExntendToErrorName("ValidationError")
         }
 
         if (password.length < 8) {
-            throw new Error("პაროლი უნდა შეიცავდეს მინიმუმ 8 სიმბოლოს.");
-        }
-        if (!rules) {
-            throw new Error("გთხოვთ დაეთანხმეთ სერვისის წესებსა და კონფიდენციალურობის პოლიტიკას.");
+            throw new CustomError("password", "პაროლი უნდა შეიცავდეს მინიმუმ 8 სიმბოლოს.").ExntendToErrorName("ValidationError")
         }
 
-        const salt = await bcrypt.genSalt(8);
-        const hash = await bcrypt.hash(password, salt);
-
-        const random_id = crypto.randomUUID()
-
-        const userData = {
-            role,
-            profId: random_id,
-            firstname: firstname.trim(),
-            notificationDevices: emailRegex.test(phoneEmail) ? ["email"] : ["phone"],
-            lastname: lastname.trim(),
-            ...(emailRegex.test(phoneEmail) ? { email: phoneEmail } : { phone: phoneEmail }),
-            password: hash,
-        };
-        
-        const new_user = new User(userData);
+        if (role === "ხელოსანი") {
+            const salt = await bcrypt.genSalt(8);
+            const hash = await bcrypt.hash(password, salt);
+            const random_id = crypto.randomUUID()
+            const isEmail = emailRegex.test(phoneEmail)
             
-        await new_user.save();
-        const sessionId = await create_session(new_user.profId, new_user._id)
-        
-        return json({ message: "Successfully registered", prof_id: new_user.profId }, {
-            status: 200,
-            headers: {
-              'Set-Cookie': `sessionId=${sessionId}; Path=/; HttpOnly; Secure; SameSite=strict; Max-Age=${7 * 24 * 60 * 60}`,
-              'Content-Type': 'application/json'
-            }
-        });
+            const new_xelosani_credentials  = {
+                profId: random_id,
+                firstname: firstname.trim(),
+                notificationDevices: isEmail ? ["email"] : ["phone"],
+                lastname: lastname.trim(),
+                ...(isEmail ? { email: phoneEmail } : { phone: phoneEmail }),
+                password: hash,
+            };
+            
+            const new_user = await Xelosani.create(new_xelosani_credentials);
+            
+            const sessionId = await create_session(new_user.profId, new_user._id, 1)
+            
+            return json({ message: "success", role: "xelosani" }, {
+                status: 200,
+                headers: {
+                'Set-Cookie': `sessionId=${sessionId}; Path=/; HttpOnly; Secure; SameSite=strict; Max-Age=${7 * 24 * 60 * 60}`,
+                'Content-Type': 'application/json'
+                }
+            });
+        } else {
+            const salt = await bcrypt.genSalt(8);
+            const hash = await bcrypt.hash(password, salt);
+            const random_id = crypto.randomUUID()
+            const isEmail = emailRegex.test(phoneEmail)
+
+            const new_damkveti_credentials  = {
+                profId: random_id,
+                firstname: firstname.trim(),
+                notificationDevices: isEmail ? ["email"] : ["phone"],
+                lastname: lastname.trim(),
+                ...(isEmail ? { email: phoneEmail } : { phone: phoneEmail }),
+                password: hash,
+            };
+            
+            const new_user = await Damkveti.create(new_damkveti_credentials);
+            
+            const sessionId = await create_session(new_user.profId, new_user._id, 2)
+            
+            return json({ message: "success", role: "damkveti"}, {
+                status: 200,
+                headers: {
+                'Set-Cookie': `sessionId=${sessionId}; Path=/; HttpOnly; Secure; SameSite=strict; Max-Age=${7 * 24 * 60 * 60}`,
+                'Content-Type': 'application/json'
+                }
+            });
+        }
     } catch (error) {
-        return {
-            error: error.message
-        };
+        if (error.name === "ValidationError") {
+            const errors = new HandleError(error).validation_error()
+            return {
+                errors, 
+                status: 400
+            }
+        } else {
+            new HandleError().global_error()
+        }
     }
 }

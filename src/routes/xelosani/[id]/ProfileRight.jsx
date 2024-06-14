@@ -12,8 +12,8 @@ export const ProfileRight = ({ user }) => {
             <p class="text-xs font-[thin-font] font-bold">შემოუერთდა 5 დღის წინ</p>
         </div>
             <Switch>
-                <Match when={true}>
-                    <p class="text-sm mt-2 font-[thin-font] break-all text-gr font-bold">გამარჯობა ჩემი სახელია ჯონ დოე მე ვარ ხელოსანი მაცივრის სარეცხ მანქანისა და კარებების, გამარჯობა ჩემი სახელია ჯონ დოე მე ვარ ხელოსანი მაცივრის სარეცხ მანქანისა და კარებების. გამარჯობა ჩემი სახელია ჯონ დოე მე ვარ ხელოსანი მაცივრის სარეცხ მანქანისა და კარებების გამარჯობა ჩემი სახელია ჯონ დოე მე ვარ ხელოსანი მაცივრის სარეცხ მანქანისა და კარებების მოგესალმებით მე ვარ გუნკალი მალადნოი მე ვარ ხელოსანი მაცივრის სარეცხ მანქანისა და კარებების. გამარჯობა ჩემი სახელია ჯონ დოე მე ვარ ხელოსანი მაცივრის სარეცხ მანქანისა და კარებების გამარჯობა ჩემი სახელია ჯონ დოე მე ვარ ხელოსანი მაცივრის სარეცხ მანქანისა და</p>
+                <Match when={user().about}>
+                    <p class="text-sm mt-2 font-[thin-font] break-all text-gr font-bold">{user().about}</p>
                 </Match>
                 <Match when={user().status === 200}>
                     <A href="/modify" class="w-[150px] mt-2 bg-dark-green py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]">
@@ -55,7 +55,7 @@ export const ProfileRight = ({ user }) => {
                                 <p class="text-gr font-bold font-[normal-font]">4.32/5</p>
                             </div>
                             <div class="flex items-center">
-                                <p class="text-dark-green font-bold font-[normal-font]">320 ხელოსანი</p>
+                                <p class="text-dark-green font-bold font-[normal-font]">320 სამუშაო</p>
                             </div>
                         </div>
                     </div>
@@ -67,7 +67,7 @@ export const ProfileRight = ({ user }) => {
                                 <p class="text-gr font-bold font-[normal-font]">4.32/5</p>
                             </div>
                             <div class="flex items-center">
-                                <p class="text-dark-green font-bold font-[normal-font]">320 ხელოსანი</p>
+                                <p class="text-dark-green font-bold font-[normal-font]">320 სამუშაო</p>
                             </div>
                         </div>
                     </div>
@@ -79,7 +79,7 @@ export const ProfileRight = ({ user }) => {
                                 <p class="text-gr font-bold font-[normal-font]">4.32/5</p>
                             </div>
                             <div class="flex items-center">
-                                <p class="text-dark-green font-bold font-[normal-font]">320 ხელოსანი</p>
+                                <p class="text-dark-green font-bold font-[normal-font]">320 სამუშაო</p>
                             </div>
                         </div>
                     </div>
@@ -91,7 +91,7 @@ export const ProfileRight = ({ user }) => {
                                 <p class="text-gr font-bold font-[normal-font]">4.32/5</p>
                             </div>
                             <div class="flex items-center">
-                                <p class="text-dark-green font-bold font-[normal-font]">320 ხელოსანი</p>
+                                <p class="text-dark-green font-bold font-[normal-font]">320 სამუშაო</p>
                             </div>
                         </div>
                     </div>
@@ -103,7 +103,7 @@ export const ProfileRight = ({ user }) => {
                                 <p class="text-gr font-bold font-[normal-font]">4.32/5</p>
                             </div>
                             <div class="flex items-center">
-                                <p class="text-dark-green font-bold font-[normal-font]">320 ხელოსანი</p>
+                                <p class="text-dark-green font-bold font-[normal-font]">320 სამუშაო</p>
                             </div>
                         </div>
                     </div>
@@ -115,7 +115,7 @@ export const ProfileRight = ({ user }) => {
                                 <p class="text-gr font-bold font-[normal-font]">4.32/5</p>
                             </div>
                             <div class="flex items-center">
-                                <p class="text-dark-green font-bold font-[normal-font]">320 ხელოსანი</p>
+                                <p class="text-dark-green font-bold font-[normal-font]">320 სამუშაო</p>
                             </div>
                         </div>
                     </div>
@@ -127,7 +127,7 @@ export const ProfileRight = ({ user }) => {
                                 <p class="text-gr font-bold font-[normal-font]">4.32/5</p>
                             </div>
                             <div class="flex items-center">
-                                <p class="text-dark-green font-bold font-[normal-font]">320 ხელოსანი</p>
+                                <p class="text-dark-green font-bold font-[normal-font]">320 სამუშაო</p>
                             </div>
                         </div>
                     </div>
@@ -140,7 +140,7 @@ export const ProfileRight = ({ user }) => {
                                     <p class="text-gr font-bold font-[normal-font]">4.32/5</p>
                                 </div>
                                 <div class="flex items-center">
-                                    <p class="text-dark-green font-bold font-[normal-font]">320 ხელოსანი</p>
+                                    <p class="text-dark-green font-bold font-[normal-font]">320 სამუშაო</p>
                                 </div>
                             </div>
                         </div>
