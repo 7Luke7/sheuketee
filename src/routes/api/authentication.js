@@ -60,7 +60,7 @@ export const LoginUser = async (formData) => {
         return json({ message: "წარმატებით შეხვედით.", role: role === 1 ? "xelosani" : "damkveti", profId: user.profId }, {
             status: 200,
             headers: {
-                'Set-Cookie': `sessionId=${sessionId}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${7 * 24 * 60 * 60}`,
+                'Set-Cookie': `sessionId=${sessionId}; Path=/; SameSite=Strict; Max-Age=${7 * 24 * 60 * 60}`,
                 'Content-Type': 'application/json'
             }
         });
@@ -115,7 +115,7 @@ export const RegisterUser = async (formData, role) => {
             return json({ message: "success", role: "xelosani" }, {
                 status: 200,
                 headers: {
-                'Set-Cookie': `sessionId=${sessionId}; Path=/; HttpOnly; Secure; SameSite=strict; Max-Age=${7 * 24 * 60 * 60}`,
+                'Set-Cookie': `sessionId=${sessionId}; Path=/; SameSite=strict; Max-Age=${7 * 24 * 60 * 60}`,
                 'Content-Type': 'application/json'
                 }
             });
@@ -141,7 +141,7 @@ export const RegisterUser = async (formData, role) => {
             return json({ message: "success", role: "damkveti"}, {
                 status: 200,
                 headers: {
-                'Set-Cookie': `sessionId=${sessionId}; Path=/; HttpOnly; Secure; SameSite=strict; Max-Age=${7 * 24 * 60 * 60}`,
+                'Set-Cookie': `sessionId=${sessionId}; Path=/; SameSite=strict; Max-Age=${7 * 24 * 60 * 60}`,
                 'Content-Type': 'application/json'
                 }
             });
@@ -156,5 +156,13 @@ export const RegisterUser = async (formData, role) => {
         } else {
             new HandleError().global_error()
         }
+    }
+}
+
+export const LoginWithFacebook = async (accessToken, userID) => {
+    try {
+      console.log(accessToken, userID)  
+    } catch(error) {
+        console.log(error)
     }
 }

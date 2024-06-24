@@ -1,17 +1,18 @@
-import { Match, Switch, createEffect, batch, createSignal } from "solid-js";
-import ChevronRightBlackSVG from "../../../../../public/svg-images/ChevronRightBlack.svg";
-import ChevronLeftBlackSVG from "../../../../../public/svg-images/ChevronLeftBlack.svg";
-import dropdownSVG from "../../../../../public/svg-images/svgexport-8.svg"
+import { createEffect, createSignal, batch } from "solid-js";
+import ChevronRightBlackSVG from "../../../../public/svg-images/ChevronRightBlack.svg";
+import ChevronLeftBlackSVG from "../../../../public/svg-images/ChevronLeftBlack.svg";
+import dropdownSVG from "../../../../public/svg-images/svgexport-8.svg"
 import { check_user_age, handle_date_select } from "~/routes/api/xelosani/setup/setup";
 import { A, createAsync, useNavigate } from "@solidjs/router";
+import closeIcon from "../../../../public/svg-images/svgexport-12.svg"
+import {modify_user_date} from "~/routes/api/xelosani/modify/date"
 
-const Age = () => {
-  const get_user_age = createAsync(check_user_age)
-  const [currentDate, setCurrentDate] = createSignal(new Date());
+export const ModifyAge = ({setModal, date}) => {
+  const [currentDate, setCurrentDate] = createSignal(new Date(date));
   const [showYearDropdown, setShowYearDropdown] = createSignal(false);
   const [weeks, setWeeks] = createSignal();
-  const [currentDay, setCurrentDay] = createSignal()
   const navigate = useNavigate()
+  const [currentDay, setCurrentDay] = createSignal(new Date(date).getDate())
 
   const georgianMonthNames = [
     "იანვარი", "თებერვალი", "მარტი", "აპრილი", "მაისი", "ივნისი",
@@ -46,7 +47,7 @@ const Age = () => {
     setWeeks(newWeeks);
   });
     
-  const handleDayChange = (day) => {
+    const handleDayChange = (day) => {
       const newDate = new Date(currentDate())
       newDate.setDate(day)
       batch(() => {
@@ -54,6 +55,7 @@ const Age = () => {
           setCurrentDate(newDate)
       })
   }
+
 
   const handlePrevMonth = () => {
     const newDate = new Date(currentDate());
@@ -88,9 +90,9 @@ const Age = () => {
 
   const handleDateSelect = async () => {
     try {
-      const response = await handle_date_select(currentDate())
+      const response = await modify_user_date(currentDate())
       if (response !== 200) throw new Error(response) 
-        navigate("/setup/xelosani/step/gender")
+      setModal(null)
     } catch (error) {
       console.log(error.message)
       if (error.message === "401") {
@@ -101,10 +103,12 @@ const Age = () => {
   }
 
   return (
-    <div className="flex p-10 items-center justify-center">
-      <Switch>
-        <Match when={!get_user_age()}>
-        <div className="w-full max-w-[328px] flex flex-col justify-between h-[400px] p-3 border border-gray-300 rounded-2xl">
+    <div className="flex flex-col w-[445px] items-center justify-center">
+          <div class="flex w-full justify-between items-center mb-2">
+        <h1 class='font-[boldest-font] text-lg'>ლოკაციის შეცვლა</h1>    
+        <button onClick={() => setModal(null)}><img src={closeIcon} /></button>
+      </div>
+        <div className="w-full flex flex-col justify-between h-[400px] p-3 border border-gray-300 rounded-2xl">
         <div className="flex items-center justify-between gap-2 mb-2">
           <div className="flex items-center justify-between w-full gap-8 border border-gray-300 rounded-md py-0.5 px-0.5 text-xs font-medium text-gray-900">
             <button
@@ -131,7 +135,7 @@ const Age = () => {
               <img src={dropdownSVG} width={16} height={16}></img>
             </button>
             {showYearDropdown() && (
-              <div className="absolute mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10 max-h-60 overflow-auto">
+              <div id="yeardropdown" className="absolute mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10 max-h-60 overflow-auto">
                 {yearOptions.map((yearOption) => (
                   <div
                     key={yearOption}
@@ -145,12 +149,12 @@ const Age = () => {
             )}
           </div>
         </div>
-        {weeks() && <table className="pb-3 border-b border-gray-300 mx-auto">
+        {weeks() && <table className="pb-3 border-b border-gray-300">
           <thead className="mb-2">
-            <tr className="flex">
+            <tr className="flex justify-between">
               {['ორშ', 'სამშ', 'ოთხშ', 'ხუთშ', 'პარ', 'შაბ', 'კვირ'].map((day) => (
-                <td key={day} className="flex items-center justify-center w-10 h-10">
-                  <p className="font-bold font-[thin-font] text-xs text-gray-900 rounded-full flex items-center justify-center w-full h-full">
+                <td key={day} className="w-10 h-10">
+                  <p className="font-bold font-[normal-font] text-gray-900 rounded-full flex items-center justify-center w-full h-full">
                     {day}
                   </p>
                 </td>
@@ -159,14 +163,15 @@ const Age = () => {
           </thead>
           <tbody>
               {weeks().map((week, weekIndex) => (
-                <tr key={weekIndex} className="flex">
+                <tr key={weekIndex} className="flex justify-between">
                   {week.map((day, dayIndex) => (
                     <td key={dayIndex} className="flex items-center justify-center w-10 h-10">
                       <button
-                        disabled={!day || isFutureDate(day)}
+                        id="daynumber"
                         onClick={() => handleDayChange(day)}
+                        disabled={!day || isFutureDate(day)}
                         className={`${currentDay() === day && "bg-green-300"} font-medium ${day ? (isFutureDate(day) ? 'text-gray-300' : 'text-gray-900') : 'text-gray-300'
-                          } rounded-full flex  font-[normal-font] font-bold text-sm items-center justify-center w-full h-full transition-all duration-300 ${day && !isFutureDate(day) ? 'hover:bg-green-100 hover:text-dark-green' : ''
+                          } rounded-full flex  font-[normal-font] font-bold items-center justify-center w-full h-full transition-all duration-300 ${day && !isFutureDate(day) ? 'hover:bg-green-100 hover:text-dark-green' : ''
                           }`}
                       >
                         {day}
@@ -179,19 +184,9 @@ const Age = () => {
         </table>}
         
         <button onClick={handleDateSelect} className="py-2 mt-3 w-full px-3 rounded-md text-sm font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover">
-          გაგრძელება
+          შეცვლა
         </button>
       </div>
-        </Match>
-        <Match when={get_user_age()}>
-          <div class="flex flex-col justify-center items-center">
-            <p class="text-sm font-[normal-font] font-bold text-gray-700">დაბადების თარიღი დამატებული გაქვთ გთხოვთ განაგრძოთ.</p>
-            <A className="py-2 mt-3 text-center w-1/2 rounded-md text-sm font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover" href="/setup/xelosani/step/gender">გაგრძელება</A>
-          </div>
-        </Match>
-      </Switch>
     </div>
   );
 };
-
-export default Age;

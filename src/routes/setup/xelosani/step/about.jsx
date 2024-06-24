@@ -1,11 +1,11 @@
 import { A, createAsync, useNavigate } from "@solidjs/router";
-import { Match, Switch, createSignal } from "solid-js";
+import { Match, Switch, Show, createSignal } from "solid-js";
 import { check_about, handle_about } from "~/routes/api/xelosani/setup/setup";
-import steps from "../steps.json"
 
-const About = (props) => {
+const About = () => {
     const get_about = createAsync(check_about)
     const [input, setInput] = createSignal("")
+    const [message, setMessage] = createSignal()
     const navigate = useNavigate()
 
     const textTest = async (e) => {
@@ -13,11 +13,11 @@ const About = (props) => {
         try {
             const formData = new FormData(e.target)
             const response = await handle_about(formData)
-            if (response !== 200) throw new Error(response) 
-            const steps_array = Object.keys(steps)
-            const currentstepIndex = steps_array.indexOf(props.location.pathname.split("/")[4])
-            const next_pathname = steps_array[currentstepIndex + 1]
-            navigate(`/setup/xelosani/step/${next_pathname}`)
+            if (response.status === 400) {
+                return setMessage(response.message)
+            }
+            if (response !== 200) throw new Error(response.message) 
+            navigate("/setup/xelosani/step/age")
         } catch (error) {
             if (error.message === "401") {
                 return alert("მომხმარებელი არ არის შესული სისტემაში.")
@@ -27,7 +27,7 @@ const About = (props) => {
     }
 
     return (
-        <div class="flex flex-col items-center mb-4">
+        <div class="flex p-10 flex-col items-center mb-4">
             <Switch>
                 <Match when={!get_about()}>
                     <form onSubmit={textTest}>
@@ -43,6 +43,9 @@ const About = (props) => {
                         <button type="submit" className="py-2 mt-3 w-full px-3 rounded-md text-sm font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover">
                             გაგრძელება
                         </button>
+                        <Show when={message()}>
+                            <p class="text-red-500 font-[thin-font] font-bold text-xs mt-2">{message()}</p>
+                        </Show>
                     </form>
                 </Match>
                 <Match when={get_about()}>

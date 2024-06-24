@@ -7,13 +7,82 @@ const SkillSchema = new mongoose.Schema({
   },
   completedJobs: {
     type: Number,
-    default: 0
+    min: 0,
+    sparse: true
   },
   reviews: {
     type: Number,
-    default: 0
+    min: 0,
+    max: 5,
+    sparse: true
   }
 }, {timestamps: false});
+
+const LocationSchema = new mongoose.Schema({
+    place_id: { type: Number, default: null },
+    osm_type: { type: String, default: null },
+    osm_id: { type: Number, default: null },
+    lat: { type: String, default: null },
+    lon: { type: String, default: null },
+    display_name: { type: String, default: null },
+    boundingbox: [{ type: String, default: null }],
+    class: { type: String, default: null },
+    type: { type: String, default: null },
+    address: {  
+        type: {
+            house_number: { type: String, default: null },
+            road: { type: String, default: null },
+            neighbourhood: { type: String, default: null },
+            suburb: { type: String, default: null },
+            village: { type: String, default: null },
+            hamlet: { type: String, default: null },
+            isolated_dwelling: { type: String, default: null },
+            city: { type: String, default: null },
+            town: { type: String, default: null },
+            municipality: { type: String, default: null },
+            county: { type: String, default: null },
+            state: { type: String, default: null },
+            region: { type: String, default: null },
+            postcode: { type: String, default: null },
+            country: { type: String, default: null },
+            country_code: { type: String, default: null }
+        },
+        default: {}
+    },
+}, {
+    timestamps: false
+});
+
+const ScheduleSchema = new mongoose.Schema({
+    monday: {
+        startTime: { type: String, default: null },
+        endTime: { type: String, default: null }
+    },
+    tuesday: {
+        startTime: { type: String, default: null },
+        endTime: { type: String, default: null }
+    },
+    wednesday: {
+        startTime: { type: String, default: null },
+        endTime: { type: String, default: null }
+    },
+    thursday: {
+        startTime: { type: String, default: null },
+        endTime: { type: String, default: null }
+    },
+    friday: {
+        startTime: { type: String, default: null },
+        endTime: { type: String, default: null }
+    },
+    saturday: {
+        startTime: { type: String, default: null },
+        endTime: { type: String, default: null }
+    },
+    sunday: {
+        startTime: { type: String, default: null },
+        endTime: { type: String, default: null }
+    },
+}, {timestamps: false})
 
 const XelosaniSchema = new mongoose.Schema({
   profId: {
@@ -32,13 +101,20 @@ const XelosaniSchema = new mongoose.Schema({
   gender: {
     type: String,
     enum: ["ქალი", "კაცი"],
-    sparse: true
+    default: undefined
   },
-  age: {
-    type: Number,
-    max: 100,
-    min: 0,
-    sparse: true
+  date: {
+    type: Date,
+    sparse: true,
+    min: '1934-01-1',
+  },
+  schedule: {
+    type: ScheduleSchema,
+    default: undefined
+  },
+  location: {
+    type: LocationSchema,
+    default: undefined,
   },
   lastname: {
     type: String,
@@ -47,29 +123,29 @@ const XelosaniSchema = new mongoose.Schema({
   },
   about: {
     type: String,
-    minlength: [75, "თქვენს შესახებ უნდა შეიცავდეს მინუმუმ 75."],
-    sparse: true
+    minlength: [75, "თქვენს შესახებ უნდა შეიცავდეს მინუმუმ 75 სიმბოლოს."],
+    default: undefined
   },
   phone: {
     type: String,
     unique: [true, "ხელოსანი ტელეფონის ნომრით უკვე არსებობს."],
-    sparse: true,
+    default: undefined,
     validate: {
       validator: function(v) {
         return /^\d{9}$/.test(v);
       },
-      message: props => `ტელეფონის ნომერი ან მეილი ${props.value} არასწორია.`
+      message: "ტელეფონის ნომერი არასწორია."
     }
   },
   email: {
     type: String,
     unique: [true, "ხელოსანი მეილით უკვე არსებობს."],
-    sparse: true,
+    default: undefined,
     validate: {
       validator: function(v) {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
       },
-      message: props => `ტელეფონის ნომერი ან მეილი ${props.value} არასწორია.`
+      message: "მეილი არასწორია."
     }
   },
   password: {
@@ -85,7 +161,7 @@ const XelosaniSchema = new mongoose.Schema({
   },
   skills: {
     type: [SkillSchema],
-    default: []
+    default: undefined
   }
 }, { timestamps: true });
 
@@ -108,11 +184,12 @@ const DamkvetiSchema = new mongoose.Schema({
   },
   gender: {
     type: String,
+    enum: ["კაცი", "ქალი"],
     sparse: true,
   },
-  age: {
-    type: Number,
-    sparse: true,
+  date: {
+    type: Date,
+    sparse: true
   },
   lastname: {
     type: String,

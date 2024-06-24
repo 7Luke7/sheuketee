@@ -18,16 +18,14 @@ export const Header = () => {
     const user = createAsync(header)
     const [chosenQuery, setChosenQuery] = createSignal("ხელოსანი")
     const [value, setValue] = createSignal("")
-    const [displayAccountDropdown, setDisplayAccountDropdown] = createSignal(false)
-    const [displayNotificationDropdown, setDisplayNotificationDropdown] = createSignal(false)
-    const [displayMessageDropdown, setDisplayMessageDropdown] = createSignal(false)
-    const [displayOptions, setDisplayOption] = createSignal(false)
+    const [display, setDisplay] = createSignal(null)
 
     const switch_query_options = (query) => {
         if (query === "ხელოსანი" || query === "სამუშაო") {
             batch(() => {
-setChosenQuery(query)
-            setDisplayOption(false)})
+                setChosenQuery(query)
+                setDisplay(null)
+            })
             document.getElementById("search_input").focus()
         } else {
             alert("მოძებნა ვერ მოხერხდება ცადეთ თავიდან")
@@ -35,15 +33,9 @@ setChosenQuery(query)
     }
 
     const handleBodyClick = (event) => {
-        if (event.target.parentElement.id === "notification-menu" || event.target.id === "notification-menu" || event.target.id === "message-menu" || event.target.parentElement.id === "message-menu" || event.target.parentElement.id === "search_query_options_button" || event.target.parentElement.id === "display-account" || event.target.parentElement.id === "display-message" || event.target.parentElement.id === "display-notif" || event.target.id === "options-menu" || event.target.parentElement.id === "options-menu" || event.target.id === "account-menu" || event.target.parentElement.id === "account-menu") {
-            return
-        } else {
-            batch(() => {
-                setDisplayAccountDropdown(false)
-                setDisplayMessageDropdown(false)
-                setDisplayOption(false)
-                setDisplayNotificationDropdown(false)})
-            }
+        if (!event.target.closest("formmodal") || !event.target.closest("options-menu") || !event.target.closest("notification-menu") || !event.target.closest("message-menu")) {
+            setDisplay(null)
+        } 
     };
 
     createEffect(() => {
@@ -64,8 +56,7 @@ setChosenQuery(query)
         }
     }
 
-    return <>
-        <header class="border-b sticky top-0 left-0 right-0 z-50 bg-white border-slate-300">
+    return  <header class="border-b sticky top-0 left-0 right-0 z-50 bg-white border-slate-300">
             <div class="flex h-[45px] itmes-center m-auto w-[90%]">
                 <div class="flex w-full justify-between items-center font-[normal-font]">
                     <nav class="px-3 flex font-[thin-font] font-bold text-sm gap-x-3 items-center">
@@ -89,38 +80,19 @@ setChosenQuery(query)
                         <A href="/news">სიახლე</A>
                     </nav>
                     <div class="px-3 font-[thin-font] text-sm items-center font-bold flex gap-x-3">
-                        <Search value={value} setValue={setValue} chosenQuery={chosenQuery} setDisplayAccountDropdown={setDisplayAccountDropdown} setDisplayMessageDropdown={setDisplayMessageDropdown} setDisplayNotificationDropdown={setDisplayNotificationDropdown} setDisplayOption={setDisplayOption}></Search>
+                        <Search value={value} setValue={setValue} chosenQuery={chosenQuery} setDisplay={setDisplay}></Search>
                         <Switch>
                             <Match when={user() !== 401}>
                                 <div class="flex items-center gap-x-3">
-                                    <button id="display-notif" class="relative">
-                                        <img onClick={() => {
-                                            batch(() => {
-                                                setDisplayOption(false)
-                                            setDisplayAccountDropdown(false)
-                                            setDisplayMessageDropdown(false)
-                                            setDisplayNotificationDropdown((prev) => !prev)
-                                            })
-                                        }} src={bellSVG}></img>
+                                    <button class="relative">
+                                        <img onClick={() => setDisplay("notif")} src={bellSVG}></img>
                                         <div class="bg-red-700 pointer-events-none absolute top-3 right-0 w-[8px] h-[8px] text-white font-thin text-xs font-[thin-font] rounded-[50%]"></div>
                                     </button>
-                                    <button id="display-message" class="relative" onClick={() => {
-                                        batch(() => {
-                                            setDisplayOption(false)
-                                        setDisplayAccountDropdown(false)
-                                        setDisplayNotificationDropdown(false)
-                                        setDisplayMessageDropdown((prev) => !prev)})
-                                    }}>
+                                    <button class="relative" onClick={() => setDisplay("message")}>
                                         <img src={envelopeSVG}></img>
                                         <div class="bg-red-700 pointer-events-none absolute top-3 right-0 w-[8px] h-[8px] text-white font-thin text-xs font-[thin-font] rounded-[50%]"></div>
                                     </button>
-                                    <button id="display-account" onClick={() => {
-                                        batch(() => {
-                                            setDisplayMessageDropdown(false)
-                                        setDisplayOption(false)
-                                        setDisplayNotificationDropdown(false)
-                                        setDisplayAccountDropdown((prev) => !prev)})
-                                    }}>
+                                    <button onClick={() => setDisplay("account")}>
                                         <img class="rounded-[50%] border-2 w-[25px] h-[25px]" src={user()?.profile_image || defaultProfileSVG}></img>
                                     </button>
                                 </div>
@@ -133,7 +105,7 @@ setChosenQuery(query)
                     </div>
                 </div>
             </div>
-            {displayOptions() && <div id="options-menu" class={`shadow-2xl rounded-b-lg p-3 absolute border-t border-slate-300 ${user() !== 401 ? "right-[7%]" : "right-[12%]"} z-50 bg-white opacity-100 w-[230px]`}>
+            {display() === "searchops" && <div id="options-menu" class={`shadow-2xl rounded-b-lg p-3 absolute border-t border-slate-300 ${user() !== 401 ? "right-[7%]" : "right-[12%]"} z-50 bg-white opacity-100 w-[230px]`}>
                 <button class="text-left w-full flex p-2 hover:bg-[rgb(243,244,246)] rounded-[16px] gap-x-2" onClick={() => switch_query_options("ხელოსანი")}>
                     <div>
                         <img src={peopleIcon}></img>
@@ -153,8 +125,8 @@ setChosenQuery(query)
                     </div>
                 </button>
             </div>}
-            {displayAccountDropdown() && <div id="account-menu" class="shadow-2xl flex flex-col gap-y-2 rounded-b-lg p-3 absolute border-t border-slate-300 right-[0%] z-50 bg-white opacity-100 w-[230px]">
-                <A href={`/${user().role}/${user().profId}`} class="p-2 flex items-center gap-x-2 font-[thin-font] font-bold hover:bg-[rgb(243,244,246)] rounded-[16px] text-left w-full">
+            {display() === "account" && <div id="account-menu" class="shadow-2xl flex flex-col gap-y-2 rounded-b-lg p-3 absolute border-t border-slate-300 right-[0%] z-50 bg-white opacity-100 w-[230px]">
+                <A  href={`/${user().role}/${user().profId}`} class="p-2 flex items-center gap-x-2 font-[thin-font] font-bold hover:bg-[rgb(243,244,246)] rounded-[16px] text-left w-full">
                     <img src={person}></img>
                     <p>პროფილი</p>
                 </A>
@@ -167,7 +139,7 @@ setChosenQuery(query)
                     <img src={logoutSVG}></img>
                 </button>
             </div>}
-            {displayMessageDropdown() && <div id="message-menu" class="absolute shadow-2xl px-4 flex flex-col gap-y-2 rounded-b-lg py-3 border-t border-slate-300 right-[1%] z-50 bg-white opacity-100 w-[490px]">
+            {display() === "message" && <div id="message-menu" class="absolute shadow-2xl px-4 flex flex-col gap-y-2 rounded-b-lg py-3 border-t border-slate-300 right-[1%] z-50 bg-white opacity-100 w-[490px]">
                 <h2 class="font-[bolder-font] text-gray-800">მესიჯები (5)</h2>
                 <button class="text-left w-full border-t font-[thin-font] items-center hover:bg-[rgb(243,244,246)] rounded-[16px] gap-x-2 flex font-bold border-b p-2">
                     <img class="rounded-[50%] w-[28px] h-[28px]" src={defaultProfileSVG}></img>
@@ -208,7 +180,7 @@ setChosenQuery(query)
                     <A href="/message" class="text-blue-500 font-[thin-font] font-bold text-sm underline">ნახე ყველა</A>
                 </div>
             </div>}
-            {displayNotificationDropdown() && <div id="notification-menu" class="absolute shadow-2xl flex flex-col gap-y-2 rounded-b-lg px-4 py-3 border-t border-slate-300 right-[1%] z-50 bg-white opacity-100 w-[490px]">
+            {display() === "notif" && <div id="notification-menu" class="absolute shadow-2xl flex flex-col gap-y-2 rounded-b-lg px-4 py-3 border-t border-slate-300 right-[1%] z-50 bg-white opacity-100 w-[490px]">
                 <h2 class="font-[bolder-font] text-gray-800">შეტყობინებები (5)</h2>
                 <button class="p-2 font-[thin-font] gap-x-2 font-bold hover:bg-[rgb(243,244,246)] text-left w-full border-b pb-2">
                     <p class="font-bold text-sm font-[thin-font]">ლუკა ჩიკვაიძე</p>
@@ -237,5 +209,4 @@ setChosenQuery(query)
                 </div>
             </div>}
         </header>
-    </>
 }

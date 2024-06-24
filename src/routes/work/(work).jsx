@@ -4,7 +4,6 @@ import { Jobs } from "./components/Jobs"
 import {Map} from "./components/Map"
 import { SearchWork } from "./components/SearchWork"
 import { createSignal, onCleanup, onMount } from "solid-js"
-import * as gmapsLoader from '@googlemaps/js-api-loader';
 const { Loader } = gmapsLoader;
 import jobLocationIcon from "../../../public/svg-images/svgexport-11.svg"
 

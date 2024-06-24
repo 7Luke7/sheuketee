@@ -47,7 +47,9 @@ export const navigateToStep = async () => {
         if (!user.email) {
             return `${BASE_URL}/contact` 
         }
-
+        if (!user.location) {
+            return `${BASE_URL}/location`  
+        }
         if (!user.about) {
             return `${BASE_URL}/about`  
         }
@@ -59,9 +61,6 @@ export const navigateToStep = async () => {
         }
         if (!user.skills.length) {
             return `${BASE_URL}/skills`  
-        }
-        if (!user.location) {
-            return `${BASE_URL}/location`  
         }
     } catch (error) {
         if (error.name === "403") {

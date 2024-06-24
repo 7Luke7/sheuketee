@@ -1,11 +1,10 @@
 import WomanSVG from "../../../../../public/svg-images/woman.svg"
 import ManSVG from "../../../../../public/svg-images/man.svg"
 import { Match, Switch, createSignal } from "solid-js";
-import steps from "../steps.json"
 import { A, createAsync, useNavigate } from "@solidjs/router"
 import { check_user_gender, handle_user_gender } from "~/routes/api/xelosani/setup/setup";
 
-const Gender = (props) => {
+const Gender = () => {
   const user_gender = createAsync(check_user_gender)
   const [current, setCurrent] = createSignal()
   const navigate = useNavigate()
@@ -17,7 +16,7 @@ const Gender = (props) => {
       const steps_array = Object.keys(steps)
       const currentstepIndex = steps_array.indexOf(props.location.pathname.split("/")[4])
       const next_pathname = steps_array[currentstepIndex + 1]
-      navigate(`/setup/xelosani/step/${next_pathname}`)
+      navigate("/setup/xelosani/step/schedule")
     } catch (error) {
       console.log(error)
     }
@@ -26,7 +25,7 @@ const Gender = (props) => {
   return (
     <Switch>
       <Match when={!user_gender()}>
-        <div class="flex flex-col justify-center mb-4">
+        <div class="flex flex-col p-10 justify-center mb-4">
           <div class="flex gap-x-5 items-center">
             <button onClick={() => setCurrent("კაცი")} class="h-[220px] border w-1/2 flex flex-col items-start cursor-pointer gap-y-2 p-5 border-slate-300 rounded border-2">
               <div class="flex justify-between w-full">
@@ -49,7 +48,7 @@ const Gender = (props) => {
         </div>
       </Match>
       <Match when={user_gender()}>
-        <div class="flex flex-col items-center">
+        <div class="flex p-10 flex-col items-center">
           <p class="text-sm font-[normal-font] font-bold text-gray-700">თქვენ სქესი დამატებული გაქვთ გთხოვთ განაგრძოთ.</p>
           <A className="py-2 mt-3 text-center w-1/2 rounded-md text-sm font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover" href="/setup/xelosani/step/skills">გაგრძელება</A>
         </div>

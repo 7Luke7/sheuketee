@@ -43,7 +43,7 @@ const Step = (props) => {
     return (
         <div class="h-[90vh] w-[90%] mx-auto">
             <div class="flex mt-12 h-full justify-start items-start">
-                <A href="/" class="text-dark-green font-[thin-font] font-bold text-xl">შეუკეთე</A>
+                <A href="/" class="text-dark-green font-bold font-[thin-font] text-xl">შეუკეთე</A>
                 <div class="mx-auto w-[50%] items-center h-full flex flex-col justify-between">
                     <div class="w-full">
                         <h1 class="text-2xl font-[boldest-font] flex gap-x-1 items-center text-green-600 mb-4">
@@ -53,7 +53,7 @@ const Step = (props) => {
                             {steps[currentStepKey()].description}
                         </p>
                     </div>
-                    <div class="w-full min-h-[400px] flex items-center justify-center border p-10">
+                    <div class="w-full min-h-[400px] flex items-center justify-center border">
                         {props.children}
                     </div>
                     <div class="w-full bg-indigo-100 border-2 border-[#14a800] rounded-md">

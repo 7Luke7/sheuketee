@@ -6,31 +6,31 @@ import { ReviewCarousel } from "./ReviewCarousel"
 
 export const ProfileRight = ({ user }) => {
 
-    return <div class="flex flex-[8] flex-col border-r px-3">
-        <div class="flex items-center justify-between">
-            <h2 class="font-[boldest-font] text-lg">ჩემს შესახებ</h2>
-            <p class="text-xs font-[thin-font] font-bold">შემოუერთდა 5 დღის წინ</p>
-        </div>
-            <Switch>
-                <Match when={user().about}>
-                    <p class="text-sm mt-2 font-[thin-font] break-all text-gr font-bold">{user().about}</p>
-                </Match>
-                <Match when={user().status === 200}>
-                    <A href="/modify" class="w-[150px] mt-2 bg-dark-green py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]">
-                        დაამატე აღწერა
-                    </A>
-                </Match>
-                <Match when={user().status === 401}>
-                    <p class="text-gr text-xs font-[thin-font] font-bold">მომხმარებელს ინფორმაცია არ აქვს დამატებული.</p>
-                </Match>
-            </Switch>
-        <h2 class="text-lg font-[boldest-font] mt-5">სერვისები</h2>
+    return <div class="flex flex-1 flex-col border-r px-3">
         <Switch>
-            <Match when={true}>
+            <Match when={user().about}>
+                <div class="flex items-center justify-between">
+                    <h2 class="font-[boldest-font] text-lg">ჩემს შესახებ</h2>
+                    <p class="text-xs font-[thin-font] font-bold">შემოუერთდა 5 დღის წინ</p>
+                </div>
+                <p class="text-sm mt-2 font-[thin-font] break-all text-gr font-bold">{user().about}</p>
+            </Match>
+            <Match when={user().status === 200}>
+                <A href="/setup/xelosani/step/about" class="w-[150px] mt-2 bg-dark-green py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]">
+                    დაამატე აღწერა
+                </A>
+            </Match>
+            <Match when={user().status === 401}>
+                <p class="text-gr text-xs font-[thin-font] font-bold">მომხმარებელს ინფორმაცია არ აქვს დამატებული.</p>
+            </Match>
+        </Switch>
+        <Switch>
+            <Match when={user().services}>
+                <h2 class="text-lg font-[boldest-font] mt-5">სერვისები</h2>
                 <Services status={user().status}></Services>
             </Match>
             <Match when={user().status === 200}>
-                <A href="/profile/services" class="w-[150px] mt-2 bg-dark-green py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]">
+                <A href="/setup/xelosani/step/services" class="w-[150px] mt-2 bg-dark-green py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]">
                     დაამატე სერვისები
                 </A>
             </Match>

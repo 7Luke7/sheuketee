@@ -5,6 +5,9 @@ module.exports = {
   ],
   theme: {
     extend: {
+      flex: {
+        '100': '0 0 100%'
+      },
       rotate: {
         '180': '180deg',
       },

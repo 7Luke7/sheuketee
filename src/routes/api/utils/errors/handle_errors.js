@@ -16,6 +16,10 @@ export class HandleError {
             message: this.error.errors[e].message
         }))
     }
+    
+    authentication_error() {
+        
+    }
 
     global_error() {
         return {
