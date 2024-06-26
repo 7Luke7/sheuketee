@@ -55,11 +55,11 @@ export const Header = () => {
             console.log(error)
         }
     }
-
+    
     return  <header class="border-b sticky top-0 left-0 right-0 z-50 bg-white border-slate-300">
-            <div class="flex h-[45px] itmes-center m-auto w-[90%]">
+            <div class="flex h-[45px] itmes-center mx-auto w-[90%]">
                 <div class="flex w-full justify-between items-center font-[normal-font]">
-                    <nav class="px-3 flex font-[thin-font] font-bold text-sm gap-x-3 items-center">
+                    <nav class="flex font-[thin-font] font-bold text-sm gap-x-3 items-center">
                         <A href="/" class="text-dark-green text-xl">შეუკეთე</A>
                         <div class="relative group">
                             <div class="cursor-pointer flex">

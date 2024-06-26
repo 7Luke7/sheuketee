@@ -8,13 +8,13 @@ const SkillSchema = new mongoose.Schema({
   completedJobs: {
     type: Number,
     min: 0,
-    sparse: true
+    default: 0
   },
   reviews: {
     type: Number,
     min: 0,
     max: 5,
-    sparse: true
+    default: 0
   }
 }, {timestamps: false});
 
@@ -84,7 +84,12 @@ const ScheduleSchema = new mongoose.Schema({
     },
 }, {timestamps: false})
 
-const XelosaniSchema = new mongoose.Schema({
+const UserSchema = new mongoose.Schema({
+  role: {
+    type: String,
+    required: true,
+    enum: ['ხელოსანი', 'დამკვეთი']
+  },
   profId: {
     type: String,
     required: [true, "პროფილის id სავალდებულოა."]
@@ -94,8 +99,13 @@ const XelosaniSchema = new mongoose.Schema({
     minlength: [1, "სახელი უნდა შეიცავდეს მინიმუმ 1 ასოს."],
     required: [true, "სახელი სავალდებულოა."]
   },
+  lastname: {
+    type: String,
+    minlength: [1, "გვარი უნდა შეიცავდეს მინიმუმ 1 ასოს."],
+    required: [true, "გვარი სავალდებულოა."]
+  },
   notificationDevices: {
-    type: [String], 
+    type: [String],
     default: []
   },
   gender: {
@@ -105,30 +115,12 @@ const XelosaniSchema = new mongoose.Schema({
   },
   date: {
     type: Date,
-    sparse: true,
-    min: '1934-01-1',
-  },
-  schedule: {
-    type: ScheduleSchema,
-    default: undefined
-  },
-  location: {
-    type: LocationSchema,
-    default: undefined,
-  },
-  lastname: {
-    type: String,
-    minlength: [1, "გვარი უნდა შეიცავდეს მინიმუმ 1 ასოს."],
-    required: [true, "გვარი სავალდებულოა."]
-  },
-  about: {
-    type: String,
-    minlength: [75, "თქვენს შესახებ უნდა შეიცავდეს მინუმუმ 75 სიმბოლოს."],
-    default: undefined
+    default: null,
+    min: '1934-01-01',
   },
   phone: {
     type: String,
-    unique: [true, "ხელოსანი ტელეფონის ნომრით უკვე არსებობს."],
+    unique: [true, "მომხმარებელი ტელეფონის ნომრით უკვე არსებობს."],
     default: undefined,
     validate: {
       validator: function(v) {
@@ -139,7 +131,7 @@ const XelosaniSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    unique: [true, "ხელოსანი მეილით უკვე არსებობს."],
+    unique: [true, "მომხმარებელი მეილით უკვე არსებობს."],
     default: undefined,
     validate: {
       validator: function(v) {
@@ -151,7 +143,7 @@ const XelosaniSchema = new mongoose.Schema({
   password: {
     type: String,
     required: [true, "პაროლი სავალდებულოა."],
-    minlength: [8, "პაროლი უნდა შეიცავდეს მინიმუმ 8 სიმბოლოს."],
+    minlength: [8, "პაროლი უნდა შეიცავდეს მინიმუმ 8 სიმბოლოს."]
   },
   stepPercent: {
     type: Number,
@@ -159,76 +151,37 @@ const XelosaniSchema = new mongoose.Schema({
     min: 0,
     default: 0
   },
-  skills: {
-    type: [SkillSchema],
+  about: {
+    type: String,
+    minlength: [75, "თქვენს შესახებ უნდა შეიცავდეს მინუმუმ 75 სიმბოლოს."],
     default: undefined
   }
 }, { timestamps: true });
 
-const DamkvetiSchema = new mongoose.Schema({
-  profId: {
-    type: String,
-    required: true
-  },
-  firstname: {
-    type: String,
-    required: true
-  },
-  notificationDevices: {
-    type: [String], 
-    default: [],
-  },
-  about: {
-    type: String,
-    sparse: true
-  },
-  gender: {
-    type: String,
-    enum: ["კაცი", "ქალი"],
-    sparse: true,
-  },
-  date: {
-    type: Date,
-    sparse: true
-  },
-  lastname: {
-    type: String,
-    required: true
-  },
-  phone: {
-    type: String,
-    unique: [true, "ხელოსანი ტელეფონის ნომრით უკვე არსებობს."],
-    sparse: true,
-    validate: {
-      validator: function(v) {
-        return  /^\d{9}$/.test(v)
-      },
-      message: props => `მეილი ${props.value} არასწორია.`
-    },
-  },
-  email: {
-    type: String,
-    unique: [true, "ხელოსანი მეილით უკვე არსებობს."],
-    sparse: true,
-    validate: {
-      validator: function(v) {
-        return  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
-      },
-      message: props => `ტელეფონის ნომერი ${props.value} არასწორია.`
-    },
- },
-  password: {
-    type: String,
-    required: true,
-    minlength: [8, 'პაროლი უნდა შეიცავდეს მინიმუმ 8 სიმბოლოს.'],
-  },
-  stepPercent: {
-    type: Number,
-    max: 100,
-    min: 0,
-    default: 0
-  },
-},{timestamps: true});
+export const User = mongoose.models.User || mongoose.model('User', UserSchema);
 
-export const Xelosani = mongoose.models.Xelosani || mongoose.model('Xelosani', XelosaniSchema);
-export const Damkveti = mongoose.models.Damkveti || mongoose.model('Damkveti', DamkvetiSchema);
+const XelosaniSchema = new mongoose.Schema({
+  skills: {
+    type: [SkillSchema],
+    default: undefined
+  },
+  schedule: {
+    type: ScheduleSchema,
+    default: undefined
+  },
+  location: {
+    type: LocationSchema,
+    default: undefined
+  }
+});
+
+const DamkvetiSchema = new mongoose.Schema({
+});
+
+export const Xelosani = User.discriminators && User.discriminators.Xelosani
+  ? User.discriminators.Xelosani
+  : User.discriminator('Xelosani', XelosaniSchema);
+
+export const Damkveti = User.discriminators && User.discriminators.Damkveti
+  ? User.discriminators.Damkveti
+  : User.discriminator('Damkveti', DamkvetiSchema);
