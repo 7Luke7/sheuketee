@@ -9,33 +9,16 @@ import cake from "../../../../public/svg-images/cake.svg"
 import spinnerSVG from "../../../../public/svg-images/spinner.svg"
 import { A, action} from "@solidjs/router"
 import { handle_profile_image } from "../../api/prof_image"
-
-/*
-
-    Best approach would be 
-    // client
-    1. When user chooses the image we render that image ----------------- WE SHOULD VALIDATE TYPE OF FILE AS WELL ON *SERVER*
-    2. Would be cool if I could compress the image so users wouldn't get confused
-    3.
-    // server
-    3. Send file to server and make buffer out of it compress and save
-*/
-
-// maybe add the button and form back again and send it to mutler and actually then return base64string from server
+import {upload_profile_picture} from "../../api/user"
 
 export const ProfileLeft = ({ setModal, user }) => {
     const [imageLoading, setImageLoading] = createSignal(false);
     const [imageUrl, setImageUrl] = createSignal(user().profile_image || defaultProfileSVG);
-
-    const handleFormSubmission = async (e) => {
-        e.preventDefault()
+    const handleFormSubmission = action(async (FormData) => {
         setImageLoading(true);
         try {
             const formData = new FormData(e.target)
-            const url = await fetch("/api/upload", {
-                method: "POST",
-                body: formData,
-            })
+            const url = await upload_profile_picture(formData, user().profId)
             if (url) {
                 batch(() => {
                     setImageUrl(url)
@@ -45,8 +28,9 @@ export const ProfileLeft = ({ setModal, user }) => {
             alert(error.message || "Failed to process image");
             setImageLoading(false);
         }
-    }
-    return <div class="flex sticky top-[50px] gap-y-3 flex-col">
+    })
+
+     return <div class="flex sticky top-[50px] gap-y-3 flex-col">
         <div class="border-2 py-2 flex flex-col px-2 items-center flex-[2]">
             <Switch>
                 <Match when={user().status !== 401}>
@@ -54,7 +38,7 @@ export const ProfileLeft = ({ setModal, user }) => {
                         <Match when={!imageLoading()}>
                             <div>
                                 <form id="uploadForm" onSubmit={handleFormSubmission} enctype="multipart/form-data">
-                                    <input type="file" name="profilePic" class="hidden" id="profilePic" accept="image/webp, image/png, image/gif, image/jpeg, image/avif, image/jpg" />
+                                    <input type="file" name="profilePic" class="hidden" id="profilePic" accept="image/webp, image/png, image/jpeg, image/avif, image/jpg" />
                                 </form>
 
                                 <label for="profilePic" class="hover:opacity-[0.7] cursor-pointer">
@@ -83,11 +67,10 @@ export const ProfileLeft = ({ setModal, user }) => {
             <h1 class="text-xl font-[boldest-font] text-gray-900">{user().firstname + " " + user().lastname}</h1>
 
             <div class="flex flex-col w-full justify-start mt-2 gap-y-2">
-                <div class="flex pb-1 border-b items-center gap-x-1">
+                <div class="flex pb-1 border-b px-2 items-center gap-x-1">
                     <Switch>
                         <Match when={user().location}>
-                            <div class="flex justify-between w-full px-2 items-center">
-                                <div class="flex items-center gap-x-2">
+                                <div class="flex items-center w-full gap-x-2">
                                     <img src={location}></img>
                                     <p class="text-gr text-xs font-[thin-font] break-word font-bold">{user().location.display_name.substr(0, 20)}.</p>
                                 </div>
@@ -96,7 +79,6 @@ export const ProfileLeft = ({ setModal, user }) => {
                                         <img id="locationButton" src={pen} />
                                     </button>
                                 </Show>
-                            </div>
                         </Match>
                         <Match when={user().status === 200}>
                             <A href="/setup/xelosani/step/location" class="bg-dark-green w-full py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]">დაამატე ლოკაცია</A>
@@ -158,7 +140,7 @@ export const ProfileLeft = ({ setModal, user }) => {
                             </div>
                         </Match>
                         <Match when={user().status === 200}>
-                            <A href="/setup/xelosani/step/age" class="bg-dark-green w-full py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]">დაამატე დაბ. თარიღი</A>    
+                            <A href="/setup/xelosani/step/age" class="bg-dark-green w-full py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]">დაამატე დაბ. თარიღი</A>
                         </Match>
                         <Match when={user().status === 401}>
                             <p class="text-gr text-xs text-center font-[thin-font] font-bold">ასაკი არ არის დამატებული</p>
@@ -186,39 +168,27 @@ export const ProfileLeft = ({ setModal, user }) => {
             </div>
         </div>
         <div class="border-2 px-2 py-2">
-            <h2 class="text-lg font-[bolder-font] border-b">სამუშაო განრიგი</h2>
+            <div class="flex items-center border-b justify-between">
+                <h2 class="text-lg font-[bolder-font]">სამუშაო განრიგი</h2>
+                <Show when={user().status === 200 && user().schedule}>
+                    <button onClick={() => setModal("განრიგი")}>
+                        <img src={pen} id="schedule" />
+                    </button>
+                </Show>
+            </div>
             <Switch>
                 <Match when={user().schedule}>
-                    <ul class="mt-3 border-t">
-                        <li class="font-[thin-font] justify-between text-sm font-bold flex gap-x-2">
-                            <p>ორშაბათი:</p>
-                            <p>19:00-22:00</p>
-                        </li>
-                        <li class="font-[thin-font] justify-between text-sm font-bold flex gap-x-2">
-                            <p>სამშაბათი:</p>
-                            <p>19:00-22:00</p>
-                        </li>
-                        <li class="font-[thin-font] justify-between text-sm font-bold flex gap-x-2">
-                            <p>ოთხშაბათი:</p>
-                            <p>19:00-22:00</p>
-                        </li>
-                        <li class="font-[thin-font] justify-between text-sm font-bold flex gap-x-2">
-                            <p>ხუთშაბათი:</p>
-                            <p>19:00-22:00</p>
-                        </li>
-                        <li class="font-[thin-font] justify-between text-sm font-bold flex gap-x-2">
-                            <p>პარასკევი:</p>
-                            <p>19:00-22:00</p>
-                        </li>
-                        <li class="font-[thin-font] justify-between text-sm font-bold flex gap-x-2">
-                            <p>შაბათი:</p>
-                            <p>19:00-22:00</p>
-                        </li>
-                        <li class="font-[thin-font] justify-between text-sm font-bold flex gap-x-2">
-                            <p>კვირა:</p>
-                            <p>19:00-22:00</p>
-                        </li>
-                    </ul>
+                    <ul class="mt-1">
+
+                <For each={user().schedule}>
+                            {(s, i) => (
+                                <li class="font-[thin-font] justify-between text-sm font-bold flex gap-x-2">
+                                        <p>{i()}</p>
+                                        <p>{s.startTime}</p>
+                                    </li>
+                            )}
+                </For>
+                </ul>
                 </Match>
                 <Match when={user().status === 401}>
                     <div class="flex items-center justify-center pt-2 border-t">

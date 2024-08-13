@@ -20,10 +20,10 @@ export const get_account = cache(async () => {
 
         if (redis_user.role === 1) {
             const user = await Xelosani.findById(redis_user.userId, '-_id -__v -skills -updatedAt -notificationDevices -createdAt -password -gender -date -about -stepPercent -profId')
-            return user._doc
+            return JSON.stringify(user._doc)
         } else if(redis_user.role === 2) {
             const user = await Damkveti.findById(redis_user.userId, '-_id -__v -skills -updatedAt -notificationDevices -createdAt -password -gender -date -about -stepPercent -profId')
-            return user._doc
+            return JSON.stringify(user._doc)
         } else {
             throw new Error("როლი არ არსებობს.")
         }
