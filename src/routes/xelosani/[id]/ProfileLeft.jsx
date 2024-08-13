@@ -14,13 +14,12 @@ import {upload_profile_picture} from "../../api/user"
 export const ProfileLeft = ({ setModal, user }) => {
     const [imageLoading, setImageLoading] = createSignal(false);
     const [imageUrl, setImageUrl] = createSignal(user().profile_image || defaultProfileSVG);
-    console.log(user().profile_image)
+
     const handleFormSubmission = action(async (FormData) => {
         setImageLoading(true);
         try {
             const formData = new FormData(e.target)
             const url = await upload_profile_picture(formData, user().profId)
-            console.log(url)
             if (url) {
                 batch(() => {
                     setImageUrl(url)

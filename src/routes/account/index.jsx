@@ -7,7 +7,10 @@ import { send_email_verification_code, verify_code } from "../api/utils/verifica
 import exclamationSVG from "../../../public/svg-images/exclamation.svg"
 
 const Account = () => {
-    const user = createAsync(get_account)
+    const user = createAsync(async () => {
+        const response = await get_account()
+        return JSON.parse(response)
+    })
     const [editing, setEditing] = createSignal(false)
     const [showReset, setShowReset] = createSignal(false)
     const [timer, setTimer] = createSignal()
