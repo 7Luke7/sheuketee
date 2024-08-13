@@ -105,7 +105,7 @@ export const ModifyAge = ({setModal, date}) => {
   return (
     <div className="flex flex-col w-[445px] items-center justify-center">
           <div class="flex w-full justify-between items-center mb-2">
-        <h1 class='font-[boldest-font] text-lg'>ლოკაციის შეცვლა</h1>    
+        <h1 class='font-[boldest-font] text-lg'>ასაკის შეცვლა</h1>
         <button onClick={() => setModal(null)}><img src={closeIcon} /></button>
       </div>
         <div className="w-full flex flex-col justify-between h-[400px] p-3 border border-gray-300 rounded-2xl">

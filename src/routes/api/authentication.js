@@ -3,9 +3,9 @@ import {Damkveti, User, Xelosani} from "./models/User";
 import bcrypt from "bcrypt"
 import { json } from "@solidjs/router";
 import { create_session } from "./session_management";
-import crypto from "crypto"
 import { HandleError } from "./utils/errors/handle_errors";
 import { CustomError } from "./utils/errors/custom_errors";
+import crypto from "node:crypto"
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const phoneRegex = /^\d{9}$/
@@ -47,13 +47,13 @@ export const LoginUser = async (formData) => {
         return json({
             message: "წარმატებით შეხვედით.",
             role: user.role === "დამკვეთი" ? "damkveti" : "xelosani",
-            profId: user.profId
+            profId: user.profId,
+            status: 200
         },{
             headers: {
                 'Set-Cookie': `sessionId=${sessionId}; Path=/; SameSite=Strict; Max-Age=${7 * 24 * 60 * 60}`,
                 'Content-Type': 'application/json'
             },
-            status: 200
         })
     } catch (error) {
         if (error.name === "ValidationError") {
@@ -146,6 +146,13 @@ export const RegisterUser = async (formData, role) => {
         }
     } catch (error) {
         console.log(error)
+        if (error.code === 11000) {
+            const errors = new HandleError({field: "phoneEmailRegister", message: "მომხმარებელი მეილით ან ტელეფონის ნომრით უკვე არსებობს.", name: "ValidationError" }).validation_error()
+            return {
+                errors,
+                status: 400
+            }
+        }
         if (error.name === "ValidationError") {
             const errors = new HandleError(error).validation_error()
             return {

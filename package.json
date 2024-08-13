@@ -14,16 +14,17 @@
     "@solidjs/router": "^0.13.3",
     "@solidjs/start": "^1.0.0-rc.1",
     "bcrypt": "^5.1.1",
-    "crypto": "^1.0.1",
+    "dotenv": "^16.4.5",
     "embla-carousel-solid": "^8.1.5",
     "mongoose": "^8.4.0",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.13",
     "ol": "^9.2.4",
     "redis": "^4.6.14",
-    "sharp": "^0.33.4",
+    "sharp": "^0.32.6",
     "solid-js": "^1.8.17",
-    "vinxi": "^0.3.11"
+    "vinxi": "^0.3.11",
+    "vite-plugin-mkcert": "^1.17.5"
   },
   "engines": {
     "node": ">=18"

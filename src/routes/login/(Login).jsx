@@ -18,32 +18,61 @@ const Login = () => {
             if (result.status === 400) {
                 return setError(result.errors);
             }
-            navigate(`/${result.role}/${result.profId}`);
+            if (result.status === 200) return navigate(`/${result.role}/${result.profId}`);
         } catch (error) {
             console.log(error);
         }
     };
 
-    onMount(() => {
-        window.fbAsyncInit = function() {
-            FB.init({
-                appId: '798141012304233',
-                xfbml: true,
-                version: 'v20.0'
-            });
-
-            FB.getLoginStatus(function(response) {
-                statusChangeCallback(response);
-            });
-        };
-
-        const finished_rendering = function() {
-            let spinner = document.getElementById("spinner");
-            spinner.removeAttribute("style");
-            spinner.removeChild(spinner.childNodes[0]);
-        }
-        FB.Event.subscribe('xfbml.render', finished_rendering);
-    });
+//     onMount(() => {
+//
+//         window.fbAsyncInit = function() {
+//             // Initialize the SDK with your app and the Graph API version for your app
+//             FB.init({
+//                       appId            : '{your-facebook-app-id}',
+//                         cookie: true,
+//                       xfbml            : true,
+//                       version          : '{the-graph-api-version-for-your-app}'
+//                     });
+//             // If you are logged in, automatically get your name and email adress, your public profile information
+//             FB.login(function(response) {
+//                 console.log(response)
+//                       if (response.authResponse) {
+//                            console.log('Welcome!  Fetching your information.... ');
+//                            FB.api('/me', {fields: 'name, email'}, function(response) {
+//                                document.getElementById("profile").innerHTML = "Good to see you, " + response.name + ". i see your email address is " + response.email
+//                            });
+//                       } else {
+//                            // If you are not logged in, the login dialog will open for you to login asking for permission to get your public profile and email
+//                            console.log('User cancelled login or did not fully authorize.'); }
+//             })
+//         };
+//
+//
+//         const finished_rendering = function() {
+//             let spinner = document.getElementById("spinner");
+//             spinner.removeAttribute("style");
+//             spinner.removeChild(spinner.childNodes[0]);
+//         }
+//
+//         const handleFacebookLogin = async (authResponse) => {
+//         try {
+//             console.log(authResponse)
+//             const { accessToken, userID } = authResponse;
+//             const result = await LoginWithFacebook({ accessToken, userID });
+//             if (result.status === 400) {
+//                 return setError(result.errors);
+//             }
+//             navigate(`/${result.role}/${result.profId}`);
+//         } catch (error) {
+//             console.error('Error during Facebook login:', error);
+//         }
+//     };
+//
+//         window.FB.Event.subscribe('auth.login', handleFacebookLogin);
+//
+//         window.FB.Event.subscribe('xfbml.render', finished_rendering);
+//     });
 
     const statusChangeCallback = (response) => {
         console.log(response);
@@ -52,37 +81,12 @@ const Login = () => {
         }
     };
 
-    const handleFacebookLogin = async (authResponse) => {
-        try {
-            const { accessToken, userID } = authResponse;
-            const result = await LoginWithFacebook({ accessToken, userID });
-            if (result.status === 400) {
-                return setError(result.errors);
-            }
-            navigate(`/${result.role}/${result.profId}`);
-        } catch (error) {
-            console.error('Error during Facebook login:', error);
-        }
-    };
-
-    const handleFacebookButtonClick = () => {
-        console.log("test")
-        FB.login(function(response) {
-            console.log(response)
-            if (response.authResponse) {
-                handleFacebookLogin(response.authResponse);
-            } else {
-                console.log('User cancelled login or did not fully authorize.');
-            }
-        }, {scope: "public_profile,email,user_location,user_hometown,user_birthday,user_gender"});
-    };
-
     return (
         <MetaProvider>
-            <script async defer crossorigin="anonymous" src="https://connect.facebook.net/ka_GE/sdk.js#xfbml=1&version=v20.0&appId=798141012304233" nonce="aoYbrohF"></script>
-            <div class="mx-12 mt-6">
+        {/*<script async defer crossorigin="anonymous" src="https://connect.facebook.net/ka_GE/sdk.js#xfbml=1&version=v20.0&appId=798141012304233" nonce="aoYbrohF"></script>*/}
+            <div class="h-screen overflow-y-hidden mx-12 pt-6">
                 <A href="/" class="text-xl leading-[25px] text-dark-green font-bold font-[thin-font]">შეუკეთე</A>
-                <div class="h-screen justify-center flex flex-col">
+                <div class="h-full justify-evenly flex flex-col">
                     <div class="border w-[500px] mx-auto p-5 mt-5 rounded border-slate-300 border-2 flex flex-col gap-y-2 items-center">
                         <h1 class="text-xl font-bold text-slate-900 font-[boldest-font]">შესვლა</h1>
                         <form method="post" onSubmit={handleSubmit} class="w-full">
@@ -94,16 +98,16 @@ const Login = () => {
                             <span class="mx-4 text-gray-500 font-[thin-font] font-bold">ან</span>
                             <hr class="flex-grow border-t border-gray-300"></hr>
                         </div>
-                        <div id="spinner" class="bg-[#4267b2] rounded-[5px] text-center text-white font-[thin-font] font-bold h-[40px] w-[80%] mx-auto">
-                            იტვირთება...
-                            <div onClick={handleFacebookButtonClick} class="fb-login-button w-full" data-width="100%" data-size="large" data-button-type="" data-layout="" data-auto-logout-link="false" data-use-continue-as="false">
-
-                            </div>     
-                        </div>
-
+{/*                       <div id="spinner" class="bg-[#4267b2] rounded-[5px] text-center text-white font-[thin-font] font-bold h-[40px] w-[80%] mx-auto">
+//                             იტვირთება...
+//                             <div scope="public_profile,email,user_location,user_hometown,user_birthday,user_gender" class="fb-login-button w-full" data-width="100%" data-size="large" data-button-type="" data-layout="" data-auto-logout-link="false" data-use-continue-as="false">
+//
+//                             </div>
+             </div>
+*/}
                         <p class="text-center font-[thin-font] font-bold text-sm text-gray-700">არ გაქვს ექაუნთი? <A href="/choose" class="text-gr underline">რეგისტრაცია</A></p>
                     </div>
-                    <div class="mt-24">
+                    <div>
                         <SmallFooter />
                     </div>
                 </div>

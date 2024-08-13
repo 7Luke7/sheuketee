@@ -52,7 +52,7 @@ export const Steptwo = ({ setStep, current }) => {
         </div>
       </div>
       <EmailPassword error={error}></EmailPassword>
-      <div class="flex gap-y-2 flex-col mt-5">
+      <div class="flex gap-y-2 flex-col mt-4">
         <div class="flex items-center gap-x-2 justify-center">
           <input type="checkbox" name="rules-confirmation" class="accent-dark-green-hover" id="must"></input>
           <label for="must" name="rules-confirmation" class="font-[thin-font] text-gr text-xs font-bold">წავიკითხე და ვეთანხმები <A href="/rules" class="underline" target="_blank">სერვისის წესებსა</A> და <A href="/conf" class="underline" target="_blank">კონფიდენციალურობის პოლიტიკას</A></label>
@@ -60,10 +60,15 @@ export const Steptwo = ({ setStep, current }) => {
         <button type="submit" class="font-[thin-font] text-center text-lg font-bold bg-dark-green hover:bg-dark-green-hover transition ease-in delay-20 text-white px-3 py-2 rounded-[16px]">რეგისტრაცია როგორც {current()}</button>
       </div>
         <Show when={error()?.some(a => a.field === "rules")}>
-        <p class="text-xs text-red-500 mt-2 text-center font-[thin-font] font-bold">
+        <p class="text-xs text-red-500 mt-2 font-[thin-font] font-bold">
           {error().find(a => a.field === "rules").message}
         </p>
     </Show>
+    <Show when={error()?.some(a => a.field === "phoneEmailRegister")}>
+          <p class="text-xs text-red-500 mt-1 font-[thin-font] font-bold">
+              {error().find(a => a.field === "phoneEmailRegister").message}
+          </p>
+      </Show>
     </form>
   </div>
 }

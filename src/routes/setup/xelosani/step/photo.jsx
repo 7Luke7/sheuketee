@@ -6,6 +6,7 @@ import { Match, Suspense, Switch, batch, createSignal } from "solid-js";
 import { profile_image_no_id } from "~/routes/api/xelosani/setup/setup";
 import { handle_profile_image } from "~/routes/api/prof_image";
 import { Buffer } from 'buffer';
+import {upload_profile_picture_setup} from "~/routes/api/xelosani/setup/step"
 
 const ProfilePictureStep = () => {
     const [file, setFile] = createSignal()
@@ -22,6 +23,7 @@ const ProfilePictureStep = () => {
             }
             setUploadingImage(true)
             const response = await handle_profile_image(file())
+            console.log(response)
             if (response === 200) {
                 setUploadingImage(false)
                 navigate("/setup/xelosani/step/contact")
@@ -35,19 +37,9 @@ const ProfilePictureStep = () => {
         setImageLoading(true)
         const file = e.target.files[0]
         try {
-            const worker = new Worker(new URL("../../../xelosani/[id]/fileWorker.js", import.meta.url));
-
-            worker.onmessage = async (e) => {
-                const buffer = e.data
-                const base64string = Buffer.from(buffer, "utf-8").toString('base64')
-                batch(() => {
-                    setFile(file)
-                    setImageLoading(false)
-                    setError(false)
-                })
-                document.getElementById("setup_image").src = `data:image/png;base64,${base64string}`
-            }
-            worker.postMessage(file);
+            const response = await upload_profile_picture_setup(file)
+            if (response !== 200) throw new Error("Problem")
+            alert("Picture set")
         } catch (error) {
             console.log(error)
         }

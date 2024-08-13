@@ -1,7 +1,7 @@
 import { A } from "@solidjs/router"
 
 export const SmallFooter = () => {
-    return <footer class="bg-slate-900 rounded-lg shadow m-4 dark:bg-gray-800">
+    return <footer class="bg-slate-900 rounded-lg shadow dark:bg-gray-800">
         <div class="w-full mx-auto max-w-screen-xl p-4 md:flex md:items-center md:justify-between">
           <span class="text-sm text-gray-500 sm:text-center dark:text-gray-400">© 2023 <A href="/" class="hover:underline">შეუკეთე™</A>. ყველა უფლება დაცულია.
         </span>

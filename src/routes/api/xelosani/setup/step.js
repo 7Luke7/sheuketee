@@ -7,15 +7,17 @@ import {upload_profile_picture} from "../../user"
 import { HeadObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3"
 
 export const upload_profile_picture_setup = async (file) => {
+    console.log(file)
     try {
         const event = getRequestEvent()
         const redis_user = await verify_user(event)
             
         const buffer = await upload_profile_picture(file, redis_user)
         
+        console.log(buffer)
         const user = await Xelosani.findByIdAndUpdate(redis_user.userId, {
             $inc: {
-                'stepPercent': 15
+                'stepPercent': 12.5
             }
         })
         
@@ -31,13 +33,13 @@ export const navigateToStep = async () => {
         const event = getRequestEvent()
         const redis_user = await verify_user(event)
         const user = await Xelosani.findById(redis_user.userId)
-        
+
         const params = {
             Bucket: process.env.S3_BUCKET_NAME,
             Region: "eu-central-1",
             Key: `${redis_user.profId}-profpic`
         }
-        
+
         const headCommand = new HeadObjectCommand(params);
         await s3.send(headCommand);
 
@@ -59,12 +61,14 @@ export const navigateToStep = async () => {
         if (!user.gender) {
             return `${BASE_URL}/gender`  
         }
+        if (!user.schedule) {
+            return `${BASE_URL}/schedule`
+        }
         if (!user.skills.length) {
-            return `${BASE_URL}/skills`  
+            return `${BASE_URL}/skills`
         }
     } catch (error) {
-        if (error.name === "403") {
-            console.log(`${BASE_URL}/photo`)
+        if (error.name === "NotFound") {
             return `${BASE_URL}/photo`
         }
     }

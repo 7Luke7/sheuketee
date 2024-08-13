@@ -85,7 +85,7 @@ export const handle_contact = async (formData, contact) => {
                     phone: inputText,
                 },
                 $inc: {
-                    'stepPercent': 15
+                    'stepPercent': 12.5
                 }
             }, {runValidators: true})
         } else {
@@ -94,7 +94,7 @@ export const handle_contact = async (formData, contact) => {
                     email: inputText,
                 },
                 $inc: {
-                    'stepPercent': 15
+                    'stepPercent': 12.5
                 }
             }, {runValidators: true})
         }
@@ -154,6 +154,14 @@ export const check_about = async () => {
     }
 }
 
+export const check_setup_percentage = () => {
+    try {
+
+    } catch(error) {
+
+    }
+}
+
 export const handle_about = async (formData) => {
     try {
         const about = formData.get("about")
@@ -164,16 +172,24 @@ export const handle_about = async (formData) => {
             throw new Error(401)
         }
 
-        const user = await Xelosani.updateOne({_id: redis_user.userId}, {
-            $set: {
-                about: about,
+        const user = await Xelosani.findOneAndUpdate(
+            { _id: redis_user.userId },
+            {
+                $set: {
+                    about: about,
+                },
+                $inc: {
+                    stepPercent: 12.5
+                },
             },
-            $inc: {
-                'stepPercent': 15
+            {
+                new: true,
+                runValidators: true
             }
-        }, {runValidators: true})
+        ).select('stepPercent profId -_id');
 
-        return 200
+        const document = user._doc
+        return {...document, status: 200}
     } catch (error) {
         if (error.name === "ValidationError") {
             const handled_error = new HandleError(error).validation_error()
@@ -196,7 +212,7 @@ export const handle_date_select = async (date) => {
             { _id: redis_user.userId },
             {
                 $set: { date: date },
-                $inc: { stepPercent: 15 }
+                $inc: { stepPercent: 12.5 }
             }, {runValidators: true}
         );
 
@@ -244,7 +260,7 @@ export const handle_user_gender = async (gender) => {
                     gender: gender,
                 },
                 $inc: {
-                    'stepPercent': 15
+                    'stepPercent': 12.5
                 }
             }, {runValidators: true}
         );
@@ -317,7 +333,7 @@ export const handle_selected_skills = async (skillNames) => {
                 skills: skillsArray
             },
             $inc: {
-                'stepPercent': 15
+                'stepPercent': 12.5
             }
         }, {runValidators: true})
 
@@ -348,7 +364,7 @@ export const handle_location = async (location) => {
                 'location': location
             },
             $inc: {
-                'stepPercent': 15
+                'stepPercent': 12.5
             }
         })
 
@@ -449,7 +465,7 @@ export const add_user_schedule = async (formData) => {
                 'schedule': insertableObject
             },
             $inc: {
-                'stepPercent': 15
+                'stepPercent': 12.5
             }
         })
 

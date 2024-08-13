@@ -1,6 +1,6 @@
 'use server'
-import crypto from "crypto"
 import { redisClient } from "~/entry-server";
+import crypto from "node:crypto"
 
 export const create_session = async (profId, userId, role) => {
     try {

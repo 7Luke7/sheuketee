@@ -19,10 +19,10 @@ export const get_account = cache(async () => {
         }
 
         if (redis_user.role === 1) {
-            const user = await Xelosani.findById(redis_user.userId, '-_id -__v -skills -updatedAt -notificationDevices -createdAt -password -gender -date -about -stepPercent -profId')
+            const user = await Xelosani.findById(redis_user.userId, '-_id -__v -skills -updatedAt -notificationDevices -location -createdAt -password -gender -date -about -stepPercent -profId')
             return user._doc
         } else if(redis_user.role === 2) {
-            const user = await Damkveti.findById(redis_user.userId, '-_id -__v -skills -updatedAt -notificationDevices -createdAt -password -gender -date -about -stepPercent -profId')
+            const user = await Damkveti.findById(redis_user.userId, '-_id -__v -skills -updatedAt -notificationDevices -location -createdAt -password -gender -date -about -stepPercent -profId')
             return user._doc
         } else {
             throw new Error("როლი არ არსებობს.")
@@ -44,7 +44,7 @@ export const get_xelosani = async (prof_id) => {
             throw new Error(401)
         }
 
-        const {createdAt, _doc} = await Xelosani.findById(redis_user.userId, '-_id -__v -updatedAt -profId -notificationDevices -password')
+        const {createdAt, _doc} = await Xelosani.findById(redis_user.userId, '-_id -__v -updatedAt -notificationDevices -password')
         const profile_image = await get_user_profile_image(prof_id)
         return JSON.stringify({
             ..._doc,
@@ -54,7 +54,7 @@ export const get_xelosani = async (prof_id) => {
         })
     } catch (error) {
         if (error.message === "401") {
-            const {createdAt, _doc} = await Xelosani.findOne({profId: prof_id}, '-_id -__v -profId -stepPercent -notificationDevices -updatedAt -password')
+            const {createdAt, _doc} = await Xelosani.findOne({profId: prof_id}, '-_id -__v -stepPercent -notificationDevices -updatedAt -password')
             const profile_image = await get_user_profile_image(prof_id)
             return JSON.stringify({
             ..._doc,
@@ -76,30 +76,31 @@ export const get_user_profile_image = async (id) => {
         await s3.send(headCommand);
 
         const command = new GetObjectCommand(params);
-        const url = await getSignedUrl(s3, command, { expiresIn: 3600 }); 
+        const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
         return url
     } catch (error) {
-        console.log("PROFILE IMAGE", error)
+        if (error.name === "NotFound") {
+            return null
+        }
     }
 }
 
-export const upload_profile_picture = async (file, redis_user) => {
+export const upload_profile_picture = async (file, profId) => {
+    console.log(file, profId)
     try {
-
-        console.log(file)
-        //          const buffer = reader.readAsArrayBuffer(file)
-        //        const compressed_buffer = await compress_image(buffer, 80, 140, 140)
-        //        const params = {
-        //            Bucket: process.env.S3_BUCKET_NAME, 
-        //            Key: `${redis_user.profId}-profpic`,
-        //            Region: "eu-central-1",
-        //            Body: compressed_buffer, 
-        //            ACL: "private",
-        //            ContentType: "webp", 
-        //        };
-        //        const upload_image = new PutObjectCommand(params) 
-        //        await s3.send(upload_image)
-        //        return compressed_buffer
+        const buffer = reader.readAsArrayBuffer(file)
+        const compressed_buffer = await compress_image(buffer, 80, 140, 140)
+        const params = {
+            Bucket: process.env.S3_BUCKET_NAME,
+            Key: `${profId}-profpic`,
+            Region: "eu-central-1",
+            Body: compressed_buffer,
+            ACL: "private",
+            ContentType: "webp",
+        };
+        const upload_image = new PutObjectCommand(params)
+        await s3.send(upload_image)
+        return compressed_buffer
     } catch (error) {
         console.log("OUTER ERROR",error) 
     }

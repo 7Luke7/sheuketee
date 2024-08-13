@@ -16,9 +16,13 @@ const About = () => {
             if (response.status === 400) {
                 return setMessage(response.message)
             }
-            if (response !== 200) throw new Error(response.message) 
-            navigate("/setup/xelosani/step/age")
+            if (response.status !== 200) throw new Error(response.message)
+            if (response.stepPercent === 100) {
+                return navigate(`/xelosani/${response.profId}`)
+            }
+            return navigate("/setup/xelosani/step/age")
         } catch (error) {
+            console.log(error)
             if (error.message === "401") {
                 return alert("მომხმარებელი არ არის შესული სისტემაში.")
             }

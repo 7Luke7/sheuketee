@@ -54,31 +54,31 @@ const LocationSchema = new mongoose.Schema({
 });
 
 const ScheduleSchema = new mongoose.Schema({
-    monday: {
+    ორშაბათი: {
         startTime: { type: String, default: null },
         endTime: { type: String, default: null }
     },
-    tuesday: {
+    სამშაბათი: {
         startTime: { type: String, default: null },
         endTime: { type: String, default: null }
     },
-    wednesday: {
+    ოთხშაბათი: {
         startTime: { type: String, default: null },
         endTime: { type: String, default: null }
     },
-    thursday: {
+    ხუთშაბათი: {
         startTime: { type: String, default: null },
         endTime: { type: String, default: null }
     },
-    friday: {
+    პარასკევი: {
         startTime: { type: String, default: null },
         endTime: { type: String, default: null }
     },
-    saturday: {
+    შაბათი: {
         startTime: { type: String, default: null },
         endTime: { type: String, default: null }
     },
-    sunday: {
+    კვირა: {
         startTime: { type: String, default: null },
         endTime: { type: String, default: null }
     },
@@ -122,6 +122,7 @@ const UserSchema = new mongoose.Schema({
     type: String,
     unique: [true, "მომხმარებელი ტელეფონის ნომრით უკვე არსებობს."],
     default: undefined,
+    sparse: true,
     validate: {
       validator: function(v) {
         return /^\d{9}$/.test(v);
@@ -133,6 +134,7 @@ const UserSchema = new mongoose.Schema({
     type: String,
     unique: [true, "მომხმარებელი მეილით უკვე არსებობს."],
     default: undefined,
+    sparse: true,
     validate: {
       validator: function(v) {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
@@ -166,7 +168,7 @@ const XelosaniSchema = new mongoose.Schema({
     default: undefined
   },
   schedule: {
-    type: ScheduleSchema,
+    type: [ScheduleSchema],
     default: undefined
   },
   location: {

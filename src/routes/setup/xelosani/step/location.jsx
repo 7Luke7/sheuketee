@@ -229,30 +229,7 @@ const Location = () => {
             map.addLayer(searchResultLayer);
         }
 
-        const feature = new Feature({
-            geometry: new Point(coordinates),
-            name: location.place_id, // Using place_id as name
-        });
-
-        feature.setStyle(new Style({
-            image: new Icon({
-                src: "../../../../../public/svg-images/redlocation.svg",
-                scale: 0.7,
-            }),
-            text: new Text({
-                text: location.display_name, // Optionally add text here if needed
-                offsetY: 20,
-                fill: new Fill({
-                    color: '#000',
-                }),
-                stroke: new Stroke({
-                    color: '#fff',
-                    width: 2,
-                }),
-            }),
-        }));
-
-        searchSource.addFeature(feature);
+        userLocationFeature.getGeometry().setCoordinates(coordinates)
 
         map.getView().setCenter(coordinates);
         map.getView().setZoom(14);
@@ -322,7 +299,7 @@ const Location = () => {
                             </div>
                         </div>
                     </div>
-                    <div class="mx-2 flex flex-col gap-y-2 my-2">
+                    <div class="px-2 w-full flex flex-col gap-y-2 my-2">
                         <Show when={message()}>
                             <p class="text-red-500 text-xs font-[thin-font] break-word font-bold">{message()}</p>
                         </Show>
@@ -337,7 +314,7 @@ const Location = () => {
                 </div>
             </Match>
             <Match when={location() !== 200}>
-                <div class="flex flex-col justify-center h-full items-center">
+                <div class="flex w-full flex-col justify-center h-full items-center">
                     <p class="text-sm font-[normal-font] font-bold text-gray-700">ლოკაცია დამატებული გაქვთ გთხოვთ განაგრძოთ.</p>
                     <A className="py-2 mt-3 text-center w-1/2 rounded-md text-sm font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover" href="/setup/xelosani/step/about">გაგრძელება</A>
                 </div>

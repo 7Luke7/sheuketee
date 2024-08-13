@@ -9,6 +9,7 @@ const Skills = () => {
     const check_jobs = createAsync(check_selected_jobs)
     const [allJobs, setAllJobs] = createSignal()
     const [selectedJobs, setSelectedJobs] = createSignal([])
+    const [submitted, setSubmitted] = createSignal(false)
     const navigate = useNavigate()
 
     const job_search = (searchTerm) => {
@@ -45,7 +46,7 @@ const Skills = () => {
         try {
             const response = await handle_selected_skills(selectedJobs())
             if (response !== 200) throw new Error(response)
-            navigate("/setup/xelosani/success")
+            setSubmitted(true)
         } catch (error) {
             if (error.message === "401") {
                 return alert("მომხმარებელი არ არის შესული სისტემაში.")
@@ -57,7 +58,7 @@ const Skills = () => {
     return (
         <div class="flex flex-col p-10 justify-between w-full items-center h-full mb-4">
             <Switch>
-                <Match when={check_jobs() === 200}>
+                <Match when={check_jobs() === 200 || submitted()}>
                     <div class="h-[180px] overflow-y-auto mb-3 curstom-scrollbar w-full">
                         <Show when={selectedJobs().length > 0}>
                             <div class="flex mb-3 items-center gap-2 flex-wrap">

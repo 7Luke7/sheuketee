@@ -18,9 +18,9 @@ import { Icon, Style, Text, Circle as CircleStyle, Fill, Stroke } from 'ol/style
 import Modify from 'ol/interaction/Modify';
 import exclamationSVG from "../../../../public/svg-images/exclamation.svg"
 import SearchIcon from "../../../../public/svg-images/svgexport-5.svg"
-import CloseIcon from "../../../../public/svg-images/svgexport-12.svg"
 import {handle_location, check_location} from "../../api/xelosani/setup/setup"
 import closeIcon from "../../../../public/svg-images/svgexport-12.svg"
+import {modify_user_location} from "~/routes/api/xelosani/modify/location"
 
 export const ModifyLocaitonModal = ({setModal, location}) => {
     const [message, setMessage] = createSignal("")
@@ -165,59 +165,48 @@ export const ModifyLocaitonModal = ({setModal, location}) => {
         }
     };
 
-    const displaySearchResults = (results) => {
-        let searchResultLayer = map.getLayers().getArray().find(layer => layer.get('name') === 'searchResults');
-        if (!searchResultLayer) {
-            const vectorSource = new VectorSource();
-            searchResultLayer = new VectorLayer({
-                source: vectorSource,
-                name: 'searchResults',
-            });
-            map.addLayer(searchResultLayer);
-        } else {
-            searchResultLayer.getSource().clear();
+    const displaySearchResults = async (results) => {
+        try {
+            let searchResultLayer = map.getLayers().getArray().find(layer => layer.get('name') === 'searchResults');
+
+            if (!searchResultLayer) {
+                const vectorSource = new VectorSource();
+                searchResultLayer = new VectorLayer({
+                    source: vectorSource,
+                    name: 'searchResults',
+                });
+                map.addLayer(searchResultLayer);
+            } else {
+                searchResultLayer.getSource().clear();
+            }
+        } catch(error) {
+            setSearching(false);
         }
-        results.forEach(result => {
-            const coordinates = fromLonLat([parseFloat(result.lon), parseFloat(result.lat)]);
-            const feature = new Feature({
-                geometry: new Point(coordinates),
-                name: result.place_id,
-            });
-            feature.setStyle(new Style({
-                image: new Icon({
-                    src: '../../../../../public/svg-images/redlocation.svg',
-                    scale: 0.7,
-                }),
-                text: new Text({
-                    text: result.display_name,
-                    offsetY: 20,
-                    fill: new Fill({
-                        color: '#000',
-                    }),
-                    stroke: new Stroke({
-                        color: '#fff',
-                        width: 2,
-                    }),
-                }),
-            }));
-            searchResultLayer.getSource().addFeature(feature);
-        });
     };
 
+
     const handleSearchLocation = async (e) => {
-        e.preventDefault();
-        const locationInput = searchInputValue();
-        if (locationInput && locationInput.length > 3) {
-            setSearching(true);
-            const results = await searchLocation(locationInput);
-            if (results) displaySearchResults(results);
-        } else {
-            setSearchResults([]);
+        e.preventDefault()
+        try {
+            const formData = new FormData(e.target)
+            const locationInput = formData.get("searchLocation")
+            if (locationInput && locationInput.length > 3) {
+                setSearching(true)
+                const results = await searchLocation(locationInput);
+                if (!results) return
+                displaySearchResults(results);
+            } else {
+                setSearchResults([]);
+            }
+        } catch(error){
+            console.log(error)
+            setSearching(false);
         }
-    };
+    }
 
     const handleSidebarLocationChange = (location) => {
         const coordinates = fromLonLat([parseFloat(location.lon), parseFloat(location.lat)]);
+
         let searchResultLayer = map.getLayers().getArray().find(layer => layer.get('name') === 'place_id');
         let searchSource;
 
@@ -239,29 +228,18 @@ export const ModifyLocaitonModal = ({setModal, location}) => {
             map.addLayer(searchResultLayer);
         }
 
-        const feature = new Feature({
-            geometry: new Point(coordinates),
-            name: location.place_id,
-        });
-
-        feature.setStyle(new Style({
-            image: new Icon({
-                src: '../../../../../public/svg-images/redlocation.svg',
-                scale: 0.7,
-            }),
-        }));
-
-        searchSource.addFeature(feature);
+        userLocationFeature.getGeometry().setCoordinates(coordinates)
+        blueCircleFeature.getGeometry().setCoordinates(coordinates)
 
         map.getView().setCenter(coordinates);
         map.getView().setZoom(14);
 
-        setMarkedLocation(location);
-    };
+        setMarkedLocation(location)
+    }
 
     const handleLocationSubmit = async () => {
         try {
-            const response = await handle_location(markedLocation());
+            const response = await modify_user_location(markedLocation());
             if (response !== 200) throw new Error(response);
             setModal(null)
         } catch (error) {

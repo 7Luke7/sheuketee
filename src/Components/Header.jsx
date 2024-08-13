@@ -126,7 +126,7 @@ export const Header = () => {
                 </button>
             </div>}
             {display() === "account" && <div id="account-menu" class="shadow-2xl flex flex-col gap-y-2 rounded-b-lg p-3 absolute border-t border-slate-300 right-[0%] z-50 bg-white opacity-100 w-[230px]">
-                <A  href={`/${user().role}/${user().profId}`} class="p-2 flex items-center gap-x-2 font-[thin-font] font-bold hover:bg-[rgb(243,244,246)] rounded-[16px] text-left w-full">
+                <A  href={`/${user()?.role}/${user()?.profId}`} class="p-2 flex items-center gap-x-2 font-[thin-font] font-bold hover:bg-[rgb(243,244,246)] rounded-[16px] text-left w-full">
                     <img src={person}></img>
                     <p>პროფილი</p>
                 </A>

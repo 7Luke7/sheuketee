@@ -7,20 +7,19 @@ import { ProfileLeft } from "./ProfileLeft"
 import { ProfileRight } from "./ProfileRight"
 import { navigateToStep } from "~/routes/api/xelosani/setup/step"
 import {ModifyLocaitonModal} from "../modals/ModifyLocationModal"
+import {ModifyWorkSchedule} from "../modals/ModifyWorkSchedule"
 import {ModifyAge} from "../modals/ModifyAge"
 import { MetaProvider, Link } from "@solidjs/meta";
 
 const Xelosani = (props) => {
-    const user = createAsync(async () => {
-        const xelosani = await get_xelosani(props.params.id)
-        return JSON.parse(xelosani)
-    });
+    const user =
+ createAsync(async () => JSON.parse(await get_xelosani(props.params.id)));
     const navigate = useNavigate()
-    const [modal, setModal] = createSignal()
+    const [modal, setModal] = createSignal(null)
 
     const handlenavigateToStep = async () => {
         try {
-            const response = await navigateToStep() 
+            const response = await navigateToStep()
             navigate(response)
         } catch (error) {
             console.log(error)
@@ -29,7 +28,7 @@ const Xelosani = (props) => {
     }
 
     const clickFN =  (event) => {
-        if (!event.target.closest('#modal') && !event.target.closest("#search_wrapper") && !event.target.closest("#search_btn") && !event.target.closest("#inner_search_wrapper") && event.target.id !== "daynumber" && !event.target.closest("#yeardropdown") && event.target.id !== "locationButton" && !event.target.closest('#modal') && event.target.id !== "age") {
+        if (!event.target.closest('#modal') && !event.target.closest("#search_wrapper") && !event.target.closest("#search_btn") && !event.target.closest("#inner_search_wrapper") && event.target.id !== "daynumber" && !event.target.closest("#yeardropdown") && event.target.id !== "locationButton" && event.target.id !== 'schedule' && event.target.id !== "age") {
             setModal(null);
         }
 
@@ -62,13 +61,16 @@ const Xelosani = (props) => {
                                 <Match when={modal() === "ასაკი"}>
                                     <ModifyAge setModal={setModal} date={user().date}></ModifyAge>
                                 </Match>
+                                <Match when={modal() === "განრიგი"}>
+                                    <ModifyWorkSchedule setModal={setModal} schedule={user().schedule}></ModifyWorkSchedule>
+                                </Match>
                             </Switch>
                         </div>
                     </Show>
                     <Show when={user().status === 200}>
                         <div class={`${modal() && "blur-[0.8px] pointer-events-none"} flex items-center justify-between mb-3`}>
                             <div class="flex items-center w-full">
-                                <div class="h-5 w-full rounded-[16px] bg-[#E5E7EB] relative">    
+                                <div class="h-5 w-full rounded-[16px] bg-[#E5E7EB] relative">
                                     <div class="bg-dark-green rounded-[16px] h-full absolute" style={{ width: `${user().stepPercent}%` }}></div>
                                     <span class="font-[thin-font] text-[11px] text-green-800 font-bold absolute right-2 top-1/2 transform -translate-y-1/2">{user().stepPercent}%</span>
                                 </div>

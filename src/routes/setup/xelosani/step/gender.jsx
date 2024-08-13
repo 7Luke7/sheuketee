@@ -13,9 +13,6 @@ const Gender = () => {
     try {
       const response = await handle_user_gender(current())
       if (response !== 200) throw new Error(response)
-      const steps_array = Object.keys(steps)
-      const currentstepIndex = steps_array.indexOf(props.location.pathname.split("/")[4])
-      const next_pathname = steps_array[currentstepIndex + 1]
       navigate("/setup/xelosani/step/schedule")
     } catch (error) {
       console.log(error)
