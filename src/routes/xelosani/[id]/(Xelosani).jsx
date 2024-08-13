@@ -12,8 +12,8 @@ import {ModifyAge} from "../modals/ModifyAge"
 import { MetaProvider, Link } from "@solidjs/meta";
 
 const Xelosani = (props) => {
-    const user =
- createAsync(async () => JSON.parse(await get_xelosani(props.params.id)));
+    const user = createAsync(async () => JSON.parse(await
+get_xelosani(props.params.id)));
     const navigate = useNavigate()
     const [modal, setModal] = createSignal(null)
 
