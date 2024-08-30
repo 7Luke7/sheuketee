@@ -2,10 +2,9 @@ import { A, createAsync, useNavigate } from "@solidjs/router";
 import defaultProfileSVG from "../../../../../public/default_profile.png"
 import CameraSVG from "../../../../../public/svg-images/camera.svg"
 import spinnerSVG from "../../../../../public/svg-images/spinner.svg"
-import { Match, Suspense, Switch, batch, createSignal } from "solid-js";
+import { Match, Suspense, Switch, createSignal } from "solid-js";
 import { profile_image_no_id } from "~/routes/api/xelosani/setup/setup";
 import { handle_profile_image } from "~/routes/api/prof_image";
-import { Buffer } from 'buffer';
 import {upload_profile_picture_setup} from "~/routes/api/xelosani/setup/step"
 
 const ProfilePictureStep = () => {
