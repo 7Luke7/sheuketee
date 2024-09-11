@@ -2,10 +2,7 @@ import { A, createAsync } from "@solidjs/router";
 import closeIcon from "../../../../public/svg-images/svgexport-12.svg"
 import {modify_user_schedule} from "~/routes/api/xelosani/modify/schedule"
 
-export const ModifyWorkSchedule = (props) => {
-    const setModal = props.setModal;  // setModal is already a function, no need to call it like a signal
-    const schedule = props.schedule;  // setModal is already a function, no need to call it like a signal
-    
+export const ModifyWorkSchedule = ({setModal, schedule}) => {    
     const week_days = [
         "ორშაბათი",
         "სამშაბათი",

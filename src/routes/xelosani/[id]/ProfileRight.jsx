@@ -4,8 +4,7 @@ import fullStar from "../../../../public/svg-images/svgexport-19.svg"
 import { Services } from "./Services"
 import { ReviewCarousel } from "./ReviewCarousel"
 
-export const ProfileRight = (props) => {
-    const user = () => props.user();  // Call user signal to access the value
+export const ProfileRight = ({user}) => {
 
     return <div class="flex flex-1 flex-col border-r px-3">
         <Switch>

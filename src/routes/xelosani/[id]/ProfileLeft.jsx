@@ -11,10 +11,7 @@ import { A, action} from "@solidjs/router"
 import { handle_profile_image } from "../../api/prof_image"
 import {upload_profile_picture} from "../../api/user"
 
-export const ProfileLeft = (props) => {
-    const user = () => props.user();  // Call user signal to access the value
-    const setModal = props.setModal;  // setModal is already a function, no need to call it like a signal
-
+export const ProfileLeft = ({ setModal, user }) => {
     const [imageLoading, setImageLoading] = createSignal(false);
     const [imageUrl, setImageUrl] = createSignal(user().profile_image || defaultProfileSVG);  
     const handleFormSubmission = action(async (FormData) => {

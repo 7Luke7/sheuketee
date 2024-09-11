@@ -23,7 +23,7 @@ const Xelosani = (props) => {
     JSON.parse(await get_xelosani(props.params.id))
   );
   const navigate = useNavigate();
-  const [modal, setModal] = createSignal("ასაკი");
+  const [modal, setModal] = createSignal(null);
 
   const handlenavigateToStep = async () => {
     try {
@@ -34,7 +34,19 @@ const Xelosani = (props) => {
       alert("წარმოიშვა შეცდომა გთხოვთ ცადოთ მოგვიანებით.");
     }
   };
-  
+  const clickFN =  (event) => {
+    if (!event.target.closest('#modal') && !event.target.closest("#search_wrapper") && !event.target.closest("#search_btn") && !event.target.closest("#inner_search_wrapper") && event.target.id !== "daynumber" && !event.target.closest("#yeardropdown") && event.target.id !== "locationButton" && !event.target.closest('#modal') && event.target.id !== "age") {
+        setModal(null);
+    }
+
+}
+createEffect(() => {
+    document.addEventListener("click", clickFN)
+
+    onCleanup(() => {
+        document.removeEventListener("click", clickFN)
+    })
+})
   return (
     <MetaProvider>
       <script
