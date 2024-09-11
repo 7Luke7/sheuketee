@@ -7,7 +7,10 @@ import { A, createAsync, useNavigate } from "@solidjs/router";
 import closeIcon from "../../../../public/svg-images/svgexport-12.svg"
 import {modify_user_date} from "~/routes/api/xelosani/modify/date"
 
-export const ModifyAge = ({setModal, date}) => {
+export const ModifyAge = (props) => {
+  const setModal = () => props.setModal();  // setModal is already a function, no need to call it like a signal
+  const date = props.date;  // setModal is already a function, no need to call it like a signal
+
   const [currentDate, setCurrentDate] = createSignal(new Date(date));
   const [showYearDropdown, setShowYearDropdown] = createSignal(false);
   const [weeks, setWeeks] = createSignal();
@@ -23,6 +26,7 @@ export const ModifyAge = ({setModal, date}) => {
   const startDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
 
   createEffect(() => {
+    setModal(null)
     const year = currentDate().getFullYear();
     const month = currentDate().getMonth();
     const days = Array.from({ length: daysInMonth(year, month) }, (_, i) => i + 1);

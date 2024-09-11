@@ -23,7 +23,7 @@ const Xelosani = (props) => {
     JSON.parse(await get_xelosani(props.params.id))
   );
   const navigate = useNavigate();
-  const [modal, setModal] = createSignal(null);
+  const [modal, setModal] = createSignal("ასაკი");
 
   const handlenavigateToStep = async () => {
     try {
@@ -34,8 +34,7 @@ const Xelosani = (props) => {
       alert("წარმოიშვა შეცდომა გთხოვთ ცადოთ მოგვიანებით.");
     }
   };
-
-
+  
   return (
     <MetaProvider>
       <script
@@ -59,10 +58,12 @@ const Xelosani = (props) => {
                 class="bg-white shadow-2xl z-[50] top-1/2 transform -translate-y-1/2 -translate-x-1/2 left-1/2  border fixed p-4"
               >
                 <Switch>
+                  <Match when={modal() === "ლოკაცია"}>
                     <ModifyLocaitonModal
                       setModal={setModal}
                       location={user().location}
                     ></ModifyLocaitonModal>
+                  </Match>
                   <Match when={modal() === "ასაკი"}>
                     <ModifyAge
                       setModal={setModal}

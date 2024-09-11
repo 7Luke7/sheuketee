@@ -11,10 +11,12 @@ import { A, action} from "@solidjs/router"
 import { handle_profile_image } from "../../api/prof_image"
 import {upload_profile_picture} from "../../api/user"
 
-export const ProfileLeft = ({ setModal, user }) => {
-    const [imageLoading, setImageLoading] = createSignal(false);
-    const [imageUrl, setImageUrl] = createSignal(user().profile_image || defaultProfileSVG);
+export const ProfileLeft = (props) => {
+    const user = () => props.user();  // Call user signal to access the value
+    const setModal = props.setModal;  // setModal is already a function, no need to call it like a signal
 
+    const [imageLoading, setImageLoading] = createSignal(false);
+    const [imageUrl, setImageUrl] = createSignal(user().profile_image || defaultProfileSVG);  
     const handleFormSubmission = action(async (FormData) => {
         setImageLoading(true);
         try {
@@ -30,7 +32,7 @@ export const ProfileLeft = ({ setModal, user }) => {
             setImageLoading(false);
         }
     })
-
+    
      return <div class="flex sticky top-[50px] gap-y-3 flex-col">
         <div class="border-2 py-2 flex flex-col px-2 items-center flex-[2]">
             <Switch>
