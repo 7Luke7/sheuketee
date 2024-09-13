@@ -1,33 +1,25 @@
 import { createSignal, onMount, Show, Switch, Match } from "solid-js";
-import { useNavigate, A } from "@solidjs/router";
 import "ol/ol.css"
-import mapSVG from "../../../../public/svg-images/map.svg"
-import formSVG from "../../../../public/svg-images/form.svg"
 import OSM from 'ol/source/OSM';
 import TileLayer from 'ol/layer/Tile';
 import {Map, View} from 'ol';
 import Feature from 'ol/Feature'
 import {fromLonLat, transformExtent, toLonLat} from 'ol/proj';
 import Point from 'ol/geom/Point';
-import Link from 'ol/interaction/Link';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
-import { getCenter, containsExtent } from 'ol/extent';
-import Geolocation from 'ol/Geolocation';
-import { Icon, Style, Text, Circle as CircleStyle, Fill, Stroke } from 'ol/style';
+import { Icon, Style, Circle as CircleStyle, Fill, Stroke } from 'ol/style';
 import Modify from 'ol/interaction/Modify';
-import exclamationSVG from "../../../../public/svg-images/exclamation.svg"
 import SearchIcon from "../../../../public/svg-images/svgexport-5.svg"
-import {handle_location, check_location} from "../../api/xelosani/setup/setup"
 import closeIcon from "../../../../public/svg-images/svgexport-12.svg"
 import {modify_user_location} from "~/routes/api/xelosani/modify/location"
+import redLocationIcon from "../../../../public/svg-images/redlocation.svg";
 
-export const ModifyLocaitonModal = ({setModal, location}) => {
+export const ModifyLocaitonModal = (props) => {
     const [message, setMessage] = createSignal("")
     const [searchResults, setSearchResults] = createSignal();
     const [searching, setSearching] = createSignal(false);
     const [isSearchOpen, setIsSearchOpen] = createSignal(false)
-    const [activeSearchOption, setActiveSearchOption] = createSignal()
     const [searchInputValue, setSearchInputValue] = createSignal("")
     const [markedLocation, setMarkedLocation] = createSignal()
 
@@ -35,12 +27,11 @@ export const ModifyLocaitonModal = ({setModal, location}) => {
     let map;
 
     const userLocationFeature = new Feature({
-        geometry: new Point(fromLonLat([location.lon, location.lat])),
+        geometry: new Point(fromLonLat([props.location.lon, props.location.lat])),
     });
 
-    // Secondary feature for the blue circle
     const blueCircleFeature = new Feature({
-        geometry: new Point(fromLonLat([location.lon, location.lat])),
+        geometry: new Point(fromLonLat([props.location.lon, props.location.lat])),
     });
 
     const fetchLocation = async (lng, lat) => {
@@ -59,11 +50,11 @@ export const ModifyLocaitonModal = ({setModal, location}) => {
     };
 
     const initializeMap = () => {
-        setMarkedLocation(location)
+      setMarkedLocation(props.location)
         const georgiaExtent = [38.5, 40.9, 46.8, 44.5];
         const view = new View({
             zoom: 12,
-            center: fromLonLat([location.lon, location.lat]),
+            center: fromLonLat([props.location.lon, props.location.lat]),
             extent: transformExtent(georgiaExtent, 'EPSG:4326', 'EPSG:3857'),
         });
 
@@ -80,7 +71,7 @@ export const ModifyLocaitonModal = ({setModal, location}) => {
         const iconStyle = new Style({
             image: new Icon({
                 anchor: [0.5, 1],
-                src: '../../../../../public/svg-images/redlocation.svg',
+                src: redLocationIcon,
                 scale: 1.25,
             }),
         });
@@ -241,7 +232,7 @@ export const ModifyLocaitonModal = ({setModal, location}) => {
         try {
             const response = await modify_user_location(markedLocation());
             if (response !== 200) throw new Error(response);
-            setModal(null)
+            props.setModal(null)
         } catch (error) {
             console.log(error.message);
             if (error.message === '401') {
@@ -255,7 +246,7 @@ export const ModifyLocaitonModal = ({setModal, location}) => {
         <div className="w-[800px] h-[600px]">
       <div className="flex w-full justify-between items-center mb-2">
         <h1 className="font-[boldest-font] text-lg">ლოკაციის შეცვლა</h1>
-        <button onClick={() => setModal(null)}>
+        <button onClick={() => props.setModal(null)}>
           <img src={closeIcon} alt="Close" />
         </button>
       </div>
@@ -281,7 +272,7 @@ export const ModifyLocaitonModal = ({setModal, location}) => {
                       </button>
                     </form>
                     <button onClick={() => setIsSearchOpen(false)}>
-                      <img src={CloseIcon} alt="Close" />
+                      <img src={closeIcon} alt="Close" />
                     </button>
                   </div>
                   <div id="inner_search_wrapper" className="py-2 px-3">

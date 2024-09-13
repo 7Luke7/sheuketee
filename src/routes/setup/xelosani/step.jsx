@@ -1,5 +1,5 @@
 import { createSignal, createEffect, batch } from "solid-js";
-import { A, reload, createAsync, useNavigate } from "@solidjs/router";
+import { A, useNavigate } from "@solidjs/router";
 import ChevronRightBlackSVG from "../../../../public/svg-images/ChevronRightBlack.svg";
 import ChevronLeftBlackSVG from "../../../../public/svg-images/ChevronLeftBlack.svg";
 import steps from "./steps.json"

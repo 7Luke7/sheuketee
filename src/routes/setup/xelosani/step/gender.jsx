@@ -1,19 +1,19 @@
 import WomanSVG from "../../../../../public/svg-images/woman.svg"
 import ManSVG from "../../../../../public/svg-images/man.svg"
 import { Match, Switch, createSignal } from "solid-js";
-import { A, createAsync, useNavigate } from "@solidjs/router"
+import { A, createAsync } from "@solidjs/router"
 import { check_user_gender, handle_user_gender } from "~/routes/api/xelosani/setup/setup";
 
 const Gender = () => {
   const user_gender = createAsync(check_user_gender)
   const [current, setCurrent] = createSignal()
-  const navigate = useNavigate()
+  const [submitted, setSubmitted] = createSignal(false)
 
   const handleGender = async () => {
     try {
       const response = await handle_user_gender(current())
       if (response !== 200) throw new Error(response)
-      navigate("/setup/xelosani/step/schedule")
+      setSubmitted(true)
     } catch (error) {
       console.log(error)
     }
@@ -21,7 +21,7 @@ const Gender = () => {
 
   return (
     <Switch>
-      <Match when={!user_gender()}>
+      <Match when={!user_gender() && !submitted()}>
         <div class="flex flex-col p-10 justify-center mb-4">
           <div class="flex gap-x-5 items-center">
             <button onClick={() => setCurrent("კაცი")} class="h-[220px] border w-1/2 flex flex-col items-start cursor-pointer gap-y-2 p-5 border-slate-300 rounded border-2">
@@ -44,8 +44,8 @@ const Gender = () => {
           </button>
         </div>
       </Match>
-      <Match when={user_gender()}>
-        <div class="flex p-10 flex-col items-center">
+      <Match when={user_gender() || submitted()}>
+        <div class="flex p-10 flex-col w-full items-center">
           <p class="text-sm font-[normal-font] font-bold text-gray-700">თქვენ სქესი დამატებული გაქვთ გთხოვთ განაგრძოთ.</p>
           <A className="py-2 mt-3 text-center w-1/2 rounded-md text-sm font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover" href="/setup/xelosani/step/skills">გაგრძელება</A>
         </div>

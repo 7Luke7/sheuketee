@@ -5,22 +5,18 @@ import { verify_user } from "../../session_management"
 import { s3 } from "~/entry-server"
 import {upload_profile_picture} from "../../user"
 import { HeadObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3"
-
+import fs from "fs"
 export const upload_profile_picture_setup = async (file) => {
     console.log(file)
     try {
         const event = getRequestEvent()
         const redis_user = await verify_user(event)
-            
-        const buffer = await upload_profile_picture(file, redis_user)
-        
-        console.log(buffer)
-        const user = await Xelosani.findByIdAndUpdate(redis_user.userId, {
-            $inc: {
-                'stepPercent': 12.5
-            }
-        })
-        
+
+        const buffer = fs.readFile(file.name,)
+        console.log("BUFFER: ", buffer)
+        const compressed_buffer = await compress_image(buffer, 80, 140, 140);
+    
+        console.log(compressed_buffer, Buffer.from(compressed_buffer).toString())
         return 200
     } catch (error) {
         console.log(error)

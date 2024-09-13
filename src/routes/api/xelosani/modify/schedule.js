@@ -1,38 +1,46 @@
+"use server"
 import {getRequestEvent} from "solid-js/web"
 import {Xelosani} from "../../models/User"
 import {verify_user} from "../../session_management"
 
 export const modify_user_schedule = async (formData) => {
-    const insertableObject = {
-        monday: {
+    const insertableObject = [
+        {
             startTime: formData.get("ორშაბათი-საწყისი-დრო"),
-            endTime: formData.get("ორშაბათი-სასრული-დრო")
+            endTime: formData.get("ორშაბათი-სასრული-დრო"),
+            day: "ორშაბათი"
         },
-        tuesday: {
+        {
             startTime: formData.get("სამშაბათი-საწყისი-დრო"),
-            endTime: formData.get("სამშაბათი-სასრული-დრო")
+            endTime: formData.get("სამშაბათი-სასრული-დრო"),
+            day: "სამშაბათი"
         },
-        wednesday: {
+        {
             startTime: formData.get("ოთხშაბათი-საწყისი-დრო"),
-            endTime: formData.get("ოთხშაბათი-სასრული-დრო")
+            endTime: formData.get("ოთხშაბათი-სასრული-დრო"),
+            day: "ოთხშაბათი"
         },
-        thursday: {
+        {
             startTime: formData.get("ხუთშაბათი-საწყისი-დრო"),
-            endTime: formData.get("ხუთშაბათი-სასრული-დრო")
+            endTime: formData.get("ხუთშაბათი-სასრული-დრო"),
+            day: "ხუთშაბათი"
         },
-        friday: {
+        {
             startTime: formData.get("პარასკევი-საწყისი-დრო"),
-            endTime: formData.get("პარასკევი-სასრული-დრო")
+            endTime: formData.get("პარასკევი-სასრული-დრო"),
+            day: "პარასკევი"
         },
-        saturday: {
+        {
             startTime: formData.get("შაბათი-საწყისი-დრო"),
-            endTime: formData.get("შაბათი-სასრული-დრო")
+            endTime: formData.get("შაბათი-სასრული-დრო"),
+            day: "შაბათი"
         },
-        sunday: {
+        {
             startTime: formData.get("კვირა-საწყისი-დრო"),
-            endTime: formData.get("კვირა-სასრული-დრო")
+            endTime: formData.get("კვირა-სასრული-დრო"),
+            day: "კვირა"
         }
-    }
+    ]
 
     try {
         const event = getRequestEvent()
@@ -42,10 +50,9 @@ export const modify_user_schedule = async (formData) => {
             throw new Error(401)
         }
 
-        const update_user = await Xelosani.findByIdAndUpdate(redis_user.userId, {
-            location: location
-        })
-        console.log(update_user, redis_user, insertableObject)
+        await Xelosani.updateOne({_id: redis_user.userId},
+            { $set: { schedule: insertableObject } }
+        )
 
         return 200
     } catch(error) {

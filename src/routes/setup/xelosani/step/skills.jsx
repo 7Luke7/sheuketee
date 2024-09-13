@@ -10,7 +10,6 @@ const Skills = () => {
     const [allJobs, setAllJobs] = createSignal()
     const [selectedJobs, setSelectedJobs] = createSignal([])
     const [submitted, setSubmitted] = createSignal(false)
-    const navigate = useNavigate()
 
     const job_search = (searchTerm) => {
         setAllJobs(() => {
@@ -58,7 +57,7 @@ const Skills = () => {
     return (
         <div class="flex flex-col p-10 justify-between w-full items-center h-full mb-4">
             <Switch>
-                <Match when={check_jobs() === 200 || submitted()}>
+                <Match when={check_jobs() === 200 && !submitted()}>
                     <div class="h-[180px] overflow-y-auto mb-3 curstom-scrollbar w-full">
                         <Show when={selectedJobs().length > 0}>
                             <div class="flex mb-3 items-center gap-2 flex-wrap">
@@ -106,7 +105,7 @@ const Skills = () => {
                         </button>
                     </div>
                 </Match>
-                <Match when={check_jobs() === 400}>
+                <Match when={check_jobs() === 400 || submitted()}>
                     <div class="flex items-center h-full"><p class="text-sm font-[normal-font] font-bold text-gray-700">თქვენ უნარები დამატებული გაქვთ გთხოვთ განაგრძოთ.</p></div>
                 </Match>
             </Switch>

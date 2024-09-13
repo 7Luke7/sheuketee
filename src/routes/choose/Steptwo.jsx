@@ -18,7 +18,7 @@ export const Steptwo = ({ setStep, current }) => {
         return setError(result.errors)
       }
       if (result.message === "success") {
-        navigate(`/setup/${result.role}/step/photo`)
+        navigate(`/${result.role}/${result.profId}`)
       }
     } catch (error) {
       alert(error)

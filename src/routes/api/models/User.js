@@ -16,7 +16,7 @@ const SkillSchema = new mongoose.Schema({
     max: 5,
     default: 0
   }
-}, {timestamps: false});
+}, {timestamps: false, _id: false});
 
 const LocationSchema = new mongoose.Schema({
     place_id: { type: Number, default: null },
@@ -29,60 +29,33 @@ const LocationSchema = new mongoose.Schema({
     class: { type: String, default: null },
     type: { type: String, default: null },
     address: {  
-        type: {
-            house_number: { type: String, default: null },
-            road: { type: String, default: null },
-            neighbourhood: { type: String, default: null },
-            suburb: { type: String, default: null },
-            village: { type: String, default: null },
-            hamlet: { type: String, default: null },
-            isolated_dwelling: { type: String, default: null },
-            city: { type: String, default: null },
-            town: { type: String, default: null },
-            municipality: { type: String, default: null },
-            county: { type: String, default: null },
-            state: { type: String, default: null },
-            region: { type: String, default: null },
-            postcode: { type: String, default: null },
-            country: { type: String, default: null },
-            country_code: { type: String, default: null }
-        },
-        default: {}
+      house_number: { type: String, default: null },
+      road: { type: String, default: null },
+      neighbourhood: { type: String, default: null },
+      suburb: { type: String, default: null },
+      village: { type: String, default: null },
+      hamlet: { type: String, default: null },
+      isolated_dwelling: { type: String, default: null },
+      city: { type: String, default: null },
+      town: { type: String, default: null },
+      municipality: { type: String, default: null },
+      county: { type: String, default: null },
+      state: { type: String, default: null },
+      region: { type: String, default: null },
+      postcode: { type: String, default: null },
+      country: { type: String, default: null },
+      country_code: { type: String, default: null }
     },
 }, {
+    _id: false,
     timestamps: false
 });
 
 const ScheduleSchema = new mongoose.Schema({
-    ორშაბათი: {
-        startTime: { type: String, default: null },
-        endTime: { type: String, default: null }
-    },
-    სამშაბათი: {
-        startTime: { type: String, default: null },
-        endTime: { type: String, default: null }
-    },
-    ოთხშაბათი: {
-        startTime: { type: String, default: null },
-        endTime: { type: String, default: null }
-    },
-    ხუთშაბათი: {
-        startTime: { type: String, default: null },
-        endTime: { type: String, default: null }
-    },
-    პარასკევი: {
-        startTime: { type: String, default: null },
-        endTime: { type: String, default: null }
-    },
-    შაბათი: {
-        startTime: { type: String, default: null },
-        endTime: { type: String, default: null }
-    },
-    კვირა: {
-        startTime: { type: String, default: null },
-        endTime: { type: String, default: null }
-    },
-}, {timestamps: false})
+    startTime: { type: String, default: null },
+    endTime: { type: String, default: null },
+    day: {type: String, default: null}
+}, {_id: false, timestamps: false})
 
 const UserSchema = new mongoose.Schema({
   role: {
@@ -153,6 +126,10 @@ const UserSchema = new mongoose.Schema({
     min: 0,
     default: 0
   },
+  location: {
+    type: LocationSchema,
+    default: undefined
+  },
   about: {
     type: String,
     minlength: [75, "თქვენს შესახებ უნდა შეიცავდეს მინუმუმ 75 სიმბოლოს."],
@@ -171,9 +148,13 @@ const XelosaniSchema = new mongoose.Schema({
     type: [ScheduleSchema],
     default: undefined
   },
-  location: {
-    type: LocationSchema,
-    default: undefined
+  workCount: {
+    type: Number,
+    default: null
+  },
+  reviewCount: {
+    type: Number,
+    default: null
   }
 });
 

@@ -1,6 +1,5 @@
 import { A } from "@solidjs/router"
 import { createSignal } from "solid-js"
-import { Footer } from "~/Components/Footer"
 import { Stepone } from "./Stepone"
 import { Steptwo } from "./Steptwo"
 import { SmallFooter } from "~/Components/SmallFooter"

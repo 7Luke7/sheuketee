@@ -1,11 +1,11 @@
-import { A, createAsync, useNavigate } from "@solidjs/router"
+import { A, createAsync } from "@solidjs/router"
 import { Match, Switch, createSignal } from "solid-js";
 import { check_contact, handle_contact } from "~/routes/api/xelosani/setup/setup";
 
 const Contact = () => {
     const contact = createAsync(check_contact)
     const [error, setError] = createSignal("")
-    const navigate = useNavigate()
+    const [submitted, setSubmitted] = createSignal(false)
 
     const handleContact = async (event) => {
         event.preventDefault()
@@ -13,7 +13,8 @@ const Contact = () => {
             const formData = new FormData(event.target);
             const response = await handle_contact(formData, contact())
             if (response !== 200) throw new Error(response) 
-            navigate("/setup/xelosani/step/location")
+                console.log(response)
+            setSubmitted(true)
         } catch (error) {
             if (error.message === "401") {
                 return alert("მომხმარებელი არ არის შესული სისტემაში.")
@@ -21,8 +22,10 @@ const Contact = () => {
             setError(error.message)
         }
     }
+
+    console.log(submitted())
     return <Switch>
-        <Match when={contact() === "email" || contact() === "phone"}>
+        <Match when={contact() === "email" || contact() === "phone" && !submitted()}>
             <form class="w-full p-10" onSubmit={handleContact}>
                 <div class="flex items-center justify-between">
                     <label class="block font-[normal-font] tracking-wide text-gray-700 text-xs font-bold mb-2" for="input">
@@ -36,8 +39,8 @@ const Contact = () => {
                 </button>
             </form>
         </Match>
-        <Match when={contact() === "fine"}>
-            <div class="flex p-10 flex-col items-center">
+        <Match when={contact() === "fine" || submitted()}>
+            <div class="flex p-10 w-full flex-col items-center">
             <p class="text-sm font-[normal-font] font-bold text-gray-700">თქვენ საკონტაქტოები დამატებული გაქვთ გთხოვთ განაგრძოთ.</p>
             <A className="py-2 mt-3 text-center w-1/2 rounded-md text-sm font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover" href="/setup/xelosani/step/about">გაგრძელება</A>
             </div>

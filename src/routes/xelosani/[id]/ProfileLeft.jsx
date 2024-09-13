@@ -8,17 +8,17 @@ import pen from "../../../../public/svg-images/pen.svg"
 import cake from "../../../../public/svg-images/cake.svg"
 import spinnerSVG from "../../../../public/svg-images/spinner.svg"
 import { A, action} from "@solidjs/router"
-import { handle_profile_image } from "../../api/prof_image"
 import {upload_profile_picture} from "../../api/user"
 
-export const ProfileLeft = ({ setModal, user }) => {
+export const ProfileLeft = (props) => {
     const [imageLoading, setImageLoading] = createSignal(false);
-    const [imageUrl, setImageUrl] = createSignal(user().profile_image || defaultProfileSVG);  
+    const [imageUrl, setImageUrl] = createSignal(props.user().profile_image || defaultProfileSVG);  
     const handleFormSubmission = action(async (FormData) => {
         setImageLoading(true);
         try {
             const formData = new FormData(e.target)
-            const url = await upload_profile_picture(formData, user().profId)
+            console.log(formData, props.user().profId)
+            const url = await upload_profile_picture(formData, props.user().profId)
             if (url) {
                 batch(() => {
                     setImageUrl(url)
@@ -33,7 +33,7 @@ export const ProfileLeft = ({ setModal, user }) => {
      return <div class="flex sticky top-[50px] gap-y-3 flex-col">
         <div class="border-2 py-2 flex flex-col px-2 items-center flex-[2]">
             <Switch>
-                <Match when={user().status !== 401}>
+                <Match when={props.user().status !== 401}>
                     <Switch>
                         <Match when={!imageLoading()}>
                             <div>
@@ -57,33 +57,33 @@ export const ProfileLeft = ({ setModal, user }) => {
                         </Match>
                     </Switch>
                 </Match>
-                <Match when={user().status === 401}>
+                <Match when={props.user().status === 401}>
                     <div class="relative">
-                        <img id="prof_pic" class="w-[130px] border-2 border-solid border-[#108a00] rounded-[50%] h-[130px]" src={user().profile_image || defaultProfileSVG}></img>
+                        <img id="prof_pic" class="w-[130px] border-2 border-solid border-[#108a00] rounded-[50%] h-[130px]" src={props.user().profile_image || defaultProfileSVG}></img>
                         <span class='bottom-1 right-4 absolute w-5 h-5 bg-[#108a00] border-2 border-white rounded-full'></span>
                     </div>
                 </Match>
             </Switch>
-            <h1 class="text-xl font-[boldest-font] text-gray-900">{user().firstname + " " + user().lastname}</h1>
+            <h1 class="text-xl font-[boldest-font] text-gray-900">{props.user().firstname + " " + props.user().lastname}</h1>
 
             <div class="flex flex-col w-full justify-start mt-2 gap-y-2">
                 <div class="flex pb-1 border-b px-2 items-center gap-x-1">
                     <Switch>
-                        <Match when={user().location}>
+                        <Match when={props.user().location}>
                                 <div class="flex items-center w-full gap-x-2">
                                     <img src={location}></img>
-                                    <p class="text-gr text-xs font-[thin-font] break-word font-bold">{user().location.display_name.substr(0, 20)}.</p>
+                                    <p class="text-gr text-xs font-[thin-font] break-word font-bold">{props.user().location.display_name.substr(0, 20)}.</p>
                                 </div>
-                                <Show when={user().status === 200}>
-                                    <button onClick={() => setModal("ლოკაცია")}>
+                                <Show when={props.user().status === 200}>
+                                    <button onClick={() => props.setModal("ლოკაცია")}>
                                         <img id="locationButton" src={pen} />
                                     </button>
                                 </Show>
                         </Match>
-                        <Match when={user().status === 200}>
+                        <Match when={props.user().status === 200}>
                             <A href="/setup/xelosani/step/location" class="bg-dark-green w-full py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]">დაამატე ლოკაცია</A>
                         </Match>
-                        <Match when={user().status === 401}>
+                        <Match when={props.user().status === 401}>
                             <img src={location}></img>
                             <p class="text-gr text-xs font-[thin-font] font-bold">არ არის დამატებული</p>
                         </Match>
@@ -91,14 +91,14 @@ export const ProfileLeft = ({ setModal, user }) => {
                 </div>
                 <div class="flex pb-1 px-2 border-b items-center gap-x-1">
                     <Switch>
-                        <Match when={user().phone}>
+                        <Match when={props.user().phone}>
                             <img src={telephone}></img>
-                            <p class="text-gr text-xs ml-1 font-[thin-font] font-bold">{user().phone}</p>
+                            <p class="text-gr text-xs ml-1 font-[thin-font] font-bold">{props.user().phone}</p>
                         </Match>
-                        <Match when={user().status === 200}>
+                        <Match when={props.user().status === 200}>
                             <A href="/setup/xelosani/step/contact" class="bg-dark-green w-full py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]">დაამატე ტელ. ნომერი</A>
                         </Match>
-                        <Match when={user().status === 401}>
+                        <Match when={props.user().status === 401}>
                             <img src={telephone}></img>
                             <p class="text-gr ml-1 text-xs font-[thin-font] font-bold">არ არის დამატებული</p>
                         </Match>
@@ -106,14 +106,14 @@ export const ProfileLeft = ({ setModal, user }) => {
                 </div>
                 <div class="flex px-2 pb-1 border-b items-center gap-x-1">
                     <Switch>
-                        <Match when={user().email}>
+                        <Match when={props.user().email}>
                             <img src={envelope}></img>
-                            <p class="text-gr ml-1 text-xs font-[thin-font] font-bold">{user().email}</p>
+                            <p class="text-gr ml-1 text-xs font-[thin-font] font-bold">{props.user().email}</p>
                         </Match>
-                        <Match when={user().status === 200}>
+                        <Match when={props.user().status === 200}>
                             <A href="/setup/xelosani/step/contact" class="bg-dark-green w-full py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]">დაამატე მეილი</A>
                         </Match>
-                        <Match when={user().status === 401}>
+                        <Match when={props.user().status === 401}>
                             <img src={envelope}></img>
                             <p class="text-gr ml-1 text-xs font-[thin-font] font-bold">არ არის დამატებული</p>
                         </Match>
@@ -121,34 +121,34 @@ export const ProfileLeft = ({ setModal, user }) => {
                 </div>
                 <div class="flex pb-1 border-b px-2 items-center gap-x-1">
                     <Switch>
-                        <Match when={user().date}>
+                        <Match when={props.user().date}>
                             <div class="flex justify-between w-full items-center">
                                 <div class="flex items-center gap-x-2">
                                     <img src={cake} />
-                                    <p class="text-gr text-xs font-[thin-font] font-bold">{new Date(user().date).toLocaleDateString("en-US", {
+                                    <p class="text-gr text-xs font-[thin-font] font-bold">{new Date(props.user().date).toLocaleDateString("en-US", {
                                             weekday: 'long',
                                             year: 'numeric',
                                             month: 'long',
                                             day: 'numeric',
                                         })}</p>
                                 </div>
-                                <Show when={user().status === 200}>
-                                    <button onClick={() => setModal("ასაკი")}>
+                                <Show when={props.user().status === 200}>
+                                    <button onClick={() => props.setModal("ასაკი")}>
                                         <img src={pen} id="age" />
                                     </button>
                                 </Show>
                             </div>
                         </Match>
-                        <Match when={user().status === 200}>
+                        <Match when={props.user().status === 200}>
                             <A href="/setup/xelosani/step/age" class="bg-dark-green w-full py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]">დაამატე დაბ. თარიღი</A>
                         </Match>
-                        <Match when={user().status === 401}>
+                        <Match when={props.user().status === 401}>
                             <p class="text-gr text-xs text-center font-[thin-font] font-bold">ასაკი არ არის დამატებული</p>
                         </Match>
                     </Switch>
                 </div>
                 {
-                    user().avgrating && <div class="flex">
+                    props.user().avgrating && <div class="flex">
                             <Index each={new Array(3)}>
                                 {() => {
                                     return <div>
@@ -170,34 +170,35 @@ export const ProfileLeft = ({ setModal, user }) => {
         <div class="border-2 px-2 py-2">
             <div class="flex items-center border-b justify-between">
                 <h2 class="text-lg font-[bolder-font]">სამუშაო განრიგი</h2>
-                <Show when={user().status === 200 && user().schedule}>
-                    <button onClick={() => setModal("განრიგი")}>
+                <Show when={props.user().status === 200 && props.user().schedule}>
+                    <button onClick={() => props.setModal("განრიგი")}>
                         <img src={pen} id="schedule" />
                     </button>
                 </Show>
             </div>
             <Switch>
-                <Match when={user().schedule}>
+                <Match when={props.user().schedule}>
                     <ul class="mt-1">
 
-                <For each={user().schedule}>
+                <For each={props.user().schedule}>
                             {(s, i) => (
-                                <li class="font-[thin-font] justify-between text-sm font-bold flex gap-x-2">
-                                        <p>{i()}</p>
-                                        <p>{s.startTime}</p>
+                                <li class="font-[thin-font] w-full items-center justify-between text-sm font-bold flex gap-x-2">
+                                        <p>{s.day}</p>
+                                        <div class="flex items-center"><p>{s.startTime}</p>-
+                                        <p>{s.endTime}</p></div>
                                     </li>
                             )}
                 </For>
                 </ul>
                 </Match>
-                <Match when={user().status === 401}>
+                <Match when={props.user().status === 401}>
                     <div class="flex items-center justify-center pt-2 border-t">
                         <p class="font-[thin-font] text-gr text-sm font-bold">
                             განრიგი ცარიელია
                         </p>
                     </div>
                 </Match>
-                <Match when={user().status === 200}>
+                <Match when={props.user().status === 200}>
                     <div class="flex items-center justify-center pt-2 border-t">
 
                         <A href="/setup/xelosani/step/schedule" class="bg-dark-green w-full py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]">დაამატე განრიგი</A>

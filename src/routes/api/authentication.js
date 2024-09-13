@@ -109,7 +109,7 @@ export const RegisterUser = async (formData, role) => {
 
             const sessionId = await create_session(new_user.profId, new_user._id, 1)
 
-            return json({ message: "success", role: "xelosani" }, {
+            return json({ message: "success", role: "xelosani", profId: random_id }, {
                 status: 200,
                 headers: {
                     'Set-Cookie': `sessionId=${sessionId}; Path=/; SameSite=strict; Max-Age=${7 * 24 * 60 * 60}`,
@@ -136,7 +136,7 @@ export const RegisterUser = async (formData, role) => {
 
             const sessionId = await create_session(new_user.profId, new_user._id, 2)
 
-            return json({ message: "success", role: "damkveti"}, {
+            return json({ message: "success", role: "damkveti", profId: random_id}, {
                 status: 200,
                 headers: {
                     'Set-Cookie': `sessionId=${sessionId}; Path=/; SameSite=strict; Max-Age=${7 * 24 * 60 * 60}`,

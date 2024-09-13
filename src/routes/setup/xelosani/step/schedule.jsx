@@ -1,9 +1,10 @@
+import { createSignal } from "solid-js";
 import {add_user_schedule, check_user_schedule} from "../../../api/xelosani/setup/setup"
-import { A, createAsync, useNavigate } from "@solidjs/router";
+import { A, createAsync } from "@solidjs/router";
 
 const schedule = () => {
     const schedule = createAsync(check_user_schedule)
-    const navigate = useNavigate()
+    const [submitted, setSubmitted] = createSignal(false)
     
     const week_days = [
         "ორშაბათი",
@@ -21,7 +22,7 @@ const schedule = () => {
             const formData = new FormData(e.target)
             const response = await add_user_schedule(formData)
             if (response !== 200) throw new Error(response) 
-            navigate("/setup/xelosani/step/skills")
+            setSubmitted(true)
         } catch(error) {
 
         }
@@ -29,7 +30,7 @@ const schedule = () => {
 
     return <div  class='flex flex-col w-full px-4 py-2 h-full'>
         <Switch>
-            <Match when={schedule() === 200}>
+            <Match when={schedule() === 200 && !submitted()}>
                 <div class="flex items-center justify-between border-b pb-2">
                     <p class="font-bold font-[normal-font] text-md">კვირის დღეები</p>
                     <div class="flex items-center w-[235px] justify-around">
@@ -53,7 +54,7 @@ const schedule = () => {
                     </button>
                 </form>
             </Match>
-            <Match when={schedule() !== 200}>
+            <Match when={schedule() !== 200 || submitted()}>
                 <div class="flex flex-col justify-center h-full items-center">
                     <p class="text-sm font-[normal-font] font-bold text-gray-700">განრიგი დამატებული გაქვთ გთხოვთ განაგრძოთ.</p>
                     <A className="py-2 mt-3 text-center w-1/2 rounded-md text-sm font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover" href="/setup/xelosani/step/about">გაგრძელება</A>

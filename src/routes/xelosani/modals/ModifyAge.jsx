@@ -2,17 +2,16 @@ import { createEffect, createSignal, batch } from "solid-js";
 import ChevronRightBlackSVG from "../../../../public/svg-images/ChevronRightBlack.svg";
 import ChevronLeftBlackSVG from "../../../../public/svg-images/ChevronLeftBlack.svg";
 import dropdownSVG from "../../../../public/svg-images/svgexport-8.svg"
-import { check_user_age, handle_date_select } from "~/routes/api/xelosani/setup/setup";
-import { A, createAsync, useNavigate } from "@solidjs/router";
+import { useNavigate } from "@solidjs/router";
 import closeIcon from "../../../../public/svg-images/svgexport-12.svg"
 import {modify_user_date} from "~/routes/api/xelosani/modify/date"
 
-export const ModifyAge = ({setModal, date}) => {
-  const [currentDate, setCurrentDate] = createSignal(new Date(date));
+export const ModifyAge = (props) => {
+  const [currentDate, setCurrentDate] = createSignal(new Date(props.date));
   const [showYearDropdown, setShowYearDropdown] = createSignal(false);
   const [weeks, setWeeks] = createSignal();
   const navigate = useNavigate()
-  const [currentDay, setCurrentDay] = createSignal(new Date(date).getDate())
+  const [currentDay, setCurrentDay] = createSignal(new Date(props.date).getDate())
 
   const georgianMonthNames = [
     "იანვარი", "თებერვალი", "მარტი", "აპრილი", "მაისი", "ივნისი",
@@ -23,7 +22,6 @@ export const ModifyAge = ({setModal, date}) => {
   const startDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
 
   createEffect(() => {
-    setModal(null)
     const year = currentDate().getFullYear();
     const month = currentDate().getMonth();
     const days = Array.from({ length: daysInMonth(year, month) }, (_, i) => i + 1);
@@ -93,7 +91,7 @@ export const ModifyAge = ({setModal, date}) => {
     try {
       const response = await modify_user_date(currentDate())
       if (response !== 200) throw new Error(response) 
-      setModal(null)
+      props.setModal(null)
     } catch (error) {
       console.log(error.message)
       if (error.message === "401") {
@@ -107,7 +105,7 @@ export const ModifyAge = ({setModal, date}) => {
     <div className="flex flex-col w-[445px] items-center justify-center">
           <div class="flex w-full justify-between items-center mb-2">
         <h1 class='font-[boldest-font] text-lg'>ასაკის შეცვლა</h1>
-        <button onClick={() => setModal(null)}><img src={closeIcon} /></button>
+        <button onClick={() => props.setModal(null)}><img src={closeIcon} /></button>
       </div>
         <div className="w-full flex flex-col justify-between h-[400px] p-3 border border-gray-300 rounded-2xl">
         <div className="flex items-center justify-between gap-2 mb-2">

@@ -21,6 +21,9 @@ export class HandleError {
         
     }
 
+    duplicate_error(target) {
+        return `მომხმარებელი ${target} უკვე არსებობს.`
+    }
     global_error() {
         return {
             message: "დაფიქსირდა სერვერული შეცდომა."

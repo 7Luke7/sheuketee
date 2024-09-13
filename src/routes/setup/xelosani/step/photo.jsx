@@ -1,4 +1,4 @@
-import { A, createAsync, useNavigate } from "@solidjs/router";
+import { A, createAsync} from "@solidjs/router";
 import defaultProfileSVG from "../../../../../public/default_profile.png"
 import CameraSVG from "../../../../../public/svg-images/camera.svg"
 import spinnerSVG from "../../../../../public/svg-images/spinner.svg"
@@ -13,7 +13,7 @@ const ProfilePictureStep = () => {
     const [error, setError] = createSignal()
     const [imageLoading, setImageLoading] = createSignal(false)
     const [uploadingImage, setUploadingImage] = createSignal(false)
-    const navigate = useNavigate()
+    const [submitted, setSubmitted] = createSignal(false)
 
     const approveUpload = async () => {
         try {
@@ -25,7 +25,7 @@ const ProfilePictureStep = () => {
             console.log(response)
             if (response === 200) {
                 setUploadingImage(false)
-                navigate("/setup/xelosani/step/contact")
+                setSubmitted(true)
             }
         } catch (error) {
             console.log(error)
@@ -46,7 +46,7 @@ const ProfilePictureStep = () => {
 
     return (
         <Switch>
-            <Match when={!profile_image()}>
+            <Match when={!profile_image() && !submitted()}>
                 <div class="flex p-10 flex-col items-center mb-4">
                     <Switch>
                         <Match when={!imageLoading()}>
@@ -67,12 +67,12 @@ const ProfilePictureStep = () => {
                             </div>
                         </Match>
                     </Switch>
-                    <button onClick={approveUpload} disabled={imageLoading()} class={`cursor-pointer font-[thin-font] font-bold text-sm tracking-wider bg-[#108a00] duration-300 hover:bg-[#14a800] text-white py-2 px-3 ${imageLoading() && "bg-[#E5E7EB]" } rounded-md`}>
+                    <button onClick={approveUpload} disabled={imageLoading()} class={`cursor-pointer font-[thin-font] font-bold text-sm tracking-wider bg-[#108a00] duration-300 hover:bg-[#14a800] text-white py-2 px-3 ${imageLoading() && "bg-[#E5E7EB] hover:bg-[#E5E7EB]" } rounded-md`}>
                         პროფილზე დაყენება
                     </button>
                 </div>
             </Match>
-            <Match when={profile_image()}>
+            <Match when={profile_image() || submitted()}>
                 <div class="p-10 flex flex-col items-center">
                     <p class="text-sm font-[normal-font] font-bold text-gray-700">პროფილის ფოტო უკვე დამატებულია გთხოვთ განაგრძოთ.</p>
                     <A className="py-2 mt-3 text-center w-1/2 rounded-md text-sm font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover" href="/setup/xelosani/step/contact">გაგრძელება</A>

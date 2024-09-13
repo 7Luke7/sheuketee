@@ -16,7 +16,7 @@ import { navigateToStep } from "~/routes/api/xelosani/setup/step";
 import { ModifyLocaitonModal } from "../modals/ModifyLocationModal";
 import { ModifyWorkSchedule } from "../modals/ModifyWorkSchedule";
 import { ModifyAge } from "../modals/ModifyAge";
-import { MetaProvider, Link } from "@solidjs/meta";
+import { MetaProvider } from "@solidjs/meta";
 
 const Xelosani = (props) => {
   const user = createAsync(async () =>
@@ -35,8 +35,8 @@ const Xelosani = (props) => {
     }
   };
   const clickFN =  (event) => {
-    if (!event.target.closest('#modal') && !event.target.closest("#search_wrapper") && !event.target.closest("#search_btn") && !event.target.closest("#inner_search_wrapper") && event.target.id !== "daynumber" && !event.target.closest("#yeardropdown") && event.target.id !== "locationButton" && !event.target.closest('#modal') && event.target.id !== "age") {
-        setModal(null);
+    if (!event.target.closest("#search_wrapper") && !event.target.closest("#search_btn") && !event.target.closest("#inner_search_wrapper") && event.target.id !== "daynumber" && !event.target.closest("#yeardropdown") && event.target.id !== "locationButton" && event.target.id !== "schedule" && !event.target.closest('#modal') && event.target.id !== "age") {
+      setModal(null);
     }
 
 }

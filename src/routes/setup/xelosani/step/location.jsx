@@ -1,22 +1,17 @@
 import { createSignal, onMount, Show, Switch, Match } from "solid-js";
-import { createAsync, useNavigate, A } from "@solidjs/router";
+import { createAsync, A } from "@solidjs/router";
 import "ol/ol.css"
-import mapSVG from "../../../../../public/svg-images/map.svg"
-import formSVG from "../../../../../public/svg-images/form.svg"
 import OSM from 'ol/source/OSM';
 import TileLayer from 'ol/layer/Tile';
 import {Map, View} from 'ol';
 import Feature from 'ol/Feature'
 import {fromLonLat, transformExtent, toLonLat} from 'ol/proj';
 import Point from 'ol/geom/Point';
-import Link from 'ol/interaction/Link';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
-import { getCenter, containsExtent } from 'ol/extent';
 import Geolocation from 'ol/Geolocation';
-import { Icon, Style, Text, Circle, Fill, Stroke } from 'ol/style';
+import { Icon, Style } from 'ol/style';
 import Modify from 'ol/interaction/Modify';
-import exclamationSVG from "../../../../../public/svg-images/exclamation.svg"
 import SearchIcon from "../../../../../public/svg-images/svgexport-5.svg"
 import CloseIcon from "../../../../../public/svg-images/svgexport-12.svg"
 import {handle_location, check_location} from "../../../api/xelosani/setup/setup"
@@ -27,11 +22,10 @@ const Location = () => {
     const [searchResults, setSearchResults] = createSignal();
     const [searching, setSearching] = createSignal(false);
     const [isSearchOpen, setIsSearchOpen] = createSignal(false)
-    const [activeSearchOption, setActiveSearchOption] = createSignal()
     const [searchInputValue, setSearchInputValue] = createSignal("")
     const [markedLocation, setMarkedLocation] = createSignal()
+    const [submitted, setSubmitted] = createSignal(false)
 
-    const navigate = useNavigate()
     let map
     let geolocation
     let isGeolocationActive = true;
@@ -241,7 +235,7 @@ const Location = () => {
         try {
             const response = await handle_location(markedLocation())
             if (response !== 200) throw new Error(response) 
-            navigate("/setup/xelosani/step/about")
+            setSubmitted(true)
         } catch (error) {
             console.log(error.message)
             if (error.message === "401") {
@@ -254,7 +248,7 @@ const Location = () => {
     return <Show when={location()}>
         <div class="h-[500px] w-full">
         <Switch>
-            <Match when={location() === 200}>
+            <Match when={location() === 200 && !submitted()}>
                 <div class="flex h-full flex-col items-start justify-start">
                     <div class="h-full border-b w-full m-0">
                         <div class="h-full w-full m-0 relative" ref={map}>
@@ -313,10 +307,10 @@ const Location = () => {
                     </div>
                 </div>
             </Match>
-            <Match when={location() !== 200}>
+            <Match when={location() !== 200 || submitted()}>
                 <div class="flex w-full flex-col justify-center h-full items-center">
                     <p class="text-sm font-[normal-font] font-bold text-gray-700">ლოკაცია დამატებული გაქვთ გთხოვთ განაგრძოთ.</p>
-                    <A className="py-2 mt-3 text-center w-1/2 rounded-md text-sm font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover" href="/setup/xelosani/step/about">გაგრძელება</A>
+                    <A className="py-2 mt-3 w-1/2 text-center rounded-md text-sm font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover" href="/setup/xelosani/step/about">გაგრძელება</A>
                 </div>
             </Match>
         </Switch>

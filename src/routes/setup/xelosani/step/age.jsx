@@ -3,7 +3,7 @@ import ChevronRightBlackSVG from "../../../../../public/svg-images/ChevronRightB
 import ChevronLeftBlackSVG from "../../../../../public/svg-images/ChevronLeftBlack.svg";
 import dropdownSVG from "../../../../../public/svg-images/svgexport-8.svg"
 import { check_user_age, handle_date_select } from "~/routes/api/xelosani/setup/setup";
-import { A, createAsync, useNavigate } from "@solidjs/router";
+import { A, createAsync } from "@solidjs/router";
 
 const Age = () => {
   const get_user_age = createAsync(check_user_age)
@@ -11,7 +11,7 @@ const Age = () => {
   const [showYearDropdown, setShowYearDropdown] = createSignal(false);
   const [weeks, setWeeks] = createSignal();
   const [currentDay, setCurrentDay] = createSignal()
-  const navigate = useNavigate()
+  const [submitted, setSubmitted] = createSignal(false)
 
   const georgianMonthNames = [
     "იანვარი", "თებერვალი", "მარტი", "აპრილი", "მაისი", "ივნისი",
@@ -90,7 +90,7 @@ const Age = () => {
     try {
       const response = await handle_date_select(currentDate())
       if (response !== 200) throw new Error(response) 
-        navigate("/setup/xelosani/step/gender")
+      setSubmitted(true)
     } catch (error) {
       console.log(error.message)
       if (error.message === "401") {
@@ -103,7 +103,7 @@ const Age = () => {
   return (
     <div className="flex p-10 items-center justify-center">
       <Switch>
-        <Match when={!get_user_age()}>
+        <Match when={!get_user_age() && !submitted()}>
         <div className="w-full max-w-[328px] flex flex-col justify-between h-[400px] p-3 border border-gray-300 rounded-2xl">
         <div className="flex items-center justify-between gap-2 mb-2">
           <div className="flex items-center justify-between w-full gap-8 border border-gray-300 rounded-md py-0.5 px-0.5 text-xs font-medium text-gray-900">
@@ -183,10 +183,10 @@ const Age = () => {
         </button>
       </div>
         </Match>
-        <Match when={get_user_age()}>
-          <div class="flex flex-col justify-center items-center">
+        <Match when={get_user_age() || submitted()}>
+          <div class="flex flex-col justify-center w-full items-center">
             <p class="text-sm font-[normal-font] font-bold text-gray-700">დაბადების თარიღი დამატებული გაქვთ გთხოვთ განაგრძოთ.</p>
-            <A className="py-2 mt-3 text-center w-1/2 rounded-md text-sm font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover" href="/setup/xelosani/step/gender">გაგრძელება</A>
+            <A className="py-2 mt-3 text-center w-full rounded-md text-sm font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover" href="/setup/xelosani/step/gender">გაგრძელება</A>
           </div>
         </Match>
       </Switch>

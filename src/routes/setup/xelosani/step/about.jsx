@@ -6,7 +6,10 @@ const About = () => {
     const get_about = createAsync(check_about)
     const [input, setInput] = createSignal("")
     const [message, setMessage] = createSignal()
+    const [submitted, setSubmitted] = createSignal(false)
+
     const navigate = useNavigate()
+    console.log(get_about())
 
     const textTest = async (e) => {
         e.preventDefault()
@@ -18,9 +21,10 @@ const About = () => {
             }
             if (response.status !== 200) throw new Error(response.message)
             if (response.stepPercent === 100) {
-                return navigate(`/xelosani/${response.profId}`)
+                return navigate(`/xelosani/${response.profId}`) //ჩანიშვნა
             }
-            return navigate("/setup/xelosani/step/age")
+            console.log(get_about())
+            setSubmitted(true)
         } catch (error) {
             console.log(error)
             if (error.message === "401") {
@@ -33,7 +37,7 @@ const About = () => {
     return (
         <div class="flex p-10 flex-col items-center mb-4">
             <Switch>
-                <Match when={!get_about()}>
+                <Match when={!get_about() && !submitted()}>
                     <form onSubmit={textTest}>
                         <textarea
                             name="about"
@@ -52,10 +56,10 @@ const About = () => {
                         </Show>
                     </form>
                 </Match>
-                <Match when={get_about()}>
-                    <div class="flex flex-col items-center">
+                <Match when={get_about() || submitted()}>
+                    <div class="flex flex-col w-full items-center">
                         <p class="text-sm font-[normal-font] font-bold text-gray-700">თქვენ შესახებ დამატებული გაქვთ გთხოვთ განაგრძოთ.</p>
-                        <A className="py-2 mt-3 text-center w-1/2 rounded-md text-sm font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover" href="/setup/xelosani/step/age">გაგრძელება</A>
+                        <A className="py-2 mt-3 text-center w-full rounded-md text-sm font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover" href="/setup/xelosani/step/age">გაგრძელება</A>
                     </div>
                 </Match>
             </Switch>

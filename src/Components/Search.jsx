@@ -1,9 +1,22 @@
 import searchIcon from "../../public/svg-images/svgexport-5.svg"
 import clear from "../../public/svg-images/svgexport-12.svg"
 import arrowDown from "../../public/svg-images/svgexport-8.svg"
+import { useNavigate } from "@solidjs/router"
 
 export const Search = ({value, setValue, chosenQuery, setDisplay}) => {
-    return <form id="formmodal" class="border font-[thin-font] rounded-[16px] px-3 py-1 border-[#6e6967] flex items-center">
+
+    const navigate = useNavigate()
+
+    const searchHandler = (e) => {
+        e.preventDefault()
+        try {
+            navigate(`/search?type=${chosenQuery()}&name=${value()}`)
+        } catch (error) {
+            alert(error)
+        }
+    }
+
+    return <form id="formmodal" onSubmit={searchHandler} class="border font-[thin-font] rounded-[16px] px-3 py-1 border-[#6e6967] flex items-center">
         <button class="w-[25px] h-[20px]" type="submit">
             <img src={searchIcon}></img>
         </button>

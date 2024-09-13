@@ -1,4 +1,4 @@
-import { For, Index, onMount, createSignal } from "solid-js";
+import { Index, onMount, createSignal } from "solid-js";
 import emptyStar from "../../../../public/svg-images/svgexport-24.svg";
 import fullStar from "../../../../public/svg-images/svgexport-19.svg";
 import { A } from "@solidjs/router";
@@ -60,7 +60,7 @@ const recently_complete_jobs = [
 export const ReviewCarousel = () => {
     const [currentIndex, setCurrentIndex] = createSignal(0);
     const [emblaRef, embla] = createEmblaCarousel(
-    () => ({ loop: true }),
+    () => ({ loop: true, speed: 10 }),
   )
 
     let emblaDotsContainer;
@@ -72,7 +72,7 @@ export const ReviewCarousel = () => {
             const dots = [];
             for (let i = 0; i < emblaApi.scrollSnapList().length; i++) {
                 const button = document.createElement("button");
-                button.className = "border-[rgb(55,65,81)] rounded-full border-2 w-[14px] h-[14px]";
+                button.className = "border-[rgb(209,213,219)] rounded-full border-2 w-[14px] h-[14px]";
                 button.addEventListener("click", () => {
                     emblaApi.scrollTo(i, false);
                 });
@@ -83,27 +83,27 @@ export const ReviewCarousel = () => {
             emblaApi.on("select", () => {
                 const previousIndex = currentIndex();
                 if (dots[previousIndex]) {
-                    dots[previousIndex].style.borderColor = "rgb(55,65,81)";
+                    dots[previousIndex].style.borderColor = "rgb(209,213,219)";
                 }
                 const newIndex = emblaApi.selectedScrollSnap();
                 setCurrentIndex(newIndex);
                 if (dots[newIndex]) {
-                    dots[newIndex].style.borderColor = "#14a800";
+                    dots[newIndex].style.borderColor = "rgb(55,65,81)";
                 }
             });
 
             if (dots[0]) {
-                dots[0].style.borderColor = "#14a800";
+                dots[0].style.borderColor = "rgb(55,65,81)";
             }
         }
     });
 
     const nextSlide = () => {
-        embla().scrollNext();
+        embla().scrollNext()
     };
-
+    
     const prevSlide = () => {
-        embla().scrollPrev();
+        embla().scrollPrev()
     };
 
     return (
@@ -149,11 +149,11 @@ export const ReviewCarousel = () => {
             </div>
 
             <div class="flex items-center justify-between mt-2">
-                <div class="flex items-center">
-                    <button onClick={prevSlide} type="button">
+                <div class="flex items-center gap-x-1">
+                    <button onClick={prevSlide} class="border-2 rounded-full p-1 border-gray-300" type="button">
                         <img src={ChevronLeftBlack} />
                     </button>
-                    <button onClick={nextSlide} type="button">
+                    <button onClick={nextSlide} class="border-2 rounded-full p-1 border-gray-300" type="button">
                         <img src={ChevronRightBlack} />
                     </button>
                 </div>
