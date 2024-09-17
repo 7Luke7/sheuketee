@@ -24,6 +24,8 @@ const Xelosani = (props) => {
   );
   const navigate = useNavigate();
   const [modal, setModal] = createSignal(null);
+  const [toast, setToast] = createSignal();
+  const [isExiting, setIsExiting] = createSignal(false);
 
   const handlenavigateToStep = async () => {
     try {
@@ -34,19 +36,28 @@ const Xelosani = (props) => {
       alert("წარმოიშვა შეცდომა გთხოვთ ცადოთ მოგვიანებით.");
     }
   };
-  const clickFN =  (event) => {
-    if (!event.target.closest("#search_wrapper") && !event.target.closest("#search_btn") && !event.target.closest("#inner_search_wrapper") && event.target.id !== "daynumber" && !event.target.closest("#yeardropdown") && event.target.id !== "locationButton" && event.target.id !== "schedule" && !event.target.closest('#modal') && event.target.id !== "age") {
+  const clickFN = (event) => {
+    if (
+      !event.target.closest("#search_wrapper") &&
+      !event.target.closest("#search_btn") &&
+      !event.target.closest("#inner_search_wrapper") &&
+      event.target.id !== "daynumber" &&
+      !event.target.closest("#yeardropdown") &&
+      event.target.id !== "locationButton" &&
+      event.target.id !== "schedule" &&
+      !event.target.closest("#modal") &&
+      event.target.id !== "age"
+    ) {
       setModal(null);
     }
-
-}
-createEffect(() => {
-    document.addEventListener("click", clickFN)
+  };
+  createEffect(() => {
+    document.addEventListener("click", clickFN);
 
     onCleanup(() => {
-        document.removeEventListener("click", clickFN)
-    })
-})
+      document.removeEventListener("click", clickFN);
+    });
+  });
   return (
     <MetaProvider>
       <script
@@ -73,18 +84,24 @@ createEffect(() => {
                   <Match when={modal() === "ლოკაცია"}>
                     <ModifyLocaitonModal
                       setModal={setModal}
+                      setIsExiting={setIsExiting}
+                      setToast={setToast}
                       location={user().location}
                     ></ModifyLocaitonModal>
                   </Match>
                   <Match when={modal() === "ასაკი"}>
                     <ModifyAge
                       setModal={setModal}
+                      setIsExiting={setIsExiting}
+                      setToast={setToast}
                       date={user().date}
                     ></ModifyAge>
                   </Match>
                   <Match when={modal() === "განრიგი"}>
                     <ModifyWorkSchedule
                       setModal={setModal}
+                      setIsExiting={setIsExiting}
+                      setToast={setToast}
                       schedule={user().schedule}
                     ></ModifyWorkSchedule>
                   </Match>
@@ -121,7 +138,13 @@ createEffect(() => {
                 modal() && "blur-[0.8px] pointer-events-none"
               } flex items-start`}
             >
-              <ProfileLeft setModal={setModal} user={user} />
+              <ProfileLeft
+                isExiting={isExiting}
+                toast={toast}
+                setToast={setToast}
+                setModal={setModal}
+                user={user}
+              />
               <ProfileRight user={user} />
             </div>
           </Show>

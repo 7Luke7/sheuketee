@@ -8,22 +8,64 @@ body {
   box-sizing: border-box;
 }
 
+* {
+  scroll-behavior: smooth;
+}
+
 @font-face {
   font-family: "normal-font";
-  src: url("../../public/fonts/normal-font.ttf");
+  src: url("../../public/fonts/TBCXMedium.ttf");
 }
-
-@font-face {
-  font-family: "boldest-font";
-  src: url("../../public/fonts/boldest-font.ttf");
-}
-
 @font-face {
   font-family: "bolder-font";
-  src: url("../../public/fonts/bolder-font.ttf");
+  src: url("../../public/fonts/TBCXBold.ttf");
 }
 
 @font-face {
   font-family: "thin-font";
-  src: url("../../public/fonts/thin-font.ttf");
+  src: url("../../public/fonts/TBCXRegular.ttf");
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.50;
+  }
+  75% {
+    opacity: 0.75;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  25% {
+    opacity: 0.75;
+  }
+  50% {
+    opacity: 0.50;
+  }
+  75% {
+    opacity: 0.25;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.toast-enter {
+  animation: fadeIn 1.5s ease-in;
+}
+
+.toast-exit {
+  animation: fadeOut 1.5s ease-out;
 }

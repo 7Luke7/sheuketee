@@ -1,7 +1,7 @@
 import WomanSVG from "../../../../../public/svg-images/woman.svg"
 import ManSVG from "../../../../../public/svg-images/man.svg"
 import { Match, Switch, createSignal } from "solid-js";
-import { A, createAsync } from "@solidjs/router"
+import { A, createAsync, useNavigate } from "@solidjs/router"
 import { check_user_gender, handle_user_gender } from "~/routes/api/xelosani/setup/setup";
 
 const Gender = () => {
@@ -9,10 +9,15 @@ const Gender = () => {
   const [current, setCurrent] = createSignal()
   const [submitted, setSubmitted] = createSignal(false)
 
+  const navigate = useNavigate()
+
   const handleGender = async () => {
     try {
       const response = await handle_user_gender(current())
-      if (response !== 200) throw new Error(response)
+      if (response.status !== 200) throw new Error(response.status)
+      if (response.stepPercent === 100) {
+        return navigate(`/xelosani/${response.profId}`)
+      }
       setSubmitted(true)
     } catch (error) {
       console.log(error)

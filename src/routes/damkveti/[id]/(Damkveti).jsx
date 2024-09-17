@@ -1,22 +1,15 @@
-import { Header } from "~/Components/Header";
-import { get_damkveti } from "../../api/user";
+import { MetaProvider } from "@solidjs/meta";
 import { createAsync, useNavigate } from "@solidjs/router";
-import { Footer } from "~/Components/Footer";
-import {
-  Show,
-  createEffect,
-  Switch,
-  Match,
-  onCleanup,
-  createSignal,
-} from "solid-js";
-import { ProfileLeft } from "./ProfileLeft";
-import { ProfileRight } from "./ProfileRight";
+import { Match, Show, Switch } from "solid-js";
+import { createEffect, createSignal, onCleanup } from "solid-js";
+import { Header } from "~/Components/Header";
+import { navigateToStep } from "~/routes/api/damkveti/step";
+import { get_damkveti } from "~/routes/api/user";
 import { ModifyLocaitonModal } from "../modals/ModifyLocationModal";
 import { ModifyAge } from "../modals/ModifyAge";
-import { MetaProvider } from "@solidjs/meta";
-
-//ახალი სამუშაოს დადებისას შეახსენე ლოკაცია და შესთავაზე ამჟამინდელი ლოკაციის გამოყენება
+import { ProfileLeft } from "./ProfileLeft";
+import { ProfileRight } from "./ProfileRight";
+import { Footer } from "~/Components/Footer";
 
 const Damkveti = (props) => {
   const user = createAsync(async () =>
@@ -24,6 +17,8 @@ const Damkveti = (props) => {
   );
   const navigate = useNavigate();
   const [modal, setModal] = createSignal(null);
+  const [toast, setToast] = createSignal();
+  const [isExiting, setIsExiting] = createSignal(false);
 
   const handlenavigateToStep = async () => {
     try {
@@ -39,9 +34,9 @@ const Damkveti = (props) => {
       !event.target.closest("#search_wrapper") &&
       !event.target.closest("#search_btn") &&
       !event.target.closest("#inner_search_wrapper") &&
+      event.target.id !== "locationButton" && 
       event.target.id !== "daynumber" &&
       !event.target.closest("#yeardropdown") &&
-      event.target.id !== "locationButton" &&
       !event.target.closest("#modal") &&
       event.target.id !== "age"
     ) {
@@ -82,20 +77,18 @@ const Damkveti = (props) => {
                   <Match when={modal() === "ლოკაცია"}>
                     <ModifyLocaitonModal
                       setModal={setModal}
+                      setIsExiting={setIsExiting}
+                      setToast={setToast}
                       location={user().location}
                     ></ModifyLocaitonModal>
                   </Match>
                   <Match when={modal() === "ასაკი"}>
                     <ModifyAge
                       setModal={setModal}
+                      setIsExiting={setIsExiting}
+                      setToast={setToast}
                       date={user().date}
                     ></ModifyAge>
-                  </Match>
-                  <Match when={modal() === "განრიგი"}>
-                    <ModifyWorkSchedule
-                      setModal={setModal}
-                      schedule={user().schedule}
-                    ></ModifyWorkSchedule>
                   </Match>
                 </Switch>
               </div>
@@ -130,7 +123,14 @@ const Damkveti = (props) => {
                 modal() && "blur-[0.8px] pointer-events-none"
               } flex items-start`}
             >
-              <ProfileLeft setModal={setModal} user={user} />
+              <ProfileLeft
+                setIsExiting={setIsExiting}
+                setToast={setToast}
+                toast={toast}
+                isExiting={isExiting}
+                setModal={setModal}
+                user={user}
+              />
               <ProfileRight user={user} />
             </div>
           </Show>

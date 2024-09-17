@@ -5,7 +5,7 @@ import {
   createSignal,
   Show,
   Switch,
-  createEffect,
+  onCleanup,
 } from "solid-js";
 import location from "../../../../public/svg-images/location.svg";
 import telephone from "../../../../public/svg-images/telephone.svg";
@@ -13,72 +13,87 @@ import envelope from "../../../../public/svg-images/envelope.svg";
 import defaultProfileSVG from "../../../../public/default_profile.png";
 import CameraSVG from "../../../../public/svg-images/camera.svg";
 import pen from "../../../../public/svg-images/pen.svg";
+import closeIcon from "../../../../public/svg-images/svgexport-12.svg";
+import airPlane from "../../../../public/svg-images/airplane.svg";
 import cake from "../../../../public/svg-images/cake.svg";
 import spinnerSVG from "../../../../public/svg-images/spinner.svg";
 import jobApplication from "../../../../public/svg-images/job_application.svg";
-import { A, action } from "@solidjs/router";
-import { upload_profile_picture } from "../../api/user";
+import { A } from "@solidjs/router";
+import { preview_image, upload_profile_picture } from "../../api/user";
 
 export const ProfileLeft = (props) => {
   const [imageLoading, setImageLoading] = createSignal(false);
   const [imageUrl, setImageUrl] = createSignal(
     props.user().profile_image || defaultProfileSVG
   );
-  const [formattedDate, setFormattedDate] = createSignal("");
-  const handleFormSubmission = action(async (FormData) => {
+  const [file, setFile] = createSignal()
+
+  const handleProfileImageChange = async () => {
+    if (imageLoading()) {
+    }
+  
     setImageLoading(true);
     try {
-      const formData = new FormData(e.target);
-      console.log(formData, props.user().profId);
-      const url = await upload_profile_picture(formData, props.user().profId);
-      if (url) {
+      const response = await upload_profile_picture(
+        file(),
+        props.user().profId
+      );
+      if (response) {
         batch(() => {
-          setImageUrl(url);
+          setFile(null);
           setImageLoading(false);
+          props.setToast({
+            message: "პროფილის ფოტო განახლებულია.",
+            type: true,
+          });
+          setTimeout(() => {
+            props.setIsExiting(true);
+            setTimeout(() => {
+              props.setIsExiting(false);
+              props.setToast(null)
+            }, 500);
+          }, 5000);
         });
       }
     } catch (error) {
       alert(error.message || "Failed to process image");
       setImageLoading(false);
     }
-  });
+  };
 
-  createEffect(() => {
-    const user = props.user();
-    if (user && user.date) {
-      const date = new Date(user.date);
-      const translatedDate = date.toLocaleDateString("ka-GE", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-      setFormattedDate(translatedDate);
+  onCleanup(() => clearTimeout());
+  const handleFilePreview = async (file) => {
+    setImageLoading(true)
+    try {
+      const response = await preview_image(file, props.user().profId)
+      if (response) {
+        batch(() => {
+          setFile(file)
+          setImageLoading(false)
+          setImageUrl(response)
+        })
+      }
+    } catch (error) {
+      console.log(error)
     }
-  });
+  }
 
   return (
     <div class="flex sticky top-[50px] gap-y-3 flex-col">
       <div class="border-2 py-2 flex flex-col px-2 items-center flex-[2]">
         <Switch>
-          <Match when={props.user().status !== 401}>
+        <Match when={props.user().status !== 401}>
             <Switch>
               <Match when={!imageLoading()}>
                 <div>
-                  <form
-                    id="uploadForm"
-                    onSubmit={handleFormSubmission}
-                    enctype="multipart/form-data"
-                  >
-                    <input
-                      type="file"
-                      name="profilePic"
-                      class="hidden"
-                      id="profilePic"
-                      accept="image/webp, image/png, image/jpeg, image/avif, image/jpg"
-                    />
-                  </form>
-
+                  <input
+                    type="file"
+                    name="profilePic"
+                    class="hidden"
+                    onChange={(e) => handleFilePreview(e.target.files[0])}
+                    id="profilePic"
+                    accept="image/webp, image/png, image/jpeg, image/webp, image/avif, image/jpg"
+                  />
                   <label
                     for="profilePic"
                     class="hover:opacity-[0.7] cursor-pointer"
@@ -88,7 +103,7 @@ export const ProfileLeft = (props) => {
                         id="prof_pic"
                         src={imageUrl()}
                         alt="Profile"
-                        class="border-2 w-[130px] h-[130px] rounded-[50%] border-solid border-[#14a800] mb-4"
+                        class="border-2 rounded-[50%] border-solid border-[#14a800] mb-4"
                       />
                       <img
                         src={CameraSVG}
@@ -101,14 +116,30 @@ export const ProfileLeft = (props) => {
                 </div>
               </Match>
               <Match when={imageLoading()}>
-                <div class="w-[190px] flex flex-col justify-center mb-4 items-center h-[180px] rounded-[50%] bg-[#E5E7EB]">
-                  <img class="animate-spin" src={spinnerSVG} />
+                <div class="flex flex-col justify-center mb-4 items-center w-[130px] h-[130px] rounded-[50%] bg-[#E5E7EB]">
+                  <img class="animate-spin" src={spinnerSVG} width={40} height={40} />
                   <p class="text-dark-green font-[thin-font] text-xs font-bold">
                     იტვირთება...
                   </p>
                 </div>
               </Match>
             </Switch>
+            <Show when={file() && !imageLoading()}>
+            <button
+                onClick={handleProfileImageChange}
+                class="mb-2 bg-dark-green hover:bg-dark-green-hover w-[150px] text-white py-1 px-4  rounded-[16px] text-sm font-bold transition-all duration-300"
+              >
+               ფოტოს დაყენება
+              </button>
+            </Show>
+            <Show when={imageLoading()}>
+            <button
+                onClick={handleProfileImageChange}
+                class="mb-2 bg-gray-600 hover:bg-gray-500 w-[150px] text-white py-1 px-4  rounded-[16px] text-sm font-bold transition-all duration-300"
+              >
+                გაუქმება 
+              </button>
+            </Show>
           </Match>
           <Match when={props.user().status === 401}>
             <div class="relative">
@@ -292,6 +323,29 @@ export const ProfileLeft = (props) => {
           </Switch>
         </div>
       </div>
+      <Show when={props.toast()}>
+        <div
+          class={`${
+            props.isExiting() ? "toast-exit" : "toast-enter"
+          } fixed bottom-5 z-[200] left-1/2 -translate-x-1/2`}
+          role="alert"
+        >
+          <div class={`${!props.toast().type ? "border-red-400" : "border-dark-green-hover"} border flex relative bg-white space-x-4 rtl:space-x-reverse text-gray-500 border rounded-lg p-4 shadow items-center`}>
+            <button
+              class="absolute top-1 right-3"
+              onClick={() => props.setToast(null)}
+            >
+              <img width={14} height={14} src={closeIcon}></img>
+            </button>
+              {!props.toast().type ? <div class="bg-red-500 rounded-full">
+                <img src={exclamationWhite} />
+                </div> : <img class="rotate-[40deg]" src={airPlane} />}
+            <div class={`${!props.toast().type  && "text-red-600"} ps-4 border-l text-sm font-[normal-font]`}>
+              {props.toast().message}
+            </div>
+          </div>
+        </div>
+      </Show>
     </div>
   );
 };

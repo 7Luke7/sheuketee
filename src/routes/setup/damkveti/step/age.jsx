@@ -3,7 +3,7 @@ import ChevronRightBlackSVG from "../../../../../public/svg-images/ChevronRightB
 import ChevronLeftBlackSVG from "../../../../../public/svg-images/ChevronLeftBlack.svg";
 import dropdownSVG from "../../../../../public/svg-images/svgexport-8.svg"
 import { check_user_age, handle_date_select } from "~/routes/api/damkveti/setup";
-import { A, createAsync } from "@solidjs/router";
+import { A, createAsync, useNavigate } from "@solidjs/router";
 
 const Age = () => {
   const get_user_age = createAsync(check_user_age)
@@ -12,6 +12,8 @@ const Age = () => {
   const [weeks, setWeeks] = createSignal();
   const [currentDay, setCurrentDay] = createSignal()
   const [submitted, setSubmitted] = createSignal(false)
+
+  const navigate = useNavigate()
 
   const georgianMonthNames = [
     "იანვარი", "თებერვალი", "მარტი", "აპრილი", "მაისი", "ივნისი",
@@ -89,7 +91,10 @@ const Age = () => {
   const handleDateSelect = async () => {
     try {
       const response = await handle_date_select(currentDate())
-      if (response !== 200) throw new Error(response) 
+      if (response.status !== 200) throw new Error(response.status) 
+      if (response.stepPercent > 100) {
+        return navigate(`/damkveti/${response.profId}`); //ჩანიშვნა
+      }
       setSubmitted(true)
     } catch (error) {
       console.log(error.message)

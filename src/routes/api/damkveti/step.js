@@ -1,10 +1,10 @@
-"use server";
+"use server"
 import { getRequestEvent } from "solid-js/web";
-import { Xelosani } from "../../models/User";
-import { verify_user } from "../../session_management";
-import { s3 } from "~/entry-server";
+import { verify_user } from "../session_management";
+import { Damkveti } from "../models/User";
 import { HeadObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
-import { compress_image } from "../../compress_images";
+import { s3 } from "~/entry-server";
+import { compress_image } from "../compress_images";
 
 export const upload_profile_picture_no_verification = async (file, profId) => {
   try {
@@ -38,23 +38,26 @@ export const upload_profile_picture_setup = async (file, prof_id) => {
 
     const response = await upload_profile_picture_no_verification(file, redis_user.profId);
 
-    const user = await Xelosani.findByIdAndUpdate(redis_user.userId, {
-      $inc: {stepPercent: 12.5}
-    },
-    { runValidators: true, new: true,}).select("stepPercent profId -_id -__t").lean()
+    const user = await Damkveti.findByIdAndUpdate(redis_user.userId, 
+      {$inc: {stepPercent: 17}},
+      { new: true, runValidators: true }
+    ).select("stepPercent profId -_id -__t").lean()
 
-  return { ...user, imageResponse: response };
+    return {
+      imageResponse: response,
+      ...user
+    };
   } catch (error) {
     console.log(error);
   }
 };
 
 export const navigateToStep = async () => {
-  const BASE_URL = "/setup/xelosani/step";
+  const BASE_URL = "/setup/damkveti/step";
   try {
     const event = getRequestEvent();
     const redis_user = await verify_user(event);
-    const user = await Xelosani.findById(redis_user.userId);
+    const user = await Damkveti.findById(redis_user.userId);
 
     const params = {
       Bucket: process.env.S3_BUCKET_NAME,
@@ -83,13 +86,8 @@ export const navigateToStep = async () => {
     if (!user.gender) {
       return `${BASE_URL}/gender`;
     }
-    if (!user.schedule) {
-      return `${BASE_URL}/schedule`;
-    }
-    if (!user.skills.length) {
-      return `${BASE_URL}/skills`;
-    }
   } catch (error) {
+    console.log(error);
     if (error.name === "NotFound") {
       return `${BASE_URL}/photo`;
     }

@@ -1,11 +1,12 @@
 import { createSignal } from "solid-js";
 import {add_user_schedule, check_user_schedule} from "../../../api/xelosani/setup/setup"
-import { A, createAsync } from "@solidjs/router";
+import { A, createAsync, useNavigate } from "@solidjs/router";
 
 const schedule = () => {
     const schedule = createAsync(check_user_schedule)
     const [submitted, setSubmitted] = createSignal(false)
-    
+    const navigate = useNavigate()
+
     const week_days = [
         "ორშაბათი",
         "სამშაბათი",
@@ -21,16 +22,19 @@ const schedule = () => {
         try {
             const formData = new FormData(e.target)
             const response = await add_user_schedule(formData)
-            if (response !== 200) throw new Error(response) 
+            if (response.status !== 200) throw new Error("error") 
+            if (response.stepPercent === 100) {
+                return navigate(`/xelosani/${response.profId}`) //ჩანიშვნა
+            }
             setSubmitted(true)
         } catch(error) {
-
+            console.log(error)
         }
     }
 
     return <div  class='flex flex-col w-full px-4 py-2 h-full'>
         <Switch>
-            <Match when={schedule() === 200 && !submitted()}>
+            <Match when={schedule() !== 200 && !submitted()}>
                 <div class="flex items-center justify-between border-b pb-2">
                     <p class="font-bold font-[normal-font] text-md">კვირის დღეები</p>
                     <div class="flex items-center w-[235px] justify-around">
@@ -54,7 +58,7 @@ const schedule = () => {
                     </button>
                 </form>
             </Match>
-            <Match when={schedule() !== 200 || submitted()}>
+            <Match when={schedule() === 200 || submitted()}>
                 <div class="flex flex-col justify-center h-full items-center">
                     <p class="text-sm font-[normal-font] font-bold text-gray-700">განრიგი დამატებული გაქვთ გთხოვთ განაგრძოთ.</p>
                     <A className="py-2 mt-3 text-center w-1/2 rounded-md text-sm font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover" href="/setup/xelosani/step/about">გაგრძელება</A>

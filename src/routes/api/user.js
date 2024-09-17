@@ -131,14 +131,51 @@ export const get_user_profile_image = async (id) => {
   }
 };
 
-export const upload_profile_picture = async (file, profId) => {
-  console.log(file, profId);
+export const preview_image = async (file, prof_id) => {
   try {
-    const buffer = reader.readAsArrayBuffer(file);
+    const event = getRequestEvent();
+    const redis_user = await verify_user(event);
+
+    if (redis_user.profId !== prof_id) {
+      throw new Error(401);
+    }
+
+    const bytes = await file.arrayBuffer(file);
+    const buffer = Buffer.from(bytes)
+    const compressed_buffer = await compress_image(buffer, 80, 140, 140);
+    const base64 = Buffer.from(compressed_buffer,
+      "binary").toString("base64");
+    return `data:image/png;base64,${base64}`;
+  } catch (error) {
+    console.log("OUTER ERROR", error);
+  }
+}
+
+export const upload_profile_picture = async (file, prof_id) => {
+  let redis_user
+  try {
+    const event = getRequestEvent();
+    redis_user = await verify_user(event);
+
+    if (redis_user.profId !== prof_id) {
+      throw new Error(401);
+    }
+
+    const head_params = {
+      Bucket: process.env.S3_BUCKET_NAME,
+      Region: "eu-central-1",
+      Key: `${redis_user.profId}-profpic`,
+    };
+
+    const headCommand = new HeadObjectCommand(head_params);
+    await s3.send(headCommand);
+
+    const bytes = await file.arrayBuffer(file);
+    const buffer = Buffer.from(bytes)
     const compressed_buffer = await compress_image(buffer, 80, 140, 140);
     const params = {
       Bucket: process.env.S3_BUCKET_NAME,
-      Key: `${profId}-profpic`,
+      Key: `${redis_user.profId}-profpic`,
       Region: "eu-central-1",
       Body: compressed_buffer,
       ACL: "private",
@@ -146,9 +183,40 @@ export const upload_profile_picture = async (file, profId) => {
     };
     const upload_image = new PutObjectCommand(params);
     await s3.send(upload_image);
-    return compressed_buffer;
+    return true;
   } catch (error) {
-    console.log("OUTER ERROR", error);
+    if (error.name === "NotFound") {
+      const bytes = await file.arrayBuffer(file);
+      const buffer = Buffer.from(bytes)
+      const compressed_buffer = await compress_image(buffer, 80, 140, 140);
+      if (redis_user.role === 1) {
+        await Xelosani.updateOne({_id: redis_user.userId}, {
+          $inc: {
+              "stepPercent": 12.5 
+          }
+        })
+      } else {
+        await Damkveti.updateOne({_id: redis_user.userId}, {
+          $inc: {
+              "stepPercent": 17 
+          }
+        })
+      }
+
+      const params = {
+        Bucket: process.env.S3_BUCKET_NAME,
+        Key: `${redis_user.profId}-profpic`,
+        Region: "eu-central-1",
+        Body: compressed_buffer,
+        ACL: "private",
+        ContentType: "webp",
+      };
+      const upload_image = new PutObjectCommand(params);
+      await s3.send(upload_image);
+
+      return true
+  }
+  console.log(error)
   }
 };
 
@@ -175,7 +243,7 @@ export const toggle_notification = async (target) => {
     const user_id = await verify_user(event);
 
     if (target === "phone") {
-      const updated_xelosani = await Xelosani.findByIdAndUpdate(
+      const updated_xelosani = await (user_id.role === 1 ? Xelosani : Damkveti).findByIdAndUpdate(
         user_id.userId,
         [
           {
@@ -197,6 +265,7 @@ export const toggle_notification = async (target) => {
         ],
         { new: true, fields: { notificationDevices: 1 } }
       );
+      console.log(updated_xelosani)
 
       if (updated_xelosani.notificationDevices.includes(target)) {
         return 1;
@@ -204,7 +273,7 @@ export const toggle_notification = async (target) => {
         return 2;
       }
     } else if (target === "email") {
-      const updated_xelosani = await Xelosani.findByIdAndUpdate(
+      const updated_xelosani = await (user_id.role === 1 ? Xelosani : Damkveti).findByIdAndUpdate(
         user_id.userId,
         [
           {
@@ -245,7 +314,7 @@ export const get_notification_targets = async () => {
     const event = getRequestEvent();
     const user_id = await verify_user(event);
 
-    const user = await Xelosani.findById(
+    const user = await (user_id.role === 1 ? Xelosani : Damkveti).findById(
       user_id.userId,
       "notificationDevices -_id"
     );
@@ -262,7 +331,7 @@ export const update_password = async (new_password) => {
 
     const salt = await bcrypt.genSalt(8);
     const hash = await bcrypt.hash(new_password, salt);
-    await Xelosani.findByIdAndUpdate(user_id.userId, {
+    await (user_id.role === 1 ? Xelosani : Damkveti).findByIdAndUpdate(user_id.userId, {
       $set: {
         password: hash,
       },
@@ -282,20 +351,20 @@ export const modify_user = async (firstname, lastname, email, phone) => {
     const event = getRequestEvent();
     const user_id = await verify_user(event);
 
-    const user = await Xelosani.findById(user_id.userId);
+    const user = await (user_id.role === 1 ? Xelosani : Damkveti).findById(user_id.userId);
     const validateEmail = (email) => emailRegex.test(email);
     const validatePhone = (phone) => phoneRegex.test(phone);
 
     const checkExistingEmail = async (email) => {
       if (email && email.length) {
-        return await Xelosani.findOne({ email });
+        return await (user_id.role === 1 ? Xelosani : Damkveti).findOne({ email });
       }
       return null;
     };
 
     const checkExistingPhone = async (phone) => {
       if (phone && phone.length) {
-        return await Xelosani.findOne({ phone });
+        return await (user_id.role === 1 ? Xelosani : Damkveti).findOne({ phone });
       }
       return null;
     };
@@ -335,10 +404,15 @@ export const modify_user = async (firstname, lastname, email, phone) => {
     } else {
       user.firstname = firstname;
       user.lastname = lastname;
-      if (email && email.length) user.email = email;
-      if (phone && phone.length) user.phone = phone;
+      if (email && email.length) {
+        user.email = email
+        user.stepPercent = Math.ceil(user.stepPercent + 12.5);
+      }
+      if (phone && phone.length) {
+        user.phone = phone
+        user.stepPercent = Math.ceil(user.stepPercent + 12.5);
+      }
 
-      user.stepPercent = Math.ceil(user.stepPercent + 14.28);
       await user.save();
       return json(
         {
@@ -390,7 +464,7 @@ export const get_damkveti = async (prof_id) => {
       "-_id -__v -updatedAt -notificationDevices -password"
     );
     const profile_image = await get_user_profile_image(prof_id);
-    const creationDateDisplayable = getTimeAgo(_doc.createdAt)
+    const creationDateDisplayable = getTimeAgo(createdAt)
     return JSON.stringify({
       ..._doc,
       profile_image,
@@ -399,13 +473,12 @@ export const get_damkveti = async (prof_id) => {
     });
   } catch (error) {
     if (error.message === "401") {
-      console.log("HIIII")
       const { createdAt, _doc } = await Damkveti.findOne(
         { profId: prof_id },
         "-_id -__v -stepPercent -notificationDevices -updatedAt -password"
       );
       const profile_image = await get_user_profile_image(prof_id);
-      const creationDateDisplayable = getTimeAgo(_doc.createdAt)
+      const creationDateDisplayable = getTimeAgo(createdAt)
       return JSON.stringify({
         ..._doc,
         profile_image,

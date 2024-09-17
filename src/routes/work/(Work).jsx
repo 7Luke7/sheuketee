@@ -17,8 +17,11 @@ import Geolocation from 'ol/Geolocation';
 import SearchIcon from "../../../public/svg-images/svgexport-5.svg";
 import CloseIcon from "../../../public/svg-images/svgexport-12.svg";
 import JobLocationIcon from "../../../public/svg-images/job.svg"; // Adjust path as needed
+import { createAsync } from "@solidjs/router";
+import { get_jobs } from "../api/jobs";
 
 const Work = () => {
+    const jobs = createAsync(async () => JSON.parse(await get_jobs()))
     const [location, setLocation] = createSignal({ lat: 41.804981, lon: 44.827554 });
     const [message, setMessage] = createSignal("");
     const [searchInputValue, setSearchInputValue] = createSignal("");
@@ -126,7 +129,9 @@ const Work = () => {
             <div class="w-[90%] mx-auto">
                 <SearchWork />
                 <section class="h-[800px] overflow-hidden flex mt-3 border-2 rounded-l-[16px]">
-                    <Jobs />
+                    <Show when={jobs()}>
+                        <Jobs jobs={jobs} />
+                    </Show>
                     <div class="h-[800px] w-[800px] m-0 relative" id="map">
                     </div>
                 </section>

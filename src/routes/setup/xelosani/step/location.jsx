@@ -1,5 +1,5 @@
 import { createSignal, onMount, Show, Switch, Match } from "solid-js";
-import { createAsync, A } from "@solidjs/router";
+import { createAsync, A, useNavigate } from "@solidjs/router";
 import "ol/ol.css"
 import OSM from 'ol/source/OSM';
 import TileLayer from 'ol/layer/Tile';
@@ -25,6 +25,8 @@ const Location = () => {
     const [searchInputValue, setSearchInputValue] = createSignal("")
     const [markedLocation, setMarkedLocation] = createSignal()
     const [submitted, setSubmitted] = createSignal(false)
+
+    const navigate = useNavigate()
 
     let map
     let geolocation
@@ -233,9 +235,12 @@ const Location = () => {
 
     const handleLocationSubmit = async () => {
         try {
-            const response = await handle_location(markedLocation())
-            if (response !== 200) throw new Error(response) 
-            setSubmitted(true)
+            const response = await handle_location(markedLocation());
+      if (response.status !== 200) throw new Error(response);
+      if (response.stepPercent === 100) {
+        return navigate(`/xelosani/${response.profId}`); //ჩანიშვნა
+      }
+      setSubmitted(true);
         } catch (error) {
             console.log(error.message)
             if (error.message === "401") {

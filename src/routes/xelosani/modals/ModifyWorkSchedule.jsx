@@ -1,3 +1,4 @@
+import { batch } from "solid-js"
 import closeIcon from "../../../../public/svg-images/svgexport-12.svg"
 import {modify_user_schedule} from "~/routes/api/xelosani/modify/schedule"
 
@@ -18,7 +19,20 @@ export const ModifyWorkSchedule = (props) => {
             const formData = new FormData(e.target)
             const response = await modify_user_schedule(formData)
             if (response !== 200) throw new Error(response)
-            props.setModal(null)
+            batch(() => {
+                props.setToast({
+                  message: "განრიგი განახლებულია.",
+                  type: true
+                })
+                props.setModal(null)
+                setTimeout(() => {
+                    props.setIsExiting(true);
+                    setTimeout(() => {
+                      props.setIsExiting(false);
+                      props.setToast(null)
+                    }, 500);
+                  }, 5000);
+              })
         } catch(error) {
             alert(error)
         }

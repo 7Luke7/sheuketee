@@ -18,8 +18,8 @@ const About = () => {
             if (response.status === 400) {
                 return setMessage(response.message)
             }
-            if (response.status !== 200) throw new Error(response.message)
-            if (response.stepPercent === 100) {
+            if (response.status !== 200) throw new Error(response)
+            if (response.stepPercent > 100) {
                 return navigate(`/damkveti/${response.profId}`) //ჩანიშვნა
             }
             setSubmitted(true)

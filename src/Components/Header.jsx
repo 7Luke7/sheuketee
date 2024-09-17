@@ -1,4 +1,4 @@
-import { A, createAsync, useParams } from "@solidjs/router";
+import { A, createAsync } from "@solidjs/router";
 import { Search } from "./Search";
 import {
   Match,
@@ -42,10 +42,10 @@ export const Header = () => {
 
   const handleBodyClick = (event) => {
     if (
-      !event.target.closest("formmodal") ||
-      !event.target.closest("options-menu") ||
-      !event.target.closest("notification-menu") ||
-      !event.target.closest("message-menu")
+      (event.target.id !== "options-menu" && display() === "searchops") ||
+      (event.target.id !== "message-menu" && display() === "message") ||
+      (event.target.id !== "account-menu" && display() === "account") ||
+      (event.target.id !== "notification-menu" && display() === "notif")
     ) {
       setDisplay(null);
     }
@@ -104,9 +104,12 @@ export const Header = () => {
           </nav>
           <div class="px-3 font-[thin-font] text-sm items-center font-bold flex gap-x-3">
             <Show when={user() && user().role === "damkveti"}>
-                <A href={`/new/${user().profId}`} class="bg-dark-green hover:bg-dark-green-hover text-white py-1 px-4  rounded-[16px] text-sm font-bold transition-all duration-300">
+              <A
+                href={`/new/${user().profId}`}
+                class="bg-dark-green hover:bg-dark-green-hover text-white py-1 px-4  rounded-[16px] text-sm font-bold transition-all duration-300"
+              >
                 განცხადების დამატება
-                </A>
+              </A>
             </Show>
             <Search
               value={value}
@@ -160,29 +163,47 @@ export const Header = () => {
           } z-50 bg-white opacity-100 w-[230px]`}
         >
           <button
+            id="options-menu"
             class="text-left w-full flex p-2 hover:bg-[rgb(243,244,246)] rounded-[16px] gap-x-2"
-            onClick={() => switch_query_options("xelosani")}
+            onClick={() => switch_query_options("ხელოსანი")}
           >
-            <div>
+            <div id="options-menu">
               <img src={peopleIcon}></img>
             </div>
-            <div class="flex flex-col">
-              <h2 class="font-[normal-font] text-sm font-bold">ხელოსანი</h2>
-              <p class="text-gr font-bold text-xs font-[thin-font]">
+            <div id="options-menu" class="flex flex-col">
+              <h2
+                id="options-menu"
+                class="font-[normal-font] text-sm font-bold"
+              >
+                ხელოსანი
+              </h2>
+              <p
+                id="options-menu"
+                class="text-gr font-bold text-xs font-[thin-font]"
+              >
                 მოძებნე პროფესიონალი ხელოსნები
               </p>
             </div>
           </button>
           <button
             class="text-left w-full flex p-2 hover:bg-[rgb(243,244,246)] rounded-[16px] mt-2 gap-x-2"
-            onClick={() => switch_query_options("samushao")}
+            onClick={() => switch_query_options("სამუშაო")}
+            id="options-menu"
           >
             <div>
-              <img src={jobsIcon}></img>
+              <img src={jobsIcon} id="options-menu"></img>
             </div>
-            <div class="flex flex-col">
-              <h2 class="font-[normal-font] text-sm font-bold">სამუშაო</h2>
-              <p class="text-gr font-bold text-xs font-[thin-font]">
+            <div id="options-menu" class="flex flex-col">
+              <h2
+                id="options-menu"
+                class="font-[normal-font] text-sm font-bold"
+              >
+                სამუშაო
+              </h2>
+              <p
+                id="options-menu"
+                class="text-gr font-bold text-xs font-[thin-font]"
+              >
                 მოძებნე სამუშაო
               </p>
             </div>
@@ -222,7 +243,9 @@ export const Header = () => {
           id="message-menu"
           class="absolute shadow-2xl px-4 flex flex-col gap-y-2 rounded-b-lg py-3 border-t border-slate-300 right-[1%] z-50 bg-white opacity-100 w-[490px]"
         >
-          <h2 class="font-[bolder-font] text-gray-800">მესიჯები (5)</h2>
+          <h2 id="message-menu" class="font-[bolder-font] text-gray-800">
+            მესიჯები (5)
+          </h2>
           <button class="text-left w-full border-t font-[thin-font] items-center hover:bg-[rgb(243,244,246)] rounded-[16px] gap-x-2 flex font-bold border-b p-2">
             <img
               class="rounded-[50%] w-[28px] h-[28px]"
@@ -271,19 +294,28 @@ export const Header = () => {
               </p>
             </div>
           </button>
-          <button class="text-left w-full border-t font-[thin-font] items-center hover:bg-[rgb(243,244,246)] rounded-[16px] gap-x-2 flex font-bold border-b p-2">
+          <button
+            id="message-menu"
+            class="text-left w-full border-t font-[thin-font] items-center hover:bg-[rgb(243,244,246)] rounded-[16px] gap-x-2 flex font-bold border-b p-2"
+          >
             <img
+              id="message-menu"
               class="rounded-[50%] w-[28px] h-[28px]"
               src={defaultProfileSVG}
             ></img>
-            <div class="flex flex-col">
-              <p class="font-bold text-sm font-[thin-font]">ლუკა ჩიკვაიძე</p>
-              <p class="font-bold break-all text-gr text-xs font-[thin-font]">
+            <div id="message-menu" class="flex flex-col">
+              <p id="message-menu" class="font-bold text-sm font-[thin-font]">
+                ლუკა ჩიკვაიძე
+              </p>
+              <p
+                id="message-menu"
+                class="font-bold break-all text-gr text-xs font-[thin-font]"
+              >
                 მაქსიმუმ 60 ჩარაქთერი
               </p>
             </div>
           </button>
-          <div class="py-1 px-2">
+          <div id="message-menu" class="py-1 px-2">
             <A
               href="/message"
               class="text-blue-500 font-[thin-font] font-bold text-sm underline"
@@ -298,10 +330,23 @@ export const Header = () => {
           id="notification-menu"
           class="absolute shadow-2xl flex flex-col gap-y-2 rounded-b-lg px-4 py-3 border-t border-slate-300 right-[1%] z-50 bg-white opacity-100 w-[490px]"
         >
-          <h2 class="font-[bolder-font] text-gray-800">შეტყობინებები (5)</h2>
-          <button class="p-2 font-[thin-font] gap-x-2 font-bold hover:bg-[rgb(243,244,246)] text-left w-full border-b pb-2">
-            <p class="font-bold text-sm font-[thin-font]">ლუკა ჩიკვაიძე</p>
-            <p class="font-bold break-all text-gr text-xs font-[thin-font]">
+          <h2 id="notification-menu" class="font-[bolder-font] text-gray-800">
+            შეტყობინებები (5)
+          </h2>
+          <button
+            id="notification-menu"
+            class="p-2 font-[thin-font] gap-x-2 font-bold hover:bg-[rgb(243,244,246)] text-left w-full border-b pb-2"
+          >
+            <p
+              id="notification-menu"
+              class="font-bold text-sm font-[thin-font]"
+            >
+              ლუკა ჩიკვაიძე
+            </p>
+            <p
+              id="notification-menu"
+              class="font-bold break-all text-gr text-xs font-[thin-font]"
+            >
               მაქსიმუმ 60 ჩარაქთერი
             </p>
           </button>
@@ -331,7 +376,7 @@ export const Header = () => {
               </p>
             </div>
           </button>
-          <div class="px-2 py-1">
+          <div id="notification-menu" class="px-2 py-1">
             <A
               href="/message"
               class="text-blue-500 font-[thin-font] font-bold text-sm underline"

@@ -1,5 +1,5 @@
 import { A, createAsync, useNavigate } from "@solidjs/router";
-import { Match, Switch, Show, createSignal } from "solid-js";
+import { createSignal, Match, Show, Switch } from "solid-js";
 import { check_about, handle_about } from "~/routes/api/xelosani/setup/setup";
 
 const About = () => {
@@ -9,7 +9,6 @@ const About = () => {
     const [submitted, setSubmitted] = createSignal(false)
 
     const navigate = useNavigate()
-    console.log(get_about())
 
     const textTest = async (e) => {
         e.preventDefault()
@@ -19,11 +18,10 @@ const About = () => {
             if (response.status === 400) {
                 return setMessage(response.message)
             }
-            if (response.status !== 200) throw new Error(response.message)
+            if (response.status !== 200) throw new Error(response)
             if (response.stepPercent === 100) {
                 return navigate(`/xelosani/${response.profId}`) //ჩანიშვნა
             }
-            console.log(get_about())
             setSubmitted(true)
         } catch (error) {
             console.log(error)
@@ -59,7 +57,7 @@ const About = () => {
                 <Match when={get_about() || submitted()}>
                     <div class="flex flex-col w-full items-center">
                         <p class="text-sm font-[normal-font] font-bold text-gray-700">თქვენ შესახებ დამატებული გაქვთ გთხოვთ განაგრძოთ.</p>
-                        <A className="py-2 mt-3 text-center w-full rounded-md text-sm font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover" href="/setup/xelosani/step/age">გაგრძელება</A>
+                        <A className="py-2 mt-3 text-center w-full rounded-md text-sm font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover" href="/setup/damkveti/step/age">გაგრძელება</A>
                     </div>
                 </Match>
             </Switch>

@@ -35,7 +35,7 @@ export const handle_profile_image = action(async (formData) => {
             const compressed_buffer = await upload_profile_picture(buffer, redis_user)
             const user = await Xelosani.findByIdAndUpdate(redis_user.userId, {
                 $inc: {
-                    "stepPercent": 15 
+                    "stepPercent": 12.5 
                 }
             })
 

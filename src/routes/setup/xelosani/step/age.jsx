@@ -1,9 +1,9 @@
-import { Match, Switch, createEffect, batch, createSignal } from "solid-js";
+import { A, createAsync, useNavigate } from "@solidjs/router";
+import { check_user_age, handle_date_select } from "~/routes/api/xelosani/setup/setup";
+import { Match, Switch, batch, createEffect, createSignal } from "solid-js";
 import ChevronRightBlackSVG from "../../../../../public/svg-images/ChevronRightBlack.svg";
 import ChevronLeftBlackSVG from "../../../../../public/svg-images/ChevronLeftBlack.svg";
 import dropdownSVG from "../../../../../public/svg-images/svgexport-8.svg"
-import { check_user_age, handle_date_select } from "~/routes/api/xelosani/setup/setup";
-import { A, createAsync } from "@solidjs/router";
 
 const Age = () => {
   const get_user_age = createAsync(check_user_age)
@@ -12,6 +12,8 @@ const Age = () => {
   const [weeks, setWeeks] = createSignal();
   const [currentDay, setCurrentDay] = createSignal()
   const [submitted, setSubmitted] = createSignal(false)
+
+  const navigate = useNavigate()
 
   const georgianMonthNames = [
     "იანვარი", "თებერვალი", "მარტი", "აპრილი", "მაისი", "ივნისი",
@@ -89,7 +91,10 @@ const Age = () => {
   const handleDateSelect = async () => {
     try {
       const response = await handle_date_select(currentDate())
-      if (response !== 200) throw new Error(response) 
+      if (response.status !== 200) throw new Error(response.status) 
+      if (response.stepPercent === 100) {
+        return navigate(`/xelosani/${response.profId}`); //ჩანიშვნა
+      }
       setSubmitted(true)
     } catch (error) {
       console.log(error.message)

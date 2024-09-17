@@ -3,14 +3,14 @@ import clear from "../../public/svg-images/svgexport-12.svg"
 import arrowDown from "../../public/svg-images/svgexport-8.svg"
 import { useNavigate } from "@solidjs/router"
 
-export const Search = ({value, setValue, chosenQuery, setDisplay}) => {
+export const Search = (props) => {
 
     const navigate = useNavigate()
 
     const searchHandler = (e) => {
         e.preventDefault()
         try {
-            navigate(`/search?type=${chosenQuery()}&name=${value()}`)
+            navigate(`/search?type=${props.chosenQuery()}&name=${props.value()}`)
         } catch (error) {
             alert(error)
         }
@@ -20,14 +20,14 @@ export const Search = ({value, setValue, chosenQuery, setDisplay}) => {
         <button class="w-[25px] h-[20px]" type="submit">
             <img src={searchIcon}></img>
         </button>
-        <input id="search_input" value={value()} onInput={(e) => setValue(e.target.value)} placeholder="მოძებნე" class="px-1 font-[thin-font] text-sm w-full outline-none" type="text"></input>
-        {value().length > 0 && (
-                <button type="button" class="pr-2" onClick={() => setValue("")}>
+        <input id="search_input" value={props.value()} onInput={(e) => props.setValue(e.target.value)} placeholder="მოძებნე" class="px-1 font-[thin-font] text-sm w-full outline-none" type="text"></input>
+        {props.value().length > 0 && (
+                <button type="button" class="pr-2" onClick={() => props.setValue("")}>
                     <img src={clear} alt="Clear" class="border rounded-[50%] border-[#6e6967]"></img>
                 </button>
             )}
-        <button type="button" id="search_query_options_button" onClick={() => setDisplay("searchops")} class="border-l flex items-center px-2 border-[#6e6967]">
-            <span>{chosenQuery}</span>
+        <button type="button" id="search_query_options_button" onClick={() => props.setDisplay("searchops")} class="border-l flex items-center px-2 border-[#6e6967]">
+            <span>{props.chosenQuery}</span>
             <img width={16} src={arrowDown}></img>
         </button>
     </form>
