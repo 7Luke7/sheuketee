@@ -17,6 +17,7 @@ import { ModifyLocaitonModal } from "../modals/ModifyLocationModal";
 import { ModifyWorkSchedule } from "../modals/ModifyWorkSchedule";
 import { ModifyAge } from "../modals/ModifyAge";
 import { MetaProvider } from "@solidjs/meta";
+import { ModifySkill } from "../modals/ModifySkills";
 
 const Xelosani = (props) => {
   const user = createAsync(async () =>
@@ -105,6 +106,12 @@ const Xelosani = (props) => {
                       schedule={user().schedule}
                     ></ModifyWorkSchedule>
                   </Match>
+                  <Match when={modal() === "სპეციალობა"}>
+                      <ModifySkill setModal={setModal}
+                      setIsExiting={setIsExiting}
+                      setToast={setToast}
+                      skills={user().skills}></ModifySkill>
+                  </Match>
                 </Switch>
               </div>
             </Show>
@@ -145,7 +152,7 @@ const Xelosani = (props) => {
                 setModal={setModal}
                 user={user}
               />
-              <ProfileRight user={user} />
+              <ProfileRight user={user} setModal={setModal} />
             </div>
           </Show>
           <div class={`${modal() && "pointer-events-none blur-[0.8px]"}`}>

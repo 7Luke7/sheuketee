@@ -284,7 +284,7 @@ export const check_selected_jobs = async () => {
   }
 };
 
-export const handle_selected_skills = async (skillNames) => {
+export const handle_selected_skills = async (skills) => {
   try {
     const event = getRequestEvent();
     const redis_user = await verify_user(event);
@@ -293,13 +293,11 @@ export const handle_selected_skills = async (skillNames) => {
       throw new Error(401);
     }
 
-    const skillsArray = skillNames.map((skillName) => ({ skillName }));
-
     const user = await Xelosani.findOneAndUpdate(
       { _id: redis_user.userId },
       {
-        $push: {
-          skills: skillsArray,
+        $set: {
+          skills: skills,
         },
         $inc: {
           stepPercent: 12.5,

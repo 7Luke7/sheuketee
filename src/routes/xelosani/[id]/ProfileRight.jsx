@@ -1,8 +1,9 @@
 import { A } from "@solidjs/router";
-import { Match, Switch} from "solid-js";
+import { Match, Switch } from "solid-js";
 import { Services } from "./Services";
 import { ReviewCarousel } from "./ReviewCarousel";
 import { SkillCarousel } from "./SkillCarousel";
+import pen from "../../../../public/svg-images/pen.svg";
 
 export const ProfileRight = (props) => {
   return (
@@ -70,21 +71,26 @@ export const ProfileRight = (props) => {
       </div>
       <ReviewCarousel></ReviewCarousel>
       <h2 class="text-lg font-[boldest-font] mt-5">ხელობა/სპეციალობა</h2>
+      <Show when={props.user().status === 200}>
+        <button onClick={() => props.setModal("სპეციალობა")}>
+          <img id="locationButton" src={pen} />
+        </button>
+      </Show>
       <div class="mt-2">
         <section class="w-full flex">
-            <Switch>
-              <Match when={props.user().skills}>
-                <SkillCarousel skills={props.user().skills}></SkillCarousel>
-              </Match>
-              <Match when={!props.user().skills}>
-                <A
-                  href="/setup/xelosani/step/skills"
-                  class="w-[150px] mt-2 bg-dark-green py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]"
-                >
-                  დაამატე ხელობა
-                </A>
-              </Match>
-            </Switch>
+          <Switch>
+            <Match when={props.user().skills}>
+              <SkillCarousel skills={props.user().skills}></SkillCarousel>
+            </Match>
+            <Match when={!props.user().skills}>
+              <A
+                href="/setup/xelosani/step/skills"
+                class="w-[150px] mt-2 bg-dark-green py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]"
+              >
+                დაამატე ხელობა
+              </A>
+            </Match>
+          </Switch>
         </section>
       </div>
     </div>

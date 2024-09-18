@@ -1,49 +1,15 @@
-import jobs from "../../../../Components/header-comps/jobs_list.json";
-import { For, Match, Show, Switch, batch, createSignal } from "solid-js";
-import {
-  check_selected_jobs,
-  handle_selected_skills,
-} from "~/routes/api/xelosani/setup/setup";
-import { createAsync, useNavigate } from "@solidjs/router";
-import dropdownSVG from "../../../../../public/svg-images/svgexport-8.svg";
+import closeIcon from "../../../../public/svg-images/svgexport-12.svg";
+import { modify_user_skills } from "~/routes/api/xelosani/modify/skills";
+import dropdownSVG from "../../../../public/svg-images/svgexport-8.svg";
+import jobs from "../../../Components/header-comps/jobs_list.json";
+import { For, Show, batch, createSignal } from "solid-js";
 
-const Skills = () => {
-  const check_jobs = createAsync(check_selected_jobs);
-  const [submitted, setSubmitted] = createSignal(false);
+export const ModifySkill = (props) => {
   const [activeParentIndex, setActiveParentIndex] = createSignal(null);
   const [activeChildIndex, setActiveChildIndex] = createSignal(null);
-  const [childChecked, setChildChecked] = createSignal([])
-  const [parentChecked, setParentChecked] = createSignal([])
-  const [mainChecked, setMainChecked] = createSignal([])
-
-  const navigate = useNavigate();
-
-  const handleAddSkill = async () => {
-    const displayableSkills = parentChecked().map((parent) => ({
-      displaySkills: parent,
-      completedJobs: 0,
-      reviews: 0,
-    }));
-    const skills = {
-      parent: parentChecked(),
-      child: childChecked(),
-      main: mainChecked(),
-      displayableSkills: displayableSkills
-    }
-    try {
-      const response = await handle_selected_skills(skills);
-      if (response.status !== 200) throw new Error("error");
-      if (response.stepPercent === 100) {
-        return navigate(`/xelosani/${response.profId}`);
-      }
-      setSubmitted(true);
-    } catch (error) {
-      if (error.message === "401") {
-        return alert("მომხმარებელი არ არის შესული სისტემაში.");
-      }
-      return alert("წარმოიშვა შეცდომა ცადეთ მოგვიანებით.");
-    }
-  };
+  const [childChecked, setChildChecked] = createSignal(props.skills.child)
+  const [parentChecked, setParentChecked] = createSignal(props.skills.parent)
+  const [mainChecked, setMainChecked] = createSignal(props.skills.main)
 
   const toggleParentAccordion = (index) => {
     if (activeParentIndex() === index) {
@@ -150,11 +116,52 @@ const Skills = () => {
     }
   }
 
+  const handle_user_skills = async (e) => {
+    e.preventDefault();
+    const displayableSkills = parentChecked().map((parent) => ({
+        displaySkills: parent,
+        completedJobs: 0,
+        reviews: 0,
+      }));
+      const skills = {
+        parent: parentChecked(),
+        child: childChecked(),
+        main: mainChecked(),
+        displayableSkills: displayableSkills
+      }
+    try {
+      const response = await modify_user_skills(skills);
+      if (response !== 200) throw new Error(response);
+      console.log(response)
+      batch(() => {
+        props.setToast({
+          message: "სპეციალობა განახლებულია.",
+          type: true,
+        });
+        props.setModal(null);
+        setTimeout(() => {
+          props.setIsExiting(true);
+          setTimeout(() => {
+            props.setIsExiting(false);
+            props.setToast(null);
+          }, 500);
+        }, 5000);
+      });
+    } catch (error) {
+      alert(error);
+    }
+  };
+
   return (
-    <div class="flex flex-col p-10 justify-between w-full items-center h-full mb-4">
-      <Switch>
-        <Match when={check_jobs() !== 200 && !submitted()}>
-          <Show when={jobs}>
+    <div class="w-[1000px]">
+        <div class="flex w-full justify-between items-center mb-2">
+        <h1 class="font-[boldest-font] text-lg">სპეციალობის შეცვლა</h1>
+        <button onClick={() => props.setModal(null)}>
+          <img src={closeIcon} />
+        </button>
+      </div>
+      <div class="flex flex-col p-10 justify-between w-full items-center h-full mb-4">
+          <Show when={props.skills.displayableSkills && jobs}>
             <div class="grid grid-cols-2 justify-items-stretch gap-x-5 w-full">
               <For each={jobs.flatMap((obj) => Object.keys(obj))}>
                 {(m, Parentindex) => (
@@ -267,23 +274,13 @@ const Skills = () => {
           </Show>
           <div class="h-full w-full relative">
             <button
-              onClick={handleAddSkill}
+              onClick={handle_user_skills}
               class="py-2 w-full mt-3 px-3 rounded-md text-sm font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover"
             >
-              გაგრძელება
+              შეცვლა
             </button>
           </div>
-        </Match>
-        <Match when={check_jobs() === 200 || submitted()}>
-          <div class="flex items-center h-full">
-            <p class="text-sm font-[normal-font] font-bold text-gray-700">
-              თქვენ უნარები დამატებული გაქვთ გთხოვთ განაგრძოთ.
-            </p>
-          </div>
-        </Match>
-      </Switch>
+        </div>
     </div>
   );
 };
-
-export default Skills;

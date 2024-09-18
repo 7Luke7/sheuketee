@@ -58,15 +58,13 @@ const prevSlide = () => {
   return (
     <section class="embla overflow-x-hidden" ref={emblaRef}>
       <div class="embla__container flex">
-        {/* Each slide contains two rows with five items each */}
-        <For each={Array(Math.ceil(props.skills.length / 10))} children={(_, index) => (
+        <For each={Array(Math.ceil(props.skills.displayableSkills.length / 10))} children={(_, index) => (
           <div class="flex-100 flex flex-col">
-            {/* First row with items 0–5 */}
             <div class="grid grid-cols-5 gap-x-4">
-              {props.skills.slice(index() * 10, index() * 10 + 5).map(skill => (
+              {props.skills.displayableSkills.slice(index() * 10, index() * 10 + 5).map(skill => (
                 <div class="flex bg-slate-200 flex-col border-2 rounded-[16px] p-5 border-slate-300">
                   <h2 class="font-[medium-font] text-lg text-gray-800 font-bold">
-                    {skill.skillName}
+                    {skill.displaySkills}
                   </h2>
                   <div class="flex mt-2 justify-between items-center">
                     <div class="flex items-center">
@@ -92,10 +90,10 @@ const prevSlide = () => {
             </div>
             {/* Second row with items 5–10 */}
             <div class="grid grid-cols-5 gap-x-4 mt-4">
-              {props.skills.slice(index() * 10 + 5, index() * 10 + 10).map(skill => (
+              {props.skills.displayableSkills.slice(index() * 10 + 5, index() * 10 + 10).map(skill => (
                 <div class="flex bg-slate-200 flex-col border-2 rounded-[16px] p-5 border-slate-300">
                   <h2 class="font-[medium-font] text-lg text-gray-800 font-bold">
-                    {skill.skillName}
+                    {skill.displaySkills}
                   </h2>
                   <div class="flex mt-2 justify-between items-center">
                     <div class="flex items-center">

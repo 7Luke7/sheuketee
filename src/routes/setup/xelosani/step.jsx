@@ -56,7 +56,7 @@ const Step = (props) => {
                     <div class="w-full min-h-[400px] flex items-center justify-center border">
                         {props.children}
                     </div>
-                    <div class="w-full bg-indigo-100 border-2 border-[#14a800] rounded-md">
+                    <div class="w-full mt-5 bg-indigo-100 border-2 border-[#14a800] rounded-md">
                         <div class="flex items-center justify-between gap-3 p-3 bg-white rounded">
                             <button
                                 onClick={handlePrevStep}
