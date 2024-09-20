@@ -41,25 +41,6 @@ export const ProfileRight = (props) => {
           </p>
         </Match>
       </Switch>
-      <Switch>
-        <Match when={props.user().services}>
-          <h2 class="text-lg font-[boldest-font] mt-5">სერვისები</h2>
-          <Services status={props.user().status}></Services>
-        </Match>
-        <Match when={props.user().status === 200}>
-          <A
-            href="/setup/xelosani/step/services"
-            class="w-[150px] mt-2 bg-dark-green py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]"
-          >
-            დაამატე სერვისები
-          </A>
-        </Match>
-        <Match when={props.user().status === 401}>
-          <p class="text-gr text-xs font-[thin-font] font-bold">
-            მომხმარებელს ინფორმაცია არ აქვს დამატებული.
-          </p>
-        </Match>
-      </Switch>
       <div class="flex items-center justify-between mt-5">
         <h2 class="text-lg font-[boldest-font]">მომხმარებლის შეფასებები</h2>
         <A
@@ -70,12 +51,14 @@ export const ProfileRight = (props) => {
         </A>
       </div>
       <ReviewCarousel></ReviewCarousel>
-      <h2 class="text-lg font-[boldest-font] mt-5">ხელობა/სპეციალობა</h2>
+     <div class="flex items-center gap-x-1 mt-5">
+     <h2 class="text-lg font-[boldest-font]">ხელობა/სპეციალობა</h2>
       <Show when={props.user().status === 200}>
         <button onClick={() => props.setModal("სპეციალობა")}>
           <img id="locationButton" src={pen} />
         </button>
       </Show>
+     </div>
       <div class="mt-2">
         <section class="w-full flex">
           <Switch>
@@ -93,6 +76,25 @@ export const ProfileRight = (props) => {
           </Switch>
         </section>
       </div>
+      <Switch>
+        <Match when={props.user().services}>
+          <h2 class="text-lg font-[boldest-font] mt-5">სერვისები</h2>
+          <Services status={props.user().status}></Services>
+        </Match>
+        <Match when={props.user().status === 200}>
+          <A
+            href="/xelosani/services"
+            class="w-[150px] mt-2 bg-dark-green py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]"
+          >
+            დაამატე სერვისები
+          </A>
+        </Match>
+        <Match when={props.user().status === 401}>
+          <p class="text-gr text-xs font-[thin-font] font-bold">
+            მომხმარებელს ინფორმაცია არ აქვს დამატებული.
+          </p>
+        </Match>
+      </Switch>
     </div>
   );
 };

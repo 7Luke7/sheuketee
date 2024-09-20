@@ -1,4 +1,4 @@
-import { createEffect, createSignal, batch } from "solid-js";
+import { createEffect, createSignal, batch, onCleanup } from "solid-js";
 import ChevronRightBlackSVG from "../../../../public/svg-images/ChevronRightBlack.svg";
 import ChevronLeftBlackSVG from "../../../../public/svg-images/ChevronLeftBlack.svg";
 import dropdownSVG from "../../../../public/svg-images/svgexport-8.svg";
@@ -91,6 +91,8 @@ export const ModifyAge = (props) => {
     );
     return dateToCheck > today;
   };
+  let toastTimeout;
+  let exitTimeout;
 
   const handleDateSelect = async () => {
     try {
@@ -102,13 +104,17 @@ export const ModifyAge = (props) => {
           type: true,
         });
         props.setModal(null);
-        setTimeout(() => {
+        toastTimeout = setTimeout(() => {
           props.setIsExiting(true);
-          setTimeout(() => {
+          exitTimeout = setTimeout(() => {
             props.setIsExiting(false);
             props.setToast(null);
           }, 500);
         }, 5000);
+        onCleanup(() => {
+          if (toastTimeout) clearTimeout(toastTimeout);
+          if (exitTimeout) clearTimeout(exitTimeout);
+        });
       });
     } catch (error) {
       console.log(error.message);

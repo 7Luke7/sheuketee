@@ -3,6 +3,7 @@ import { modify_user_skills } from "~/routes/api/xelosani/modify/skills";
 import dropdownSVG from "../../../../public/svg-images/svgexport-8.svg";
 import jobs from "../../../Components/header-comps/jobs_list.json";
 import { For, Show, batch, createSignal } from "solid-js";
+import { onCleanup } from "solid-js";
 
 export const ModifySkill = (props) => {
   const [activeParentIndex, setActiveParentIndex] = createSignal(null);
@@ -116,6 +117,8 @@ export const ModifySkill = (props) => {
     }
   }
 
+  let toastTimeout;
+  let exitTimeout;
   const handle_user_skills = async (e) => {
     e.preventDefault();
     const displayableSkills = parentChecked().map((parent) => ({
@@ -139,19 +142,22 @@ export const ModifySkill = (props) => {
           type: true,
         });
         props.setModal(null);
-        setTimeout(() => {
+        toastTimeout = setTimeout(() => {
           props.setIsExiting(true);
-          setTimeout(() => {
+          exitTimeout = setTimeout(() => {
             props.setIsExiting(false);
             props.setToast(null);
           }, 500);
         }, 5000);
+        onCleanup(() => {
+          if (toastTimeout) clearTimeout(toastTimeout);
+          if (exitTimeout) clearTimeout(exitTimeout);
+        });
       });
     } catch (error) {
       alert(error);
     }
   };
-
   return (
     <div class="w-[1000px]">
         <div class="flex w-full justify-between items-center mb-2">

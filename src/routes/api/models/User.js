@@ -3,7 +3,7 @@ import mongoose, { Schema } from "mongoose";
 const DisplayableSkillSchema = new mongoose.Schema({
   displaySkills: {
     type: String,
-    default: null
+    default: null,
   },
   completedJobs: {
     type: Number,
@@ -16,7 +16,7 @@ const DisplayableSkillSchema = new mongoose.Schema({
     max: 5,
     default: 0,
   },
-})
+});
 
 const SkillSchema = new mongoose.Schema(
   {
@@ -38,7 +38,7 @@ const SkillSchema = new mongoose.Schema(
     displayableSkills: {
       type: [DisplayableSkillSchema],
       default: [],
-    }
+    },
   },
   { timestamps: false, _id: false }
 );
@@ -114,11 +114,6 @@ const ServicesSchema = new mongoose.Schema(
       type: Array,
       required: true,
     },
-    duration: {
-      type: String,
-      minLength: 3,
-      maxLength: 50,
-    },
     location: [LocationSchema],
     availability: {
       type: [ScheduleSchema],
@@ -192,6 +187,7 @@ const UserSchema = new mongoose.Schema(
       unique: [true, "მომხმარებელი ტელეფონის ნომრით უკვე არსებობს."],
       default: undefined,
       sparse: true,
+      trim: true,
       validate: {
         validator: function (v) {
           return /^\d{9}$/.test(v);
@@ -204,6 +200,7 @@ const UserSchema = new mongoose.Schema(
       unique: [true, "მომხმარებელი მეილით უკვე არსებობს."],
       default: undefined,
       sparse: true,
+      trim: true,
       validate: {
         validator: function (v) {
           return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
@@ -221,6 +218,10 @@ const UserSchema = new mongoose.Schema(
       max: 108,
       min: 0,
       default: 0,
+    },
+    setupDone: {
+      type: Boolean,
+      default: false,
     },
     location: {
       type: LocationSchema,
@@ -291,6 +292,7 @@ const jobMileStonesSchema = new mongoose.Schema({
   },
   description: {
     type: String,
+    trim: true,
     required: [true, "აეტაპის ღწერა სავალდებულოა."],
     maxLength: [600, "ეტაპის აღწერა უნდა შეიცავდეს მაქსიმუმ 600 ასოს."],
     default: undefined,

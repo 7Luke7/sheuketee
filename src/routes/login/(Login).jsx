@@ -8,12 +8,28 @@ import { MetaProvider } from "@solidjs/meta";
 const Login = () => {
     const [error, setError] = createSignal(null);
     const navigate = useNavigate();
-
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+    const phoneRegex = /^\d{9}$/
+    
     const handleSubmit = async (event) => {
         event.preventDefault();
         try {
             setError(null);
-            const formData = new FormData(event.target);
+            const formData = new FormData(event.target)
+            if (!emailRegex.test(formData.get("phoneEmail")) && !phoneRegex.test(formData.get("phoneEmail"))) {
+                return setError([{
+                    field: "phoneEmail",
+                    message: "მეილი ან ტელეფონის ნომერი არასწორია."
+                }])
+            }
+            if (!formData.get("password").length) {
+                return setError([
+                    {
+                        field: "password",
+                        message: "პაროლი უნდა შეიცავდეს მინიმუმ 8 სიმბოლოს."
+                    }
+                ])
+            }
             const result = await LoginUser(formData);
             if (result.status === 400) {
                 return setError(result.errors);

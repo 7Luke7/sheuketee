@@ -1,4 +1,4 @@
-import { createSignal, createEffect, batch } from "solid-js";
+import { createSignal, createEffect, batch, Switch, Match } from "solid-js";
 import { A, useNavigate } from "@solidjs/router";
 import ChevronRightBlackSVG from "../../../../public/svg-images/ChevronRightBlack.svg";
 import ChevronLeftBlackSVG from "../../../../public/svg-images/ChevronLeftBlack.svg";
@@ -11,12 +11,17 @@ const Step = (props) => {
 
     const stepKeys = Object.keys(steps);
     const [currentStepKey, setCurrentStepKey] = createSignal(location.pathname.split("/")[4]);
-    const [xelosaniStep, setXelosaniStep] = createSignal(0)
+    const [xelosaniStep, setXelosaniStep] = createSignal({
+        stepPercent: 0,
+        setupDone: false
+    })
+    const [display, setDisplay] = createSignal(false)
 
     createEffect(async () => {
         const pathName = location.pathname.split("/")[4];
         const xelosani_step = await get_xelosani_step()
         batch(() => {
+            setDisplay(true)
             setCurrentStepKey(pathName);
             setXelosaniStep(xelosani_step)
         })
@@ -42,7 +47,15 @@ const Step = (props) => {
 
     return (
         <div class="h-[90vh] w-[90%] mx-auto">
-            <div class="flex mt-12 h-full justify-start items-start">
+            <Switch>
+                <Match when={display() && xelosaniStep().stepPercent > 100 || xelosaniStep().setupDone}>
+                    <div class="flex h-full flex-col items-center justify-center">
+                        <h1 class="font-[normal-font] font-bold text-lg">სეტაპი დასრულებულია.</h1>
+                        <A href="/" class="mt-2 bg-dark-green py-2 px-4 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]"                        >მთავარ გვერდზე გადასვლა</A>
+                    </div>
+                </Match>
+                <Match when={display() && xelosaniStep().stepPercent < 100 || !xelosaniStep().setupDone}>
+                <div class="flex mt-12 h-full justify-start items-start">
                 <A href="/" class="text-dark-green font-bold font-[thin-font] text-xl">შეუკეთე</A>
                 <div class="mx-auto w-[50%] items-center h-full flex flex-col justify-between">
                     <div class="w-full">
@@ -67,10 +80,10 @@ const Step = (props) => {
                             </button>
                             <div class="w-full flex items-center justify-center">
                                 <div class="w-[60%] flex bg-[#E5E7EB] rounded-3xl h-2">
-                                    <div class="bg-[#108a00] h-2 rounded-3xl" style={{ width: `${xelosaniStep()}%` }}></div>
+                                    <div class="bg-[#108a00] h-2 rounded-3xl" style={{ width: `${xelosaniStep().stepPercent}%` }}></div>
                                 </div>
                                 <div class="font-[thin-font] text-xs text-green-800 font-bold pl-2">
-                                    {xelosaniStep()}%
+                                    {xelosaniStep().stepPercent}%
                                 </div>
                             </div>
                             <button
@@ -84,6 +97,8 @@ const Step = (props) => {
                     </div>
                 </div>
             </div>
+                </Match>
+            </Switch>
         </div>
     );
 };

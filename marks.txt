@@ -1,0 +1,1 @@
+- When we modify skills we don't update the reviews or completed jobs count

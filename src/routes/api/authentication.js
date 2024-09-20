@@ -7,7 +7,7 @@ import { HandleError } from "./utils/errors/handle_errors";
 import { CustomError } from "./utils/errors/custom_errors";
 import crypto from "node:crypto"
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
 const phoneRegex = /^\d{9}$/
 
 export const LoginUser = async (formData) => {
@@ -15,6 +15,10 @@ export const LoginUser = async (formData) => {
     const password = formData.get("password");
 
     try {
+        if (!phoneEmail.length) {
+            throw new CustomError("phoneEmail", "მეილი ან ტელეფონის ნომერი არასწორია.")
+                .ExntendToErrorName("ValidationError");
+        }
         if (password.length < 8) {
             throw new CustomError("password", "პაროლი უნდა შეიცავდეს მინიმუმ 8 სიმბოლოს.")
                 .ExntendToErrorName("ValidationError");
@@ -79,21 +83,40 @@ export const RegisterUser = async (formData, role) => {
     const firstname = formData.get("firstname")
     const lastname = formData.get("lastname")
     const rules = formData.get("rules-confirmation")
+    let isEmail = null
+    console.log(firstname, phoneEmail, password, lastname, rules)
 
     try {
-        if (!rules) {
-            throw new CustomError("rules", "გთხოვთ დაეთანხმოთ სერვისის წესებსა და კონფიდენციალურობის პოლიტიკას.").ExntendToErrorName("ValidationError")
+        if (!firstname.length) {
+            throw new CustomError("firstname", "სახელი არასწორია.")
+                .ExntendToErrorName("ValidationError");
+        }
+        if (!lastname.length) {
+            throw new CustomError("lastname", "გვარი არასწორია.")
+                .ExntendToErrorName("ValidationError");
         }
 
+        if (emailRegex.test(phoneEmail)) {
+            isEmail = true
+        } else if (phoneRegex.test(phoneEmail)) {
+            isEmail = false
+        } else {
+            throw new CustomError("phoneEmail", "მეილი ან ტელეფონის ნომერი არასწორია.")
+                .ExntendToErrorName("ValidationError");
+        }
+        
         if (password.length < 8) {
             throw new CustomError("password", "პაროლი უნდა შეიცავდეს მინიმუმ 8 სიმბოლოს.").ExntendToErrorName("ValidationError")
+        }
+
+        if (!rules) {
+            throw new CustomError("rules", "გთხოვთ დაეთანხმოთ სერვისის წესებსა და კონფიდენციალურობის პოლიტიკას.").ExntendToErrorName("ValidationError")
         }
 
         if (role === "ხელოსანი") {
             const salt = await bcrypt.genSalt(8);
             const hash = await bcrypt.hash(password, salt);
             const random_id = crypto.randomUUID()
-            const isEmail = emailRegex.test(phoneEmail)
 
             const new_xelosani_credentials  = {
                 role: role,
@@ -120,7 +143,6 @@ export const RegisterUser = async (formData, role) => {
             const salt = await bcrypt.genSalt(8);
             const hash = await bcrypt.hash(password, salt);
             const random_id = crypto.randomUUID()
-            const isEmail = emailRegex.test(phoneEmail)
 
             const new_damkveti_credentials  = {
                 role: role,

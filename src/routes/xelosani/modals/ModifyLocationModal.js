@@ -1,4 +1,4 @@
-import { createSignal, onMount, Show, Switch, Match, batch } from "solid-js";
+import { createSignal, onMount, Show, Switch, Match, batch, onCleanup } from "solid-js";
 import "ol/ol.css";
 import OSM from "ol/source/OSM";
 import TileLayer from "ol/layer/Tile";
@@ -242,6 +242,8 @@ export const ModifyLocaitonModal = (props) => {
     setMarkedLocation(location);
   };
 
+  let toastTimeout
+  let exitTimeout
   const handleLocationSubmit = async () => {
     try {
       const response = await modify_user_location(markedLocation());
@@ -252,13 +254,17 @@ export const ModifyLocaitonModal = (props) => {
           type: true,
         });
         props.setModal(null);
-        setTimeout(() => {
+        toastTimeout = setTimeout(() => {
           props.setIsExiting(true);
-          setTimeout(() => {
+          exitTimeout = setTimeout(() => {
             props.setIsExiting(false);
             props.setToast(null);
           }, 500);
         }, 5000);
+      });
+      onCleanup(() => {
+        if (toastTimeout) clearTimeout(toastTimeout);
+        if (exitTimeout) clearTimeout(exitTimeout);
       });
     } catch (error) {
       console.log(error.message);

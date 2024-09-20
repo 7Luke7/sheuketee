@@ -9,9 +9,6 @@ import cake from "../../../../public/svg-images/cake.svg";
 import spinnerSVG from "../../../../public/svg-images/spinner.svg";
 import { A } from "@solidjs/router";
 import { preview_image, upload_profile_picture } from "../../api/user";
-import airPlane from "../../../../public/svg-images/airplane.svg";
-import closeIcon from "../../../../public/svg-images/svgexport-12.svg";
-import exclamationWhite from "../../../../public/svg-images/exclamationWhite.svg";
 
 export const ProfileLeft = (props) => {
   const [imageLoading, setImageLoading] = createSignal(false);
@@ -19,7 +16,9 @@ export const ProfileLeft = (props) => {
     props.user().profile_image || defaultProfileSVG
   );
   const [file, setFile] = createSignal();
-  
+  let toastTimeout;
+  let exitTimeout;
+
   const handleProfileImageChange = async () => {
     if (imageLoading()) {
     }
@@ -38,13 +37,17 @@ export const ProfileLeft = (props) => {
             message: "პროფილის ფოტო განახლებულია.",
             type: true,
           });
-          setTimeout(() => {
+          toastTimeout = setTimeout(() => {
             props.setIsExiting(true);
-            setTimeout(() => {
+            exitTimeout = setTimeout(() => {
               props.setIsExiting(false);
-              props.setToast(null)
+              props.setToast(null);
             }, 500);
           }, 5000);
+        });
+        onCleanup(() => {
+          if (toastTimeout) clearTimeout(toastTimeout);
+          if (exitTimeout) clearTimeout(exitTimeout);
         });
       }
     } catch (error) {
@@ -52,8 +55,7 @@ export const ProfileLeft = (props) => {
       setImageLoading(false);
     }
   };
-
-  onCleanup(() => clearTimeout());
+  
   const handleFilePreview = async (file) => {
     setImageLoading(true);
     try {
@@ -422,29 +424,6 @@ export const ProfileLeft = (props) => {
           </Match>
         </Switch>
       </div>
-      <Show when={props.toast()}>
-        <div
-          class={`${
-            props.isExiting() ? "toast-exit" : "toast-enter"
-          } fixed bottom-5 z-[200] left-1/2 -translate-x-1/2`}
-          role="alert"
-        >
-          <div class={`${!props.toast().type ? "border-red-400" : "border-dark-green-hover"} border flex relative bg-white space-x-4 rtl:space-x-reverse text-gray-500 border rounded-lg p-4 shadow items-center`}>
-            <button
-              class="absolute top-1 right-3"
-              onClick={() => props.setToast(null)}
-            >
-              <img width={14} height={14} src={closeIcon}></img>
-            </button>
-              {!props.toast().type ? <div class="bg-red-500 rounded-full">
-                <img src={exclamationWhite} />
-                </div> : <img class="rotate-[40deg]" src={airPlane} />}
-            <div class={`${!props.toast().type  && "text-red-600"} ps-4 border-l text-sm font-[normal-font]`}>
-              {props.toast().message}
-            </div>
-          </div>
-        </div>
-      </Show>
     </div>
   );
 };

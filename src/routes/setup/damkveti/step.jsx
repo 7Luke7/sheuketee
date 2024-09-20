@@ -11,7 +11,10 @@ const Step = (props) => {
 
     const stepKeys = Object.keys(steps);
     const [currentStepKey, setCurrentStepKey] = createSignal(location.pathname.split("/")[4]);
-    const [damkvetiStep, setDamkvetiStep] = createSignal(0)
+    const [damkvetiStep, setDamkvetiStep] = createSignal({
+        stepPercent: 0,
+        setupDone: false
+    })
 
     createEffect(async () => {
         const pathName = location.pathname.split("/")[4];
@@ -67,10 +70,10 @@ const Step = (props) => {
                             </button>
                             <div class="w-full flex items-center justify-center">
                                 <div class="w-[60%] flex bg-[#E5E7EB] rounded-3xl h-2">
-                                    <div class="bg-[#108a00] h-2 rounded-3xl" style={{ width: `${damkvetiStep()}%` }}></div>
+                                    <div class="bg-[#108a00] h-2 rounded-3xl" style={{ width: `${damkvetiStep()?.stepPercent}%` }}></div>
                                 </div>
                                 <div class="font-[thin-font] text-xs text-green-800 font-bold pl-2">
-                                    {damkvetiStep()}%
+                                    {damkvetiStep()?.stepPercent}%
                                 </div>
                             </div>
                             <button

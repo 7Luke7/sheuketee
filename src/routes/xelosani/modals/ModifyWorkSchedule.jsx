@@ -1,6 +1,7 @@
 import { batch } from "solid-js"
 import closeIcon from "../../../../public/svg-images/svgexport-12.svg"
 import {modify_user_schedule} from "~/routes/api/xelosani/modify/schedule"
+import { onCleanup } from "solid-js"
 
 export const ModifyWorkSchedule = (props) => {    
     const week_days = [
@@ -12,7 +13,9 @@ export const ModifyWorkSchedule = (props) => {
         "შაბათი",
         "კვირა"
     ]   
-
+    let toastTimeout;
+    let exitTimeout;
+  
     const handle_user_schedule = async (e) => {
         e.preventDefault()
         try {
@@ -25,19 +28,22 @@ export const ModifyWorkSchedule = (props) => {
                   type: true
                 })
                 props.setModal(null)
-                setTimeout(() => {
+                toastTimeout = setTimeout(() => {
                     props.setIsExiting(true);
-                    setTimeout(() => {
+                    exitTimeout = setTimeout(() => {
                       props.setIsExiting(false);
-                      props.setToast(null)
+                      props.setToast(null);
                     }, 500);
                   }, 5000);
-              })
+                  onCleanup(() => {
+                    if (toastTimeout) clearTimeout(toastTimeout);
+                    if (exitTimeout) clearTimeout(exitTimeout);
+                  });
+                });
         } catch(error) {
             alert(error)
         }
     }
-
     return <div class="w-[800px] h-full">
     <div className="flex w-full justify-between items-center mb-2">
         <h1 className="font-[boldest-font] text-lg">განრიგის შეცვლა</h1>

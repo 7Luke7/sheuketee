@@ -2,6 +2,7 @@ import { Header } from "~/Components/Header";
 import { get_xelosani } from "../../api/user";
 import { createAsync, useNavigate } from "@solidjs/router";
 import { Footer } from "~/Components/Footer";
+import checkedGreen from "../../../../public/svg-images/checkedGreen.svg"
 import {
   Show,
   createEffect,
@@ -18,6 +19,10 @@ import { ModifyWorkSchedule } from "../modals/ModifyWorkSchedule";
 import { ModifyAge } from "../modals/ModifyAge";
 import { MetaProvider } from "@solidjs/meta";
 import { ModifySkill } from "../modals/ModifySkills";
+import { FireworkConfetti } from "~/Components/FireworkConfetti";
+import airPlane from "../../../../public/svg-images/airplane.svg";
+import closeIcon from "../../../../public/svg-images/svgexport-12.svg";
+import exclamationWhite from "../../../../public/svg-images/exclamationWhite.svg";
 
 const Xelosani = (props) => {
   const user = createAsync(async () =>
@@ -59,6 +64,7 @@ const Xelosani = (props) => {
       document.removeEventListener("click", clickFN);
     });
   });
+
   return (
     <MetaProvider>
       <script
@@ -69,7 +75,6 @@ const Xelosani = (props) => {
         defer
         src="https://unpkg.com/embla-carousel-autoplay/embla-carousel-autoplay.umd.js"
       ></script>
-
       <div class={`${modal() && "pointer-events-none blur-[0.8px]"}`}>
         <Header />
       </div>
@@ -107,15 +112,17 @@ const Xelosani = (props) => {
                     ></ModifyWorkSchedule>
                   </Match>
                   <Match when={modal() === "სპეციალობა"}>
-                      <ModifySkill setModal={setModal}
+                    <ModifySkill
+                      setModal={setModal}
                       setIsExiting={setIsExiting}
                       setToast={setToast}
-                      skills={user().skills}></ModifySkill>
+                      skills={user().skills}
+                    ></ModifySkill>
                   </Match>
                 </Switch>
               </div>
             </Show>
-            <Show when={user().status === 200}>
+            <Show when={user().status === 200 && user().stepPercent !== 100}>
               <div
                 class={`${
                   modal() && "blur-[0.8px] pointer-events-none"
@@ -146,19 +153,53 @@ const Xelosani = (props) => {
               } flex items-start`}
             >
               <ProfileLeft
-                isExiting={isExiting}
-                toast={toast}
                 setToast={setToast}
                 setModal={setModal}
                 user={user}
               />
               <ProfileRight user={user} setModal={setModal} />
             </div>
+            <Show when={!user().setupDone && user().stepPercent === 100}>
+              <FireworkConfetti></FireworkConfetti>
+                <div
+                  id="completed-message"
+                  class="fixed bottom-5 z-[200] left-1/2 -translate-x-1/2"
+                  role="alert"
+                >
+                  <div class="border-dark-green-hover border gap-x-1 flex relative bg-white space-x-4 rtl:space-x-reverse text-gray-500 border rounded-lg p-4 shadow items-center">
+                    <img src={checkedGreen}></img>
+                    <p class="font-[thin-font] font-bold text-xs">გილოცავთ სეტაპი დასრულებულია.</p>
+                  </div>
+                </div>
+            </Show>
           </Show>
           <div class={`${modal() && "pointer-events-none blur-[0.8px]"}`}>
             <Footer />
           </div>
         </div>
+        <Show when={toast()}>
+        <div
+          class={`${
+            isExiting() ? "toast-exit" : "toast-enter"
+          } fixed bottom-5 z-[200] left-1/2 -translate-x-1/2`}
+          role="alert"
+        >
+          <div class={`${!toast().type ? "border-red-400" : "border-dark-green-hover"} border flex relative bg-white space-x-4 rtl:space-x-reverse text-gray-500 border rounded-lg p-4 shadow items-center`}>
+            <button
+              class="absolute top-1 right-3"
+              onClick={() => setToast(null)}
+            >
+              <img width={14} height={14} src={closeIcon}></img>
+            </button>
+              {!toast().type ? <div class="bg-red-500 rounded-full">
+                <img src={exclamationWhite} />
+                </div> : <img class="rotate-[40deg]" src={airPlane} />}
+            <div class={`${!toast().type  && "text-red-600"} ps-4 border-l text-sm font-[normal-font]`}>
+              {toast().message}
+            </div>
+          </div>
+        </div>
+      </Show>
       </div>
     </MetaProvider>
   );

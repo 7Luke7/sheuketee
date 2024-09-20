@@ -12,9 +12,12 @@ export const get_xelosani_step = async () => {
     const event = getRequestEvent();
     const redis_user = await verify_user(event);
 
-    const user = await Xelosani.findById(redis_user.userId, "stepPercent");
+    const user = await Xelosani.findById(redis_user.userId, "stepPercent setupDone");
 
-    return user.stepPercent;
+    return {
+      stepPercent: user.stepPercent,
+      setupDone: user.setupDone
+    };
   } catch (error) {
     console.log(error);
   }

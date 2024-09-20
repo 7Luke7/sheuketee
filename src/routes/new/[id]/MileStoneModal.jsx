@@ -14,6 +14,7 @@ export const MileStoneModal = (props) => {
         <For each={props.mileStone()}>
           {(m, index) => (
             <div class="">
+              <h2 class="mb-2 font-[bolder-font] text-md">{index() + 1} ეტაპი</h2>
               <input
                 class="bg-gray-100 font-[bolder-font] w-full border border-gray-300 p-2 mb-2 outline-none"
                 spellcheck="false"
@@ -57,16 +58,15 @@ export const MileStoneModal = (props) => {
                 <div class="flex flex-col gap-y-1">
                 <div class="flex items-center">
                   <input
-                    class="bg-gray-100 font-[bolder-font] w-[60px] border border-gray-300 p-2 outline-none"
+                    class="bg-gray-100 font-[bolder-font] w-[100px] border border-gray-300 p-2 outline-none"
                     placeholder="ფასი"
                     min={1}
                     onInput={(e) => props.setMileStone((cm) => {
-                        cm[index()].price = e.target.value
+                        cm[index()].price = Number(e.target.value)
                         return cm
                     })}
                     id="price"
                     name="price"
-                    value={1}
                     type="number"
                   />
                   <span class="text-2xl font-[bolder-font]">₾</span>

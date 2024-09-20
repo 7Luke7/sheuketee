@@ -406,11 +406,11 @@ export const modify_user = async (firstname, lastname, email, phone) => {
       user.lastname = lastname;
       if (email && email.length) {
         user.email = email
-        user.stepPercent = Math.ceil(user.stepPercent + 12.5);
+        user.stepPercent = user.role === 1 ? user.stepPercent + 12.5 : user.stepPercent + 17
       }
       if (phone && phone.length) {
         user.phone = phone
-        user.stepPercent = Math.ceil(user.stepPercent + 12.5);
+        user.stepPercent = user.role === 1 ? user.stepPercent + 12.5 : user.stepPercent + 17
       }
 
       await user.save();
@@ -486,5 +486,39 @@ export const get_damkveti = async (prof_id) => {
         status: 401,
       });
     }
+  }
+}
+
+export const setup_done = async () => {
+  try {
+    const event = getRequestEvent();
+    const redis_user = await verify_user(event);
+
+    if (redis_user === 401) {
+      throw new Error(401);
+    }
+
+    if (redis_user.role === 1) {
+    await Xelosani.updateOne(
+      { _id: redis_user.userId },
+      {
+        $set: {
+          setupDone: true,
+        },
+      },
+    )
+  } else {
+    await Damkveti.updateOne(
+      { _id: redis_user.userId },
+      {
+        $set: {
+          setupDone: true,
+        },
+      },
+    )
+  }
+
+  } catch (error) {
+    console.log(error)    
   }
 }

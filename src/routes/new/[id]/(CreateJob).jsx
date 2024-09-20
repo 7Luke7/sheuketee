@@ -16,6 +16,7 @@ import spinner from "../../../../public/svg-images/spinner.svg";
 import exclamationWhite from "../../../../public/svg-images/exclamationWhite.svg";
 import closeIcon from "../../../../public/svg-images/svgexport-12.svg";
 import airplane from "../../../../public/svg-images/airplane.svg";
+import uploadIcon from "../../../../public/svg-images/uploadIcon.svg";
 
 const CreateJob = () => {
   const location = createAsync(get_location);
@@ -28,7 +29,7 @@ const CreateJob = () => {
   const [input, setInput] = createSignal("");
   const [title, setTitle] = createSignal("");
   const [totalSize, setTotalSize] = createSignal(0);
-  const [mileStone, setMileStone] = createSignal();
+  const [mileStone, setMileStone] = createSignal([]);
   const [toastError, setToastError] = createSignal();
 
   const MAX_SINGLE_FILE_SIZE = 5 * 1024 * 1024;
@@ -53,7 +54,7 @@ const CreateJob = () => {
         {
           title: "",
           description: "",
-          price: "",
+          price: null,
         },
       ];
     });
@@ -76,6 +77,8 @@ const CreateJob = () => {
 
     setImage([...image(), ...files]);
   };
+  let toastTimeout;
+  let exitTimeout;
 
   const createPost = async (e) => {
     e.preventDefault();
@@ -86,12 +89,104 @@ const CreateJob = () => {
       for (let i in image()) {
         fd.append(`image${i}`, image()[i]);
       }
+      if (!fd.get("title").length) {
+        return setError([
+          {
+            field: "title",
+            message: "სათაური სავალდებულოა."
+          }
+        ])
+      }
+      if (fd.get("title").length > 60) {
+        return setError([
+          {
+            field: "title",
+            message: "სათაური უნდა შეიცავდეს მაქსიმუმ 60 ასოს."
+          }
+        ])
+      }
+
+      if (!fd.get("description").length) {
+        return setError([
+          {
+            field: "description",
+            message: "აღწერა სავალდებულოა."
+          }
+        ])
+      }
+      if (fd.get("description").length > 600) {
+        return setError([
+          {
+            field: "description",
+            message: "აღწერა უნდა შეიცავდეს მაქსიმუმ 600 ასოს."
+          }
+        ])
+      }
+      if (!mileStoneModal() && !fd.get("price")) {
+        return setError([
+          {
+            field: "price",
+            message: "ფასი სავალდებულოა თუ ეტაპები არ გაქვთ."
+          }
+        ])
+      }
+      if (mileStone()) {
+        return mileStone().find((milestone, index) => {
+          if (!milestone.title.length) {
+            setToastError(`${index + 1} ეტაპის სათაური სავალდებულოა.`)
+            return setError([
+              {
+                field: `mileStones.${index}.title`,
+                message: "ეტაპის სათაური სავალდებულოა."
+              }
+            ])
+          }
+          if (milestone.title.length > 60) {
+            setToastError(`${index + 1} ეტაპის სათაური უნდა შეიცავდეს მაქსიმუმ 60 ასოს.`)
+            return setError([
+              {
+                field: `mileStones.${index}.title`,
+                message: "ეტაპის სათაური უნდა შეიცავდეს მაქსიმუმ 60 ასოს."
+              }
+            ])
+          }
+    
+          if (!milestone.description.length) {
+            setToastError(`${index + 1} ეტაპის აღწერა სავალდებულოა.`)
+            return setError([
+              {
+                field: `mileStones.${index}.description`,
+                message: "ეტაპის აღწერა სავალდებულოა."
+              }
+            ])
+          }
+          if (milestone.description.length > 600) {
+            setToastError(`${index + 1} ეტაპის აღწერა უნდა შეიცავდეს მაქსიმუმ 600 ასოს.`)
+            return setError([
+              {
+                field: `mileStones.${index}.description`,
+                message: "ეტაპის აღწერა უნდა შეიცავდეს მაქსიმუმ 600 ასოს."
+              }
+            ])
+          }
+          if (!milestone.price) {
+            setToastError(`${index + 1} ეტაპის ფასი სავალდებულოა.`)
+            return setError([
+              {
+                field: `mileStones.${index}.description`,
+                message: "ეტაპის ფასი სავალდებულოა."
+              }
+            ])
+          }
+        })
+      }
       const response = await create_job(
         fd,
         markedLocation() || location(),
         image().length,
         mileStone()
       );
+
       if (response.status === 500) {
         setToastError("დაფიქსირდა სერვერული შეცდომა, სცადეთ მოგვიანებით.")
       }
@@ -102,7 +197,7 @@ const CreateJob = () => {
 
       document.getElementById("title").value = "";
       document.getElementById("desc").value = "";
-      document.getElementById("price").value = 1;
+      document.getElementById("price").value = null;
       const func = async () => {
         batch(() => {
           setPostUp(true);
@@ -112,19 +207,24 @@ const CreateJob = () => {
         });
       };
       await func();
-      setTimeout(() => {
+     
+      toastTimeout = setTimeout(() => {
         setIsExiting(true);
-        setTimeout(() => {
-          setPostUp(false);
+        exitTimeout = setTimeout(() => {
           setIsExiting(false);
+          setPostUp(null);
         }, 500);
       }, 5000);
+
+      onCleanup(() => {
+        if (toastTimeout) clearTimeout(toastTimeout);
+        if (exitTimeout) clearTimeout(exitTimeout);
+      });
     } catch (error) {
       alert(error);
     }
   };
-  onCleanup(() => clearTimeout());
-
+  
   return (
     <section>
       <Header></Header>
@@ -159,7 +259,7 @@ const CreateJob = () => {
                     </p>
                   </Show>
                   <div class="ml-auto text-gray-400 text-xs font-[thin-font]">
-                    {title().length}/60
+                    {title().trim().length}/60
                   </div>
                 </div>
                 <textarea
@@ -167,7 +267,7 @@ const CreateJob = () => {
                   spellcheck="false"
                   name="description"
                   onInput={(e) => setInput(e.target.value)}
-                  maxlength="600"
+                  maxlength={600}
                   id="desc"
                   placeholder="აღწერეთ თქვენი განცხადების დეტალები"
                 ></textarea>
@@ -178,24 +278,18 @@ const CreateJob = () => {
                     </p>
                   </Show>
                   <div class="count ml-auto text-gray-400 text-xs font-[thin-font]">
-                    {input().length}/600
+                    {input().trim().length}/600
                   </div>
                 </div>
                 <div class="flex items-center mb-4">
                   <input
-                    class="bg-gray-100 font-[bolder-font] w-3/12 border border-gray-300 p-2 outline-none"
-                    placeholder="ფასი"
+                    class={`bg-gray-100 font-[bolder-font] ${mileStoneModal() ? "w-7/12" : "w-3/12"} border border-gray-300 p-2 outline-none`}
+                    placeholder={mileStoneModal() ? "ფასი ან ეტაპების ფასი შეიკრიბება." : "ფასი"}
                     min={1}
                     id="price"
                     name="price"
-                    value={1}
                     type="number"
                   />
-                  <Show when={error()?.some((a) => a.field === "price")}>
-                    <p class="text-xs text-red-500 font-[thin-font] font-bold mb-2">
-                      {error().find((a) => a.field === "price").message}
-                    </p>
-                  </Show>
                   <span class="text-2xl font-[bolder-font]">₾</span>
                   <span class="text-lg font-[bolder-font] mx-3 text-gr">
                     ან
@@ -203,53 +297,52 @@ const CreateJob = () => {
                   <a
                     href="#milestoneWrapper"
                     onClick={() => {
-                      if (mileStoneModal() == false) {
-                        document.location.href = "#";
-                        if (!mileStone()) {
+                      setMileStoneModal((prev) => {
+                        const newState = !prev;
+                    
+                        // If the modal is being closed, reset the milestone array to empty
+                        if (!newState) {
+                          document.location.href = "#";
+                          setMileStone([]);
+                        } else {
+                          // If the modal is being opened, initialize the milestone
                           setMileStone([
                             {
                               title: "",
                               description: "",
-                              price: "",
+                              price: null,
                             },
                           ]);
                         }
-                      }
-                      setMileStoneModal((m) => !m);
+                    
+                        return newState; // Return the new state for mileStoneModal
+                      });
+                    
                     }}
-                    class="bg-gray-800 px-4 py-2 w-full font-[thin-font] text-sm hover:bg-gray-700 transition ease-in delay-20 text-white text-center rounded-[16px]"
+                    class={`bg-gray-800 px-4 py-2 ${mileStoneModal() ? "w-[200px]" : "w-full"} font-[thin-font] text-sm hover:bg-gray-700 transition ease-in delay-20 text-white text-center rounded-[16px]`}
                   >
                     {mileStoneModal() == false ? (
                       "დაყოფა ეტაპებად"
                     ) : (
                       <div class="flex gap-x-1 items-center justify-center">
                         <img src={spinner} class="animate-spin" />
-                        გაუქმება
+                        ეტაპების გაუქმება
                       </div>
                     )}
                   </a>
                 </div>
+                <Show when={error()?.some((a) => a.field === "price")}>
+                    <p class="text-xs text-red-500 font-[thin-font] font-bold mb-4">
+                      {error().find((a) => a.field === "price").message}
+                    </p>
+                  </Show>
                 <div class="flex items-center justify-center w-full">
                   <label
                     for="dropzone-file"
                     class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600"
                   >
                     <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                      <svg
-                        class="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400"
-                        aria-hidden="true"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 20 16"
-                      >
-                        <path
-                          stroke="currentColor"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
-                        />
-                      </svg>
+                      <img src={uploadIcon}></img> 
                       <p class="mb-2 text-sm text-gray-500 dark:text-gray-400">
                         <span class="font-[bolder-font]">
                           ასატვირთად დააჭირე
@@ -287,26 +380,7 @@ const CreateJob = () => {
                               }}
                               class="text-[#07074D]"
                             >
-                              <svg
-                                width="10"
-                                height="10"
-                                viewBox="0 0 10 10"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path
-                                  fill-rule="evenodd"
-                                  clip-rule="evenodd"
-                                  d="M0.279337 0.279338C0.651787 -0.0931121 1.25565 -0.0931121 1.6281 0.279338L9.72066 8.3719C10.0931 8.74435 10.0931 9.34821 9.72066 9.72066C9.34821 10.0931 8.74435 10.0931 8.3719 9.72066L0.279337 1.6281C-0.0931125 1.25565 -0.0931125 0.651788 0.279337 0.279338Z"
-                                  fill="currentColor"
-                                />
-                                <path
-                                  fill-rule="evenodd"
-                                  clip-rule="evenodd"
-                                  d="M0.279337 9.72066C-0.0931125 9.34821 -0.0931125 8.74435 0.279337 8.3719L8.3719 0.279338C8.74435 -0.0931127 9.34821 -0.0931123 9.72066 0.279338C10.0931 0.651787 10.0931 1.25565 9.72066 1.6281L1.6281 9.72066C1.25565 10.0931 0.651787 10.0931 0.279337 9.72066Z"
-                                  fill="currentColor"
-                                />
-                              </svg>
+                              <img src={closeIcon} width={18} height={18}></img>
                             </button>
                           </div>
                           <div class="flex flex-col relative h-[6px] w-full rounded-lg bg-[#E2E5EF]">

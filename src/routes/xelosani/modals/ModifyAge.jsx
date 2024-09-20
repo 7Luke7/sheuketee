@@ -1,4 +1,4 @@
-import { createEffect, createSignal, batch } from "solid-js";
+import { createEffect, createSignal, batch, onCleanup } from "solid-js";
 import ChevronRightBlackSVG from "../../../../public/svg-images/ChevronRightBlack.svg";
 import ChevronLeftBlackSVG from "../../../../public/svg-images/ChevronLeftBlack.svg";
 import dropdownSVG from "../../../../public/svg-images/svgexport-8.svg";
@@ -105,6 +105,8 @@ export const ModifyAge = (props) => {
     );
     return dateToCheck > today;
   };
+  let toastTimeout;
+  let exitTimeout;
 
   const handleDateSelect = async () => {
     try {
@@ -116,9 +118,9 @@ export const ModifyAge = (props) => {
           type: true,
         });
         props.setModal(null);
-        setTimeout(() => {
+        toastTimeout = setTimeout(() => {
           props.setIsExiting(true);
-          setTimeout(() => {
+          exitTimeout = setTimeout(() => {
             props.setIsExiting(false);
             props.setToast(null);
           }, 500);
@@ -131,6 +133,10 @@ export const ModifyAge = (props) => {
       }
       return alert("წარმოიშვა შეცდომა ცადეთ მოგვიანებით.");
     }
+    onCleanup(() => {
+      if (toastTimeout) clearTimeout(toastTimeout);
+      if (exitTimeout) clearTimeout(exitTimeout);
+    });
   };
 
   return (
