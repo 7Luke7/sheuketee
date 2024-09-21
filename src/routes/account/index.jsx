@@ -34,7 +34,6 @@ const Account = () => {
         const lastname = formData.get("lastname");
         const email = formData.get("email");
         const phone = formData.get("mobile");
-        console.log(firstname, lastname, email, phone)
 
         if (!firstname.length) {
           return setError([
@@ -73,11 +72,13 @@ const Account = () => {
         }
 
         const response = await modify_user(firstname, lastname, email, phone);
-        console.log(response);
+
+        console.log(response)
         if (response.status === 400) {
           return setError(response.errors);
         }
-        if (response.state === "წარმატება") {
+        if (response.status === 200) {
+          setError([])
           return setEditing(false);
         }
       } else {
@@ -150,7 +151,6 @@ const Account = () => {
     }
   };
 
-  console.log(user())
   return (
     <div class="flex px-10 items-start gap-x-2">
       <form onSubmit={editUser} class="flex-[6] mr-12">
@@ -255,6 +255,11 @@ const Account = () => {
             </Show>
           </div>
         </div>
+        <Show when={error()?.some((a) => a.field === "phoneEmailRegister")}>
+          <p class="text-xs mb-1 text-red-500 mt-1 font-[thin-font] font-bold">
+            {error().find((a) => a.field === "phoneEmailRegister").message}
+          </p>
+        </Show>
         <button
           type="submit"
           class={`text-white w-full rounded-[16px] py-2 text-base font-[thin-font] font-bold ${

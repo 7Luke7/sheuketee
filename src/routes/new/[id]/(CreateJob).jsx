@@ -1,11 +1,5 @@
 import { Header } from "~/Components/Header";
-import {
-  createSignal,
-  Switch,
-  Match,
-  batch,
-  onCleanup,
-} from "solid-js";
+import { createSignal, Switch, Match, batch, onCleanup, createEffect } from "solid-js";
 import { createAsync } from "@solidjs/router";
 import { create_job, get_location } from "../../api/damkveti/job";
 import { NotAuthorized } from "~/Components/NotAuthorized";
@@ -17,6 +11,10 @@ import exclamationWhite from "../../../../public/svg-images/exclamationWhite.svg
 import closeIcon from "../../../../public/svg-images/svgexport-12.svg";
 import airplane from "../../../../public/svg-images/airplane.svg";
 import uploadIcon from "../../../../public/svg-images/uploadIcon.svg";
+import jobs from "../../../Components/header-comps/jobs_list.json";
+import dropdownSVG from "../../../../public/svg-images/svgexport-8.svg";
+import gallery from "../../../../public/svg-images/images.svg";
+import thumnail from "../../../../public/svg-images/thumbnails-svgrepo-com.svg";
 
 const CreateJob = () => {
   const location = createAsync(get_location);
@@ -31,6 +29,13 @@ const CreateJob = () => {
   const [totalSize, setTotalSize] = createSignal(0);
   const [mileStone, setMileStone] = createSignal([]);
   const [toastError, setToastError] = createSignal();
+  const [activeParentIndex, setActiveParentIndex] = createSignal(null);
+  const [activeChildIndex, setActiveChildIndex] = createSignal(null);
+  const [childChecked, setChildChecked] = createSignal([]);
+  const [parentChecked, setParentChecked] = createSignal([]);
+  const [mainChecked, setMainChecked] = createSignal([]);
+  const [showCategoryModal, setShowCategoryModal] = createSignal(false);
+  const [currentStep, setCurrentStep] = createSignal("thumbnail");
 
   const MAX_SINGLE_FILE_SIZE = 5 * 1024 * 1024;
   const MAX_TOTAL_SIZE = 25 * 1024 * 1024;
@@ -41,7 +46,7 @@ const CreateJob = () => {
       return leftover;
     });
     if (!mileStone().length) {
-      return setMileStoneModal(false)
+      return setMileStoneModal(false);
     }
   };
 
@@ -75,6 +80,10 @@ const CreateJob = () => {
       return alert("ფაილების ჯამური ზომა აჭარბებს 25მბ ერთობლივ ლიმიტს.");
     }
 
+    if (currentStep() === "thumbnail") {
+      setCurrentStep("gallery")
+    }
+    
     setImage([...image(), ...files]);
   };
   let toastTimeout;
@@ -85,113 +94,121 @@ const CreateJob = () => {
     setError(null);
     try {
       const fd = new FormData(e.target);
-
-      for (let i in image()) {
-        fd.append(`image${i}`, image()[i]);
+      if (!childChecked().length) {
+        return setToastError("გთხოვთ აირჩიოთ კატეგორია.");
       }
+
       if (!fd.get("title").length) {
         return setError([
           {
             field: "title",
-            message: "სათაური სავალდებულოა."
-          }
-        ])
+            message: "სათაური სავალდებულოა.",
+          },
+        ]);
       }
-      if (fd.get("title").length > 60) {
+      if (fd.get("title").length > 100) {
         return setError([
           {
             field: "title",
-            message: "სათაური უნდა შეიცავდეს მაქსიმუმ 60 ასოს."
-          }
-        ])
+            message: "სათაური უნდა შეიცავდეს მაქსიმუმ 100 ასოს.",
+          },
+        ]);
       }
 
       if (!fd.get("description").length) {
         return setError([
           {
             field: "description",
-            message: "აღწერა სავალდებულოა."
-          }
-        ])
+            message: "აღწერა სავალდებულოა.",
+          },
+        ]);
       }
-      if (fd.get("description").length > 600) {
+      if (fd.get("description").length > 1000) {
         return setError([
           {
             field: "description",
-            message: "აღწერა უნდა შეიცავდეს მაქსიმუმ 600 ასოს."
-          }
-        ])
+            message: "აღწერა უნდა შეიცავდეს მაქსიმუმ 1000 ასოს.",
+          },
+        ]);
       }
       if (!mileStoneModal() && !fd.get("price")) {
         return setError([
           {
             field: "price",
-            message: "ფასი სავალდებულოა თუ ეტაპები არ გაქვთ."
-          }
-        ])
+            message: "ფასი სავალდებულოა თუ ეტაპები არ გაქვთ.",
+          },
+        ]);
       }
-      if (mileStone()) {
+      if (mileStone().length) {
         return mileStone().find((milestone, index) => {
           if (!milestone.title.length) {
-            setToastError(`${index + 1} ეტაპის სათაური სავალდებულოა.`)
+            setToastError(`${index + 1} ეტაპის სათაური სავალდებულოა.`);
             return setError([
               {
                 field: `mileStones.${index}.title`,
-                message: "ეტაპის სათაური სავალდებულოა."
-              }
-            ])
+                message: "ეტაპის სათაური სავალდებულოა.",
+              },
+            ]);
           }
-          if (milestone.title.length > 60) {
-            setToastError(`${index + 1} ეტაპის სათაური უნდა შეიცავდეს მაქსიმუმ 60 ასოს.`)
+          if (milestone.title.length > 100) {
+            setToastError(
+              `${index + 1} ეტაპის სათაური უნდა შეიცავდეს მაქსიმუმ 100 ასოს.`
+            );
             return setError([
               {
                 field: `mileStones.${index}.title`,
-                message: "ეტაპის სათაური უნდა შეიცავდეს მაქსიმუმ 60 ასოს."
-              }
-            ])
+                message: "ეტაპის სათაური უნდა შეიცავდეს მაქსიმუმ 100 ასოს.",
+              },
+            ]);
           }
-    
           if (!milestone.description.length) {
-            setToastError(`${index + 1} ეტაპის აღწერა სავალდებულოა.`)
+            setToastError(`${index + 1} ეტაპის აღწერა სავალდებულოა.`);
             return setError([
               {
                 field: `mileStones.${index}.description`,
-                message: "ეტაპის აღწერა სავალდებულოა."
-              }
-            ])
+                message: "ეტაპის აღწერა სავალდებულოა.",
+              },
+            ]);
           }
-          if (milestone.description.length > 600) {
-            setToastError(`${index + 1} ეტაპის აღწერა უნდა შეიცავდეს მაქსიმუმ 600 ასოს.`)
+          if (milestone.description.length > 1000) {
+            setToastError(
+              `${index + 1} ეტაპის აღწერა უნდა შეიცავდეს მაქსიმუმ 1000 ასოს.`
+            );
             return setError([
               {
                 field: `mileStones.${index}.description`,
-                message: "ეტაპის აღწერა უნდა შეიცავდეს მაქსიმუმ 600 ასოს."
-              }
-            ])
+                message: "ეტაპის აღწერა უნდა შეიცავდეს მაქსიმუმ 1000 ასოს.",
+              },
+            ]);
           }
           if (!milestone.price) {
-            setToastError(`${index + 1} ეტაპის ფასი სავალდებულოა.`)
+            setToastError(`${index + 1} ეტაპის ფასი სავალდებულოა.`);
             return setError([
               {
                 field: `mileStones.${index}.description`,
-                message: "ეტაპის ფასი სავალდებულოა."
-              }
-            ])
+                message: "ეტაპის ფასი სავალდებულოა.",
+              },
+            ]);
           }
-        })
+        });
       }
+      if (!image().length) {
+        return setToastError("ფოტო სავალდებულოა.");
+      }
+      
       const response = await create_job(
         fd,
         markedLocation() || location(),
-        image().length,
-        mileStone()
+        image(),
+        mileStone(),
+        [...mainChecked(), ...parentChecked(), ...childChecked()]
       );
 
       if (response.status === 500) {
-        setToastError("დაფიქსირდა სერვერული შეცდომა, სცადეთ მოგვიანებით.")
+        setToastError("დაფიქსირდა სერვერული შეცდომა, სცადეთ მოგვიანებით.");
       }
       if (response.status === 400) {
-        setToastError(response.errors[0].message)
+        setToastError(response.errors[0].message);
         return setError(response.errors);
       }
 
@@ -202,12 +219,16 @@ const CreateJob = () => {
         batch(() => {
           setPostUp(true);
           setImage([]);
-          setMileStone(null)
-          setMileStoneModal(false)
+          setMileStone(null);
+          setMileStoneModal(false);
+          setMainChecked([]);
+          setParentChecked([]);
+          setChildChecked([]);
+          setCurrentStep("thumbnail")
         });
       };
       await func();
-     
+
       toastTimeout = setTimeout(() => {
         setIsExiting(true);
         exitTimeout = setTimeout(() => {
@@ -224,7 +245,122 @@ const CreateJob = () => {
       alert(error);
     }
   };
-  
+
+  const toggleParentAccordion = (index) => {
+    if (activeParentIndex() === index) {
+      setActiveParentIndex(null);
+      setActiveChildIndex(null);
+    } else {
+      batch(() => {
+        setActiveParentIndex(index);
+        setActiveChildIndex(null);
+      });
+    }
+  };
+
+  const toggleChildAccordion = (index) => {
+    if (activeChildIndex() === index) {
+      setActiveChildIndex(null);
+    } else {
+      setActiveChildIndex(index);
+    }
+  };
+
+  const handleParentChange = (isChecked, currentCategory, childCategories) => {
+    if (isChecked) {
+      batch(() => {
+        setChildChecked((prev) => {
+          return [...prev, ...childCategories];
+        });
+        setParentChecked((prev) => {
+          return [...prev, currentCategory];
+        });
+      });
+    } else {
+      batch(() => {
+        setChildChecked((prev) => {
+          const filt = prev.filter((p) => !childCategories.includes(p));
+          return filt;
+        });
+        setParentChecked((prev) => {
+          const filt = prev.filter((p) => p !== currentCategory);
+          return filt;
+        });
+      });
+    }
+  };
+
+  const handleGrandChange = (j, isChecked, parentCategory, allChild) => {
+    if (isChecked) {
+      setChildChecked((prev) => {
+        return [...prev, j];
+      });
+      if (!parentChecked().includes(parentCategory)) {
+        setParentChecked((prev) => {
+          return [...prev, parentCategory];
+        });
+      }
+    } else {
+      setChildChecked((prev) => {
+        const filt = prev.filter((p) => p !== j);
+        return filt;
+      });
+      if (allChild.some((a) => childChecked().includes(a))) {
+        return;
+      } else {
+        setParentChecked((prev) => {
+          const filt = prev.filter((p) => p !== parentCategory);
+          return filt;
+        });
+      }
+    }
+  };
+
+  const handleMainChange = (
+    isChecked,
+    currentCategory,
+    currentCategoryList
+  ) => {
+    if (isChecked) {
+      batch(() => {
+        setMainChecked((prev) => {
+          return [...prev, currentCategory];
+        });
+        setParentChecked((prev) => {
+          return [...prev, ...currentCategoryList.map((a) => a["კატეგორია"])];
+        });
+        setChildChecked((prev) => {
+          return [
+            ...prev,
+            ...currentCategoryList.flatMap((a) => a["სამუშაოები"]),
+          ];
+        });
+      });
+    } else {
+      batch(() => {
+        setMainChecked((prev) => {
+          return prev.filter((item) => item !== currentCategory);
+        });
+
+        setParentChecked((prev) => {
+          const filteredCategories = currentCategoryList.map(
+            (a) => a["კატეგორია"]
+          );
+          return prev.filter(
+            (category) => !filteredCategories.includes(category)
+          );
+        });
+
+        setChildChecked((prev) => {
+          const childCategories = currentCategoryList.flatMap(
+            (a) => a["სამუშაოები"]
+          );
+          return prev.filter((child) => !childCategories.includes(child));
+        });
+      });
+    }
+  };
+
   return (
     <section>
       <Header></Header>
@@ -238,17 +374,177 @@ const CreateJob = () => {
           </h1>
           <div class="flex w-full justify-center">
             <div class="flex w-[1200px] mt-2 border border-gray-300">
+              <Show when={jobs && showCategoryModal()}>
+                <div class="fixed top-1/2 -translate-y-1/2 border bg-white z-[500] py-4 px-12 w-[800px] left-1/2 -translate-x-1/2">
+                  <div class="flex items-center justify-between">
+                    <h3 class="font-bold font-[bolder-font] text-xl">
+                      აირჩიე კატეგორია
+                    </h3>
+                    <img
+                      src={closeIcon}
+                      onClick={() => setShowCategoryModal(false)}
+                    />
+                  </div>
+                  <div class="grid grid-cols-2 justify-items-stretch border-t gap-x-5 mt-8">
+                    <For each={jobs.flatMap((obj) => Object.keys(obj))}>
+                      {(m, Parentindex) => (
+                        <div class="border-b border-slate-200">
+                          <div class="w-full flex justify-between items-center py-5 text-slate-800">
+                            <span class="text-md font-bold font-[normal-font]">
+                              {m}
+                            </span>
+                            <div class="flex items-center gap-x-2">
+                              <input
+                                type="checkbox"
+                                checked={mainChecked().includes(m)}
+                                onChange={(e) =>
+                                  handleMainChange(
+                                    e.target.checked,
+                                    m,
+                                    jobs[0][m]
+                                  )
+                                }
+                                name="rules-confirmation"
+                                class="accent-dark-green-hover"
+                                id="must"
+                              ></input>
+                              <span
+                                class={`text-slate-800 transition-transform duration-300 ${
+                                  activeParentIndex() === Parentindex()
+                                    ? "rotate-[180deg]"
+                                    : ""
+                                }`}
+                                onClick={() =>
+                                  toggleParentAccordion(Parentindex())
+                                }
+                              >
+                                <img
+                                  class="transform transition-transform duration-300"
+                                  src={dropdownSVG}
+                                  alt="dropdown icon"
+                                />
+                              </span>
+                            </div>
+                          </div>
+                          <div
+                            class={`overflow-hidden transition-all duration-300 ease-in-out ${
+                              activeParentIndex() === Parentindex()
+                                ? "max-h-screen"
+                                : "max-h-0"
+                            }`}
+                          >
+                            <Show when={activeParentIndex() === Parentindex()}>
+                              <For each={jobs[0][m]}>
+                                {(child, index) => (
+                                  <div>
+                                    <div class="w-full flex justify-between items-center py-1 px-2 text-slate-800">
+                                      <span class="text-sm font-bold font-[normal-font]">
+                                        {child["კატეგორია"]}
+                                      </span>
+                                      <div class="flex items-center gap-x-2">
+                                        <input
+                                          type="checkbox"
+                                          checked={parentChecked().includes(
+                                            child["კატეგორია"]
+                                          )}
+                                          onChange={(e) =>
+                                            handleParentChange(
+                                              e.target.checked,
+                                              child["კატეგორია"],
+                                              child["სამუშაოები"]
+                                            )
+                                          }
+                                          name="rules-confirmation"
+                                          class="accent-dark-green-hover"
+                                          id="must"
+                                        ></input>
+                                        <span
+                                          class={`text-slate-800 transition-transform duration-300 ${
+                                            activeChildIndex() === index()
+                                              ? "rotate-[180deg]"
+                                              : ""
+                                          }`}
+                                          onClick={() =>
+                                            toggleChildAccordion(index())
+                                          }
+                                        >
+                                          <img
+                                            class="transform transition-transform duration-300"
+                                            src={dropdownSVG}
+                                            alt="dropdown icon"
+                                          />
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <div
+                                      class={`overflow-hidden px-4 transition-all duration-300 ease-in-out ${
+                                        activeChildIndex() === index()
+                                          ? "max-h-screen"
+                                          : "max-h-0"
+                                      }`}
+                                    >
+                                      <For each={child["სამუშაოები"]}>
+                                        {(j, i) => (
+                                          <div class="flex w-full items-center justify-between text-xs text-slate-800">
+                                            <p class="text-xs pb-2 font-[normal-font] font-bold">
+                                              {j}
+                                            </p>
+                                            <input
+                                              type="checkbox"
+                                              checked={childChecked().includes(
+                                                j
+                                              )}
+                                              name="rules-confirmation"
+                                              class="accent-dark-green-hover"
+                                              id="must"
+                                              onChange={(e) =>
+                                                handleGrandChange(
+                                                  j,
+                                                  e.target.checked,
+                                                  child["კატეგორია"],
+                                                  child["სამუშაოები"]
+                                                )
+                                              }
+                                            ></input>
+                                          </div>
+                                        )}
+                                      </For>
+                                    </div>
+                                  </div>
+                                )}
+                              </For>
+                            </Show>
+                          </div>
+                        </div>
+                      )}
+                    </For>
+                  </div>
+                  <button
+                    onClick={() => setShowCategoryModal(false)}
+                    class="border mt-4 border-gray-300 rounded-[16px] p-1 px-4 w-full text-center font-semibold cursor-pointer text-gray-200 bg-dark-green"
+                  >
+                    დადასტურება
+                  </button>
+                </div>
+              </Show>
               <form
                 onSubmit={createPost}
                 class="editor mx-auto flex-1 flex flex-col text-gray-800 p-4 shadow-lg "
               >
+                <button
+                  type="button"
+                  onClick={() => setShowCategoryModal(true)}
+                  class="bg-gray-800 px-4 py-2 mb-4 font-[thin-font] text-md font-bold hover:bg-gray-700 transition ease-in delay-20 text-white text-center rounded-[16px]"
+                >
+                  აირჩიე კატეგორიები
+                </button>
                 <input
                   class="bg-gray-100 font-[bolder-font] border border-gray-300 p-2 mb-2 outline-none"
                   spellcheck="false"
                   placeholder="სათაური"
                   onInput={(e) => setTitle(e.target.value)}
                   id="title"
-                  maxLength={60}
+                  maxLength={100}
                   name="title"
                   type="text"
                 />
@@ -259,7 +555,7 @@ const CreateJob = () => {
                     </p>
                   </Show>
                   <div class="ml-auto text-gray-400 text-xs font-[thin-font]">
-                    {title().trim().length}/60
+                    {title().trim().length}/100
                   </div>
                 </div>
                 <textarea
@@ -267,7 +563,7 @@ const CreateJob = () => {
                   spellcheck="false"
                   name="description"
                   onInput={(e) => setInput(e.target.value)}
-                  maxlength={600}
+                  maxlength={1000}
                   id="desc"
                   placeholder="აღწერეთ თქვენი განცხადების დეტალები"
                 ></textarea>
@@ -278,13 +574,19 @@ const CreateJob = () => {
                     </p>
                   </Show>
                   <div class="count ml-auto text-gray-400 text-xs font-[thin-font]">
-                    {input().trim().length}/600
+                    {input().trim().length}/1000
                   </div>
                 </div>
                 <div class="flex items-center mb-4">
                   <input
-                    class={`bg-gray-100 font-[bolder-font] ${mileStoneModal() ? "w-7/12" : "w-3/12"} border border-gray-300 p-2 outline-none`}
-                    placeholder={mileStoneModal() ? "ფასი ან ეტაპების ფასი შეიკრიბება." : "ფასი"}
+                    class={`bg-gray-100 font-[bolder-font] ${
+                      mileStoneModal() ? "w-7/12" : "w-3/12"
+                    } border border-gray-300 p-2 outline-none`}
+                    placeholder={
+                      mileStoneModal()
+                        ? "ფასი ან ეტაპების ფასი შეიკრიბება."
+                        : "ფასი"
+                    }
                     min={1}
                     id="price"
                     name="price"
@@ -299,13 +601,10 @@ const CreateJob = () => {
                     onClick={() => {
                       setMileStoneModal((prev) => {
                         const newState = !prev;
-                    
-                        // If the modal is being closed, reset the milestone array to empty
                         if (!newState) {
                           document.location.href = "#";
                           setMileStone([]);
                         } else {
-                          // If the modal is being opened, initialize the milestone
                           setMileStone([
                             {
                               title: "",
@@ -314,12 +613,13 @@ const CreateJob = () => {
                             },
                           ]);
                         }
-                    
-                        return newState; // Return the new state for mileStoneModal
+
+                        return newState;
                       });
-                    
                     }}
-                    class={`bg-gray-800 px-4 py-2 ${mileStoneModal() ? "w-[200px]" : "w-full"} font-[thin-font] text-sm hover:bg-gray-700 transition ease-in delay-20 text-white text-center rounded-[16px]`}
+                    class={`bg-gray-800 px-4 py-2 ${
+                      mileStoneModal() ? "w-[200px]" : "w-full"
+                    } font-[thin-font] text-sm hover:bg-gray-700 transition ease-in delay-20 text-white text-center rounded-[16px]`}
                   >
                     {mileStoneModal() == false ? (
                       "დაყოფა ეტაპებად"
@@ -332,30 +632,75 @@ const CreateJob = () => {
                   </a>
                 </div>
                 <Show when={error()?.some((a) => a.field === "price")}>
-                    <p class="text-xs text-red-500 font-[thin-font] font-bold mb-4">
-                      {error().find((a) => a.field === "price").message}
-                    </p>
-                  </Show>
+                  <p class="text-xs text-red-500 font-[thin-font] font-bold mb-4">
+                    {error().find((a) => a.field === "price").message}
+                  </p>
+                </Show>
+
+                <ul class="relative flex flex-col md:flex-row gap-2">
+                  <li class="md:shrink md:basis-0 flex-1 group flex gap-x-2 md:block">
+                    <div class="min-w-7 min-h-7 flex flex-col items-center md:w-full md:inline-flex md:flex-wrap md:flex-row text-xs align-middle">
+                      <div
+                        class={`${
+                          currentStep() === "thumbnail" &&
+                          "bg-green-100 rounded-full"
+                        } p-2`}
+                      >
+                        <img src={thumnail}></img>
+                      </div>
+                      <div class={`${currentStep() === "gallery" ? "bg-dark-green-hover" : "bg-gray-200"} mt-2 w-px h-full md:mt-0 md:ms-2 md:w-full md:h-px md:flex-1 group-last:hidden`}></div>
+                    </div>
+                    <div class="grow md:grow-0 md:mt-3 pb-5">
+                      <span class="block text-sm font-bold font-[font-medium] text-gray-800">
+                        თამბნეილი
+                      </span>
+                      <p class="text-sm text-gray-500 font-bold font-[thin-font]">
+                        სურათი გამოჩნდება პირველი.
+                      </p>
+                    </div>
+                  </li>
+
+                  <li class="md:shrink md:basis-0 flex-1 group flex gap-x-2 md:block">
+                    <div class="min-w-7 min-h-7 flex flex-col items-center md:w-full md:inline-flex md:flex-wrap md:flex-row text-xs align-middle">
+                      <div
+                        class={`${
+                          currentStep() === "gallery" &&
+                          "bg-green-100 rounded-full"
+                        } p-2`}
+                      >
+                        <img src={gallery}></img>
+                      </div>
+                    </div>
+                    <div class="grow md:grow-0 md:mt-3 pb-5">
+                      <span class="block text-sm font-bold font-[font-medium] text-gray-800">
+                        გალერეა
+                      </span>
+                      <p class="text-sm font-[thin-font] font-bold text-gray-500">
+                        სხვადასხვა ფოტოები.
+                      </p>
+                    </div>
+                  </li>
+                </ul>
                 <div class="flex items-center justify-center w-full">
                   <label
                     for="dropzone-file"
-                    class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600"
+                    class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50"
                   >
                     <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                      <img src={uploadIcon}></img> 
-                      <p class="mb-2 text-sm text-gray-500 dark:text-gray-400">
+                      <img src={uploadIcon}></img>
+                      <p class="mb-2 text-sm text-gray-500">
                         <span class="font-[bolder-font]">
                           ასატვირთად დააჭირე
                         </span>
                       </p>
-                      <p class="text-xs text-gray-500 dark:text-gray-400">
+                      <p class="text-xs text-gray-500">
                         SVG, PNG, JPG. (მაქს. 5MB)
                       </p>
                     </div>
                     <input
                       onChange={(e) => handleFileChange(e)}
                       name="files[]"
-                      multiple
+                      multiple={currentStep() === "thumbnail" ? false : true}
                       accept="image/jpeg, image/png, image/gif, image/webp, image/avif, image/svg+xml"
                       id="dropzone-file"
                       type="file"

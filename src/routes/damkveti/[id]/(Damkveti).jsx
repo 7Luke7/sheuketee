@@ -1,9 +1,9 @@
 import { MetaProvider } from "@solidjs/meta";
 import { createAsync, useNavigate } from "@solidjs/router";
-import { Match, Show, Switch } from "solid-js";
+import { navigateToStep } from "~/routes/api/damkveti/step";
+import { Match, onMount, Show, Switch } from "solid-js";
 import { createEffect, createSignal, onCleanup } from "solid-js";
 import { Header } from "~/Components/Header";
-import { navigateToStep } from "~/routes/api/damkveti/step";
 import { get_damkveti } from "~/routes/api/user";
 import { ModifyLocaitonModal } from "../modals/ModifyLocationModal";
 import { ModifyAge } from "../modals/ModifyAge";
@@ -34,7 +34,7 @@ const Damkveti = (props) => {
       alert("წარმოიშვა შეცდომა გთხოვთ ცადოთ მოგვიანებით.");
     }
   };
-  const clickFN = (event) => {
+  const clickFN = (event) => {  
     if (
       !event.target.closest("#search_wrapper") &&
       !event.target.closest("#search_btn") &&
@@ -48,7 +48,7 @@ const Damkveti = (props) => {
       setModal(null);
     }
   };
-
+  
   createEffect(() => {
     document.addEventListener("click", clickFN);
 

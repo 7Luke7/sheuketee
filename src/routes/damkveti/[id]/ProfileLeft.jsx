@@ -309,7 +309,7 @@ export const ProfileLeft = (props) => {
             <Match when={props.user().phone}>
               <img src={jobApplication}></img>
               <p class="text-gr text-xs ml-1 font-[thin-font] font-bold">
-                25 განცხადება
+                {props.user().jobCount} განცხადება
               </p>
             </Match>
             <Match when={props.user().status === 200}>

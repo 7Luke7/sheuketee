@@ -93,14 +93,12 @@ const ServicesSchema = new mongoose.Schema(
     title: {
       type: String,
       required: true,
-      trim: true,
       minLength: 5,
       maxLength: 100,
     },
     description: {
       type: String,
       required: true,
-      trim: true,
       minLength: 20,
       maxLength: 1000,
     },
@@ -129,7 +127,6 @@ const ServicesSchema = new mongoose.Schema(
         user: { type: mongoose.Schema.Types.ObjectId, ref: "Damkveti" },
         comment: {
           type: String,
-          trim: true,
           minLength: 10,
           maxLength: 500,
         },
@@ -160,12 +157,14 @@ const UserSchema = new mongoose.Schema(
     },
     firstname: {
       type: String,
-      minlength: [1, "სახელი უნდა შეიცავდეს მინიმუმ 1 ასოს."],
+      trim: true,
+      minlength: [1, "სახელი სავალდებულოა."],
       required: [true, "სახელი სავალდებულოა."],
     },
     lastname: {
       type: String,
-      minlength: [1, "გვარი უნდა შეიცავდეს მინიმუმ 1 ასოს."],
+      trim: true,
+      minlength: [1, "გვარი სავალდებულოა."],
       required: [true, "გვარი სავალდებულოა."],
     },
     notificationDevices: {
@@ -229,7 +228,6 @@ const UserSchema = new mongoose.Schema(
     },
     about: {
       type: String,
-      trim: true,
       minlength: [75, "თქვენს შესახებ უნდა შეიცავდეს მინუმუმ 75 სიმბოლოს."],
       default: undefined,
     },
@@ -278,21 +276,19 @@ export const Damkveti =
 
 const jobMileStonesSchema = new mongoose.Schema({
   title: {
-    trim: true,
     type: String,
-    minlength: [1, "ეტაპის სათაური უნდა შეიცავდეს მინიმუმ 1 ასოს."],
+    minlength: [1, "სათაური სავალდებულოა."],
     maxLength: [60, "ეტაპის სათაური უნდა შეიცავდეს მაქსიმუმ 60 ასოს."],
     default: undefined,
     required: [true, "ეტაპის სათაური სავალდებულოა."],
   },
   milestoneDisplayId: {
     type: String,
-    unique: true,
+    sparse: true,
     required: [true, "დაფიქსირდა შეცდომა."],
   },
   description: {
     type: String,
-    trim: true,
     required: [true, "აეტაპის ღწერა სავალდებულოა."],
     maxLength: [600, "ეტაპის აღწერა უნდა შეიცავდეს მაქსიმუმ 600 ასოს."],
     default: undefined,
@@ -304,6 +300,30 @@ const jobMileStonesSchema = new mongoose.Schema({
   },
 });
 
+// Allow Premium Xelosani users to view all the bidders
+const biddersSchema = new mongoose.Schema({
+  bidder: { type: Schema.Types.ObjectId, ref: "Xelosani" },
+  title: {
+    type: String,
+      minlength: [1, "სათაური სავალდებულოა."],
+      maxLength: [100, "სათაური უნდა შეიცავდეს მაქსიმუმ 100 ასოს."],
+      default: undefined,
+      required: [true, "სათაური სავალდებულოა."],
+  },
+  description: {
+    type: String,
+    required: [true, "აღწერა სავალდებულოა."],
+    maxLength: [1000, "აღწერა უნდა შეიცავდეს მაქსიმუმ 1000 ასოს."],
+    default: undefined,
+  },
+  offerPrice: {
+    type: Number,
+    min: 1,
+    default: 1,
+  },
+  mileStones: [jobMileStonesSchema]
+})
+
 const JobPostSchema = new mongoose.Schema(
   {
     publicId: {
@@ -314,17 +334,15 @@ const JobPostSchema = new mongoose.Schema(
     _creator: { type: Schema.Types.ObjectId, ref: "Damkveti" },
     title: {
       type: String,
-      trim: true,
-      minlength: [1, "სათაური უნდა შეიცავდეს მინიმუმ 1 ასოს."],
-      maxLength: [60, "სათაური უნდა შეიცავდეს მაქსიმუმ 60 ასოს."],
+      minlength: [1, "სათაური სავალდებულოა."],
+      maxLength: [100, "სათაური უნდა შეიცავდეს მაქსიმუმ 100 ასოს."],
       default: undefined,
       required: [true, "სათაური სავალდებულოა."],
     },
     description: {
-      trim: true,
       type: String,
       required: [true, "აღწერა სავალდებულოა."],
-      maxLength: [600, "აღწერა უნდა შეიცავდეს მაქსიმუმ 600 ასოს."],
+      maxLength: [1000, "აღწერა უნდა შეიცავდეს მაქსიმუმ 1000 ასოს."],
       default: undefined,
     },
     mileStones: {
@@ -334,6 +352,7 @@ const JobPostSchema = new mongoose.Schema(
     price: {
       type: Number,
       min: 1,
+      required: true,
       default: 1,
     },
     location: {
@@ -341,6 +360,18 @@ const JobPostSchema = new mongoose.Schema(
       default: undefined,
       required: [true, "ლოკაცია სავალდებულოა."],
     },
+    categories: {
+      type: Array,
+      required: true,
+    },
+    bids: {
+      type: [biddersSchema],
+      default: undefined
+    } ,
+    imageLength: {
+      type: Number,
+      default: undefined
+    }
   },
   { timestamps: true }
 );

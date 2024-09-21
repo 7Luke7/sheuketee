@@ -12,6 +12,9 @@ import { getRequestEvent } from "solid-js/web";
 import { cache, json } from "@solidjs/router";
 import bcrypt from "bcrypt";
 import { verify_user } from "./session_management";
+import { CustomError } from "./utils/errors/custom_errors";
+import { HandleError } from "./utils/errors/handle_errors";
+import { get_user_job_image } from "./jobs";
 
 export const get_account = cache(async () => {
   try {
@@ -58,7 +61,7 @@ export const get_xelosani = async (prof_id) => {
       "-_id -__v -updatedAt -notificationDevices -password"
     );
     const profile_image = await get_user_profile_image(prof_id);
-    const creationDateDisplayable = getTimeAgo(_doc.createdAt)
+    const creationDateDisplayable = getTimeAgo(_doc.createdAt);
     return JSON.stringify({
       ..._doc,
       profile_image,
@@ -72,7 +75,7 @@ export const get_xelosani = async (prof_id) => {
         "-_id -__v -stepPercent -notificationDevices -updatedAt -password"
       );
       const profile_image = await get_user_profile_image(prof_id);
-      const creationDateDisplayable = getTimeAgo(_doc.createdAt)
+      const creationDateDisplayable = getTimeAgo(_doc.createdAt);
       return JSON.stringify({
         ..._doc,
         profile_image,
@@ -141,18 +144,17 @@ export const preview_image = async (file, prof_id) => {
     }
 
     const bytes = await file.arrayBuffer(file);
-    const buffer = Buffer.from(bytes)
+    const buffer = Buffer.from(bytes);
     const compressed_buffer = await compress_image(buffer, 80, 140, 140);
-    const base64 = Buffer.from(compressed_buffer,
-      "binary").toString("base64");
+    const base64 = Buffer.from(compressed_buffer, "binary").toString("base64");
     return `data:image/png;base64,${base64}`;
   } catch (error) {
     console.log("OUTER ERROR", error);
   }
-}
+};
 
 export const upload_profile_picture = async (file, prof_id) => {
-  let redis_user
+  let redis_user;
   try {
     const event = getRequestEvent();
     redis_user = await verify_user(event);
@@ -171,7 +173,7 @@ export const upload_profile_picture = async (file, prof_id) => {
     await s3.send(headCommand);
 
     const bytes = await file.arrayBuffer(file);
-    const buffer = Buffer.from(bytes)
+    const buffer = Buffer.from(bytes);
     const compressed_buffer = await compress_image(buffer, 80, 140, 140);
     const params = {
       Bucket: process.env.S3_BUCKET_NAME,
@@ -187,20 +189,26 @@ export const upload_profile_picture = async (file, prof_id) => {
   } catch (error) {
     if (error.name === "NotFound") {
       const bytes = await file.arrayBuffer(file);
-      const buffer = Buffer.from(bytes)
+      const buffer = Buffer.from(bytes);
       const compressed_buffer = await compress_image(buffer, 80, 140, 140);
       if (redis_user.role === 1) {
-        await Xelosani.updateOne({_id: redis_user.userId}, {
-          $inc: {
-              "stepPercent": 12.5 
+        await Xelosani.updateOne(
+          { _id: redis_user.userId },
+          {
+            $inc: {
+              stepPercent: 12.5,
+            },
           }
-        })
+        );
       } else {
-        await Damkveti.updateOne({_id: redis_user.userId}, {
-          $inc: {
-              "stepPercent": 17 
+        await Damkveti.updateOne(
+          { _id: redis_user.userId },
+          {
+            $inc: {
+              stepPercent: 17,
+            },
           }
-        })
+        );
       }
 
       const params = {
@@ -214,9 +222,9 @@ export const upload_profile_picture = async (file, prof_id) => {
       const upload_image = new PutObjectCommand(params);
       await s3.send(upload_image);
 
-      return true
-  }
-  console.log(error)
+      return true;
+    }
+    console.log(error);
   }
 };
 
@@ -243,7 +251,10 @@ export const toggle_notification = async (target) => {
     const user_id = await verify_user(event);
 
     if (target === "phone") {
-      const updated_xelosani = await (user_id.role === 1 ? Xelosani : Damkveti).findByIdAndUpdate(
+      const updated_xelosani = await (user_id.role === 1
+        ? Xelosani
+        : Damkveti
+      ).findByIdAndUpdate(
         user_id.userId,
         [
           {
@@ -265,7 +276,7 @@ export const toggle_notification = async (target) => {
         ],
         { new: true, fields: { notificationDevices: 1 } }
       );
-      console.log(updated_xelosani)
+      console.log(updated_xelosani);
 
       if (updated_xelosani.notificationDevices.includes(target)) {
         return 1;
@@ -273,7 +284,10 @@ export const toggle_notification = async (target) => {
         return 2;
       }
     } else if (target === "email") {
-      const updated_xelosani = await (user_id.role === 1 ? Xelosani : Damkveti).findByIdAndUpdate(
+      const updated_xelosani = await (user_id.role === 1
+        ? Xelosani
+        : Damkveti
+      ).findByIdAndUpdate(
         user_id.userId,
         [
           {
@@ -331,11 +345,14 @@ export const update_password = async (new_password) => {
 
     const salt = await bcrypt.genSalt(8);
     const hash = await bcrypt.hash(new_password, salt);
-    await (user_id.role === 1 ? Xelosani : Damkveti).findByIdAndUpdate(user_id.userId, {
-      $set: {
-        password: hash,
-      },
-    });
+    await (user_id.role === 1 ? Xelosani : Damkveti).findByIdAndUpdate(
+      user_id.userId,
+      {
+        $set: {
+          password: hash,
+        },
+      }
+    );
 
     return "წარმატება";
   } catch (error) {
@@ -343,114 +360,87 @@ export const update_password = async (new_password) => {
   }
 };
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const phoneRegex = /^\d{9}$/;
 
 export const modify_user = async (firstname, lastname, email, phone) => {
   try {
     const event = getRequestEvent();
     const user_id = await verify_user(event);
-
-    const user = await (user_id.role === 1 ? Xelosani : Damkveti).findById(user_id.userId);
-    const validateEmail = (email) => emailRegex.test(email);
-    const validatePhone = (phone) => phoneRegex.test(phone);
-
-    const checkExistingEmail = async (email) => {
-      if (email && email.length) {
-        return await (user_id.role === 1 ? Xelosani : Damkveti).findOne({ email });
-      }
-      return null;
-    };
-
-    const checkExistingPhone = async (phone) => {
-      if (phone && phone.length) {
-        return await (user_id.role === 1 ? Xelosani : Damkveti).findOne({ phone });
-      }
-      return null;
-    };
-
-    let message;
-
-    if (phone && !validatePhone(phone)) {
-      message = "ტელეფონის ნომერი არასწორია.";
-    } else if (email && !validateEmail(email)) {
-      message = "მეილი არასწორია.";
+    if (!firstname.length) {
+      throw new CustomError(
+        "სახელი",
+        "სახელი უნდა შეიცავდეს მინიმუმ 1 ასოს."
+      ).ExntendToErrorName("ValidationError");
     }
 
-    if (message) {
-      user.firstname = firstname;
-      user.lastname = lastname;
+    if (!lastname.length) {
+      throw new CustomError(
+        "გვარი",
+        "გვარი უნდა შეიცავდეს მინიმუმ 1 ასოს."
+      ).ExntendToErrorName("ValidationError");
+    }
 
-      await user.save();
-
-      return json(
-        {
-          state: "წარმატება",
-          message,
-        },
-        {
-          status: 200,
-        }
+    if (email && email.length && !emailRegex.test(email)) {
+      throw new CustomError("მეილი", "მეილი არასწორია.").ExntendToErrorName(
+        "ValidationError"
       );
     }
 
-    const check_email = await checkExistingEmail(email);
-    const check_phone = await checkExistingPhone(phone);
-
-    if (check_email) {
-      message = "მეილი უკვე არსებობს.";
-    } else if (check_phone) {
-      message = "ტელეფონის ნომერი უკვე არსებობს.";
-    } else {
-      user.firstname = firstname;
-      user.lastname = lastname;
-      if (email && email.length) {
-        user.email = email
-        user.stepPercent = user.role === 1 ? user.stepPercent + 12.5 : user.stepPercent + 17
-      }
-      if (phone && phone.length) {
-        user.phone = phone
-        user.stepPercent = user.role === 1 ? user.stepPercent + 12.5 : user.stepPercent + 17
-      }
-
-      await user.save();
-      return json(
-        {
-          state: "წარმატება",
-          message,
-        },
-        {
-          status: 200,
-        }
-      );
+    if (phone && phone.length && !phoneRegex.test(phone)) {
+      throw new CustomError(
+        "მობილური",
+        "მობილურის ნომერი არასწორია."
+      ).ExntendToErrorName("ValidationError");
     }
 
-    return json(
-      {
-        state: "წარუმატებელი",
-        message,
-      },
-      {
-        status: 400,
-      }
+    const user = await (user_id.role === 1 ? Xelosani : Damkveti).findById(
+      user_id.userId
     );
+
+    user.firstname = firstname;
+    user.lastname = lastname;
+    if (email && email.length) {
+      user.email = email;
+      user.stepPercent =
+        user.role === 1 ? user.stepPercent + 12.5 : user.stepPercent + 17;
+    }
+    if (phone && phone.length) {
+      user.phone = phone;
+      user.stepPercent =
+        user.role === 1 ? user.stepPercent + 12.5 : user.stepPercent + 17;
+    }
+
+    await user.save();
+    return {
+      status: 200,
+    };
   } catch (error) {
-    console.log(error);
-    return json(
-      {
-        state: "წარუმატებელი",
-        message: "შიდა შეცდომა",
-      },
-      {
-        status: 500,
-      }
-    );
+    if (error.name === "ValidationError") {
+      const errors = new HandleError(error).validation_error();
+      return {
+        errors,
+        status: 400,
+      };
+    }
+    if (error.code === 11000) {
+      const errors = new HandleError({
+        field: "phoneEmailRegister",
+        message: "მომხმარებელი მეილით ან ტელეფონის ნომრით უკვე არსებობს.",
+        name: "ValidationError",
+      }).validation_error();
+      return {
+        errors,
+        status: 400,
+      };
+    }
+    console.log("დაფიქსირდა შეცდომა სერვერზე");
   }
 };
 
 ///////////////////////// DAMKVETI ///////////////////////////////////
 
-export const get_damkveti = async (prof_id) => {
+export const get_damkveti = cache(async (prof_id) => {
   try {
     const event = getRequestEvent();
     const redis_user = await verify_user(event);
@@ -459,14 +449,26 @@ export const get_damkveti = async (prof_id) => {
       throw new Error(401);
     }
 
-    const { createdAt, _doc } = await Damkveti.findById(
+    const { createdAt, _doc, jobs } = await Damkveti.findById(
       redis_user.userId,
       "-_id -__v -updatedAt -notificationDevices -password"
-    );
+    ).populate("jobs", "-mileStones -_id -__v -updatedAt -_creator");
+
     const profile_image = await get_user_profile_image(prof_id);
-    const creationDateDisplayable = getTimeAgo(createdAt)
+    const creationDateDisplayable = getTimeAgo(createdAt);
+
+    const modedJobs = await Promise.all(jobs.map(async (j, i) => {
+      console.log(j)
+      const image = await get_user_job_image(`${j.publicId}-${j.imageLength - 1}-job-post-thumbnail`);
+      const creationDateDisplayable = getTimeAgo(j.createdAt);
+    
+      return {...j._doc, createdAt: creationDateDisplayable, thumbnail: image, profPic: profile_image};
+    }));
+    
     return JSON.stringify({
       ..._doc,
+      jobs: modedJobs,
+      jobCount: jobs.length,
       profile_image,
       creationDateDisplayable,
       status: 200,
@@ -478,7 +480,7 @@ export const get_damkveti = async (prof_id) => {
         "-_id -__v -stepPercent -notificationDevices -updatedAt -password"
       );
       const profile_image = await get_user_profile_image(prof_id);
-      const creationDateDisplayable = getTimeAgo(createdAt)
+      const creationDateDisplayable = getTimeAgo(createdAt);
       return JSON.stringify({
         ..._doc,
         profile_image,
@@ -487,7 +489,7 @@ export const get_damkveti = async (prof_id) => {
       });
     }
   }
-}
+}, "damkveti");
 
 export const setup_done = async () => {
   try {
@@ -499,26 +501,25 @@ export const setup_done = async () => {
     }
 
     if (redis_user.role === 1) {
-    await Xelosani.updateOne(
-      { _id: redis_user.userId },
-      {
-        $set: {
-          setupDone: true,
-        },
-      },
-    )
-  } else {
-    await Damkveti.updateOne(
-      { _id: redis_user.userId },
-      {
-        $set: {
-          setupDone: true,
-        },
-      },
-    )
-  }
-
+      await Xelosani.updateOne(
+        { _id: redis_user.userId },
+        {
+          $set: {
+            setupDone: true,
+          },
+        }
+      );
+    } else {
+      await Damkveti.updateOne(
+        { _id: redis_user.userId },
+        {
+          $set: {
+            setupDone: true,
+          },
+        }
+      );
+    }
   } catch (error) {
-    console.log(error)    
+    console.log(error);
   }
-}
+};

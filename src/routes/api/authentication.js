@@ -167,7 +167,6 @@ export const RegisterUser = async (formData, role) => {
             });
         }
     } catch (error) {
-        console.log(error)
         if (error.code === 11000) {
             const errors = new HandleError({field: "phoneEmailRegister", message: "მომხმარებელი მეილით ან ტელეფონის ნომრით უკვე არსებობს.", name: "ValidationError" }).validation_error()
             return {

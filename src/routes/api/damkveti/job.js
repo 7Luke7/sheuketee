@@ -29,25 +29,36 @@ const add_job_image = async (buffer, identifier, type) => {
   }
 };
 
-export const create_job = async (fd, location, imageLength, mileStone) => {
+export const create_job = async (fd, location, image, mileStone, categories) => {
   try {
     const event = getRequestEvent();
     const user = await verify_user(event);
-
     if (user === 401 || user.role === 1) {
       return 401;
     }
 
+    if (!categories.length) {
+      throw new CustomError(
+        "category",
+        "გთხოვთ აირჩიოთ კატეგორია."
+      ).ExntendToErrorName("ValidationError");
+    }
+    if (!image.length || image.length === 0) {
+      throw new CustomError(
+        "image",
+        "ფოტო სავალდებულოა."
+      ).ExntendToErrorName("ValidationError");
+    }
     if (!fd.get("title").length) {
       throw new CustomError(
         "title",
         "სათაური სავალდებულოა."
       ).ExntendToErrorName("ValidationError");
     }
-    if (fd.get("title").length > 60) {
+    if (fd.get("title").length > 100) {
       throw new CustomError(
         "title",
-        "სათაური უნდა შეიცავდეს მაქსიმუმ 60 ასოს."
+        "სათაური უნდა შეიცავდეს მაქსიმუმ 100 ასოს."
       ).ExntendToErrorName("ValidationError");
     }
 
@@ -57,10 +68,10 @@ export const create_job = async (fd, location, imageLength, mileStone) => {
         "აღწერა სავალდებულოა."
       ).ExntendToErrorName("ValidationError");
     }
-    if (fd.get("description").length > 600) {
+    if (fd.get("description").length > 1000) {
       throw new CustomError(
         "description",
-        "აღწერა უნდა შეიცავდეს მაქსიმუმ 600 ასო."
+        "აღწერა უნდა შეიცავდეს მაქსიმუმ 1000 ასო."
       ).ExntendToErrorName("ValidationError");
     }
     if (!mileStone.length && !fd.get("price")) {
@@ -78,10 +89,10 @@ export const create_job = async (fd, location, imageLength, mileStone) => {
                 ).ExntendToErrorName("ValidationError");
               }
       
-              if (mileStone[i].title.length > 60) {
+              if (mileStone[i].title.length > 100) {
                 throw new CustomError(
                   `mileStones.${i}.title`,
-                  `${i + 1} ეტაპის სათაური უნდა შეიცავდეს მაქსიმუმ 60 ასოს.`
+                  `${i + 1} ეტაპის სათაური უნდა შეიცავდეს მაქსიმუმ 100 ასოს.`
                 ).ExntendToErrorName("ValidationError");
               }
       
@@ -92,10 +103,10 @@ export const create_job = async (fd, location, imageLength, mileStone) => {
                 ).ExntendToErrorName("ValidationError");
               }
       
-              if (mileStone[i].description.length > 600) {
+              if (mileStone[i].description.length > 1000) {
                 throw new CustomError(
                   `mileStones.${i}.description`,
-                  `${i + 1} ეტაპის აღწერა უნდა შეიცავდეს მაქსიმუმ 600 ასოს.`
+                  `${i + 1} ეტაპის აღწერა უნდა შეიცავდეს მაქსიმუმ 1000 ასოს.`
                 ).ExntendToErrorName("ValidationError");
               }
       
@@ -105,6 +116,7 @@ export const create_job = async (fd, location, imageLength, mileStone) => {
                   `${i + 1} ეტაპის ფასი სავალდებულოა.`
                 ).ExntendToErrorName("ValidationError");
               }
+              
             const random_id = crypto.randomUUID();
             mileStone[i]["milestoneDisplayId"] = random_id;
         }
@@ -120,6 +132,8 @@ export const create_job = async (fd, location, imageLength, mileStone) => {
       mileStones: mileStone || null,
       price: fd.get("price"),
       location: location,
+      imageLength: image.length,
+      categories
     });
 
     await Damkveti.findByIdAndUpdate(user.userId, {
@@ -128,7 +142,12 @@ export const create_job = async (fd, location, imageLength, mileStone) => {
 
     let count = 0;
 
-    for (let i = 0; i < imageLength; i++) {
+    for (let i in image) {
+      fd.append(`image${i}`, image[i]);
+    }
+
+    for (let i = 0; i < image.length; i++) {
+      console.log(fd.get(`image${i}`), i)
       const image = fd.get(`image${i}`);
       if (image.size > MAX_SINGLE_FILE_SIZE) {
         throw Error(`${file.name}, ფაილის ზომა აჭარბებს 5მბ ლიმიტს.`);
@@ -139,18 +158,18 @@ export const create_job = async (fd, location, imageLength, mileStone) => {
       }
       const bytes = await image.arrayBuffer(image);
       const buffer = Buffer.from(bytes);
-      if (i === 0) {
+      if (i === image.length - 1) {
         const compressed_buffer = await compress_image(buffer, 80, 200, 200); // mobile has to be added
         await add_job_image(
           compressed_buffer,
-          `${job_post.publicId}${i}`,
+          `${job_post.publicId}-${i}`,
           "job-post-thumbnail"
         );
       } else {
         const compressed_buffer = await compress_image(buffer, 80, 600, 400); // mobile has to be added
         await add_job_image(
           compressed_buffer,
-          `${job_post.publicId}${i}`,
+          `${job_post.publicId}-${i}`,
           "job-post-gallery"
         );
       }
