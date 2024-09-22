@@ -134,100 +134,6 @@ export const get_user_profile_image = async (id) => {
   }
 };
 
-export const preview_image = async (file, prof_id) => {
-  try {
-    const event = getRequestEvent();
-    const redis_user = await verify_user(event);
-
-    if (redis_user.profId !== prof_id) {
-      throw new Error(401);
-    }
-
-    const bytes = await file.arrayBuffer(file);
-    const buffer = Buffer.from(bytes);
-    const compressed_buffer = await compress_image(buffer, 80, 140, 140);
-    const base64 = Buffer.from(compressed_buffer, "binary").toString("base64");
-    return `data:image/png;base64,${base64}`;
-  } catch (error) {
-    console.log("OUTER ERROR", error);
-  }
-};
-
-export const upload_profile_picture = async (file, prof_id) => {
-  let redis_user;
-  try {
-    const event = getRequestEvent();
-    redis_user = await verify_user(event);
-
-    if (redis_user.profId !== prof_id) {
-      throw new Error(401);
-    }
-
-    const head_params = {
-      Bucket: process.env.S3_BUCKET_NAME,
-      Region: "eu-central-1",
-      Key: `${redis_user.profId}-profpic`,
-    };
-
-    const headCommand = new HeadObjectCommand(head_params);
-    await s3.send(headCommand);
-
-    const bytes = await file.arrayBuffer(file);
-    const buffer = Buffer.from(bytes);
-    const compressed_buffer = await compress_image(buffer, 80, 140, 140);
-    const params = {
-      Bucket: process.env.S3_BUCKET_NAME,
-      Key: `${redis_user.profId}-profpic`,
-      Region: "eu-central-1",
-      Body: compressed_buffer,
-      ACL: "private",
-      ContentType: "webp",
-    };
-    const upload_image = new PutObjectCommand(params);
-    await s3.send(upload_image);
-    return true;
-  } catch (error) {
-    if (error.name === "NotFound") {
-      const bytes = await file.arrayBuffer(file);
-      const buffer = Buffer.from(bytes);
-      const compressed_buffer = await compress_image(buffer, 80, 140, 140);
-      if (redis_user.role === 1) {
-        await Xelosani.updateOne(
-          { _id: redis_user.userId },
-          {
-            $inc: {
-              stepPercent: 12.5,
-            },
-          }
-        );
-      } else {
-        await Damkveti.updateOne(
-          { _id: redis_user.userId },
-          {
-            $inc: {
-              stepPercent: 17,
-            },
-          }
-        );
-      }
-
-      const params = {
-        Bucket: process.env.S3_BUCKET_NAME,
-        Key: `${redis_user.profId}-profpic`,
-        Region: "eu-central-1",
-        Body: compressed_buffer,
-        ACL: "private",
-        ContentType: "webp",
-      };
-      const upload_image = new PutObjectCommand(params);
-      await s3.send(upload_image);
-
-      return true;
-    }
-    console.log(error);
-  }
-};
-
 export const logout_user = async () => {
   try {
     const event = getRequestEvent();
@@ -276,7 +182,6 @@ export const toggle_notification = async (target) => {
         ],
         { new: true, fields: { notificationDevices: 1 } }
       );
-      console.log(updated_xelosani);
 
       if (updated_xelosani.notificationDevices.includes(target)) {
         return 1;
@@ -458,8 +363,7 @@ export const get_damkveti = cache(async (prof_id) => {
     const creationDateDisplayable = getTimeAgo(createdAt);
 
     const modedJobs = await Promise.all(jobs.map(async (j, i) => {
-      console.log(j)
-      const image = await get_user_job_image(`${j.publicId}-${j.imageLength - 1}-job-post-thumbnail`);
+      const image = await get_user_job_image(`${j.publicId}-job-post-thumbnail`);
       const creationDateDisplayable = getTimeAgo(j.createdAt);
     
       return {...j._doc, createdAt: creationDateDisplayable, thumbnail: image, profPic: profile_image};

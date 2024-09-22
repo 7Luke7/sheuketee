@@ -8,7 +8,7 @@ import pen from "../../../../public/svg-images/pen.svg";
 import cake from "../../../../public/svg-images/cake.svg";
 import spinnerSVG from "../../../../public/svg-images/spinner.svg";
 import { A } from "@solidjs/router";
-import { preview_image, upload_profile_picture } from "../../api/user";
+import { makeAbortable } from "@solid-primitives/resource";
 
 export const ProfileLeft = (props) => {
   const [imageLoading, setImageLoading] = createSignal(false);
@@ -16,20 +16,29 @@ export const ProfileLeft = (props) => {
     props.user().profile_image || defaultProfileSVG
   );
   const [file, setFile] = createSignal();
+  const [signal,abort,filterErrors] = makeAbortable({timeout: 0, noAutoAbort: true});
+
   let toastTimeout;
   let exitTimeout;
-
+  
   const handleProfileImageChange = async () => {
-    if (imageLoading()) {
-    }
+    setImageLoading(true)
+    const formData = new FormData();
+    formData.append('profile_image', file());
 
-    setImageLoading(true);
     try {
-      const response = await upload_profile_picture(
-        file(),
-        props.user().profId
-      );
-      if (response) {
+      const response = await fetch(`/api/upload_profile_picture/${props.user().profId}`, {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+        signal: signal()
+      });
+
+      if (response === "AbortError") {
+        throw new Error('AbortError');
+      }
+      const data = await response.text()
+      if (data) {
         batch(() => {
           setFile(null);
           setImageLoading(false);
@@ -51,24 +60,47 @@ export const ProfileLeft = (props) => {
         });
       }
     } catch (error) {
-      alert(error.message || "Failed to process image");
-      setImageLoading(false);
+      if (error.name === "AbortError") {
+        filterErrors(error);
+        setImageLoading(false)
+      }
+      console.log(error)
     }
   };
+
   
   const handleFilePreview = async (file) => {
     setImageLoading(true);
+    const formData = new FormData();
+    formData.append('profile_image', file);
+  
     try {
-      const response = await preview_image(file, props.user().profId);
-      if (response) {
+      const response = await fetch(`/api/preview_image/${props.user().profId}`, {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+        signal: signal()
+      });      
+
+      if (response === "AbortError") {
+        throw new Error('AbortError');
+      }
+  
+      const data = await response.text()
+  
+      if (data) {
         batch(() => {
           setFile(file);
           setImageLoading(false);
-          setImageUrl(response);
+          setImageUrl(data);
         });
       }
     } catch (error) {
-      console.log(error);
+      if (error.name === "AbortError") {
+        filterErrors(error);
+        setImageLoading(false)
+      }
+      console.log(error)
     }
   };
 
@@ -133,7 +165,7 @@ export const ProfileLeft = (props) => {
             </Show>
             <Show when={imageLoading()}>
               <button
-                onClick={handleProfileImageChange}
+                onClick={() => abort()}
                 class="mb-2 bg-gray-600 hover:bg-gray-500 w-[150px] text-white py-1 px-4  rounded-[16px] text-sm font-bold transition-all duration-300"
               >
                 გაუქმება

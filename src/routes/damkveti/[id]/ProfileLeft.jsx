@@ -13,13 +13,11 @@ import envelope from "../../../../public/svg-images/envelope.svg";
 import defaultProfileSVG from "../../../../public/default_profile.png";
 import CameraSVG from "../../../../public/svg-images/camera.svg";
 import pen from "../../../../public/svg-images/pen.svg";
-import closeIcon from "../../../../public/svg-images/svgexport-12.svg";
-import airPlane from "../../../../public/svg-images/airplane.svg";
 import cake from "../../../../public/svg-images/cake.svg";
 import spinnerSVG from "../../../../public/svg-images/spinner.svg";
 import jobApplication from "../../../../public/svg-images/job_application.svg";
 import { A } from "@solidjs/router";
-import { preview_image, upload_profile_picture } from "../../api/user";
+import { makeAbortable } from "@solid-primitives/resource";
 
 export const ProfileLeft = (props) => {
   const [imageLoading, setImageLoading] = createSignal(false);
@@ -27,21 +25,29 @@ export const ProfileLeft = (props) => {
     props.user().profile_image || defaultProfileSVG
   );
   const [file, setFile] = createSignal()
+  const [signal,abort,filterErrors] = makeAbortable({timeout: 0, noAutoAbort: true});
 
   let toastTimeout;
   let exitTimeout;
-
-  const handleProfileImageChange = async () => {
-    if (imageLoading()) {
-    }
   
-    setImageLoading(true);
+  const handleProfileImageChange = async () => {
+    setImageLoading(true)
+    const formData = new FormData();
+    formData.append('profile_image', file());
+
     try {
-      const response = await upload_profile_picture(
-        file(),
-        props.user().profId
-      );
-      if (response) {
+      const response = await fetch(`/api/upload_profile_picture/${props.user().profId}`, {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+        signal: signal()
+      });
+
+      if (response === "AbortError") {
+        throw new Error('AbortError');
+      }
+      const data = await response.text()
+      if (data) {
         batch(() => {
           setFile(null);
           setImageLoading(false);
@@ -63,26 +69,49 @@ export const ProfileLeft = (props) => {
         });
       }
     } catch (error) {
-      alert(error.message || "Failed to process image");
-      setImageLoading(false);
+      if (error.name === "AbortError") {
+        filterErrors(error);
+        setImageLoading(false)
+      }
+      console.log(error)
     }
   };
 
+  
   const handleFilePreview = async (file) => {
-    setImageLoading(true)
+    setImageLoading(true);
+    const formData = new FormData();
+    formData.append('profile_image', file);
+  
     try {
-      const response = await preview_image(file, props.user().profId)
-      if (response) {
+      const response = await fetch(`/api/preview_image/${props.user().profId}`, {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+        signal: signal()
+      });      
+
+      if (response === "AbortError") {
+        throw new Error('AbortError');
+      }
+  
+      const data = await response.text()
+  
+      if (data) {
         batch(() => {
-          setFile(file)
-          setImageLoading(false)
-          setImageUrl(response)
-        })
+          setFile(file);
+          setImageLoading(false);
+          setImageUrl(data);
+        });
       }
     } catch (error) {
+      if (error.name === "AbortError") {
+        filterErrors(error);
+        setImageLoading(false)
+      }
       console.log(error)
     }
-  }
+  };
 
   return (
     <div class="flex sticky top-[50px] gap-y-3 flex-col">
@@ -109,7 +138,7 @@ export const ProfileLeft = (props) => {
                         id="prof_pic"
                         src={imageUrl()}
                         alt="Profile"
-                        class="border-2 rounded-[50%] border-solid border-[#14a800] mb-4"
+                        class="border-2 rounded-[50%] w-[140px] h-[140px] border-solid border-[#14a800] mb-4"
                       />
                       <img
                         src={CameraSVG}
@@ -122,7 +151,7 @@ export const ProfileLeft = (props) => {
                 </div>
               </Match>
               <Match when={imageLoading()}>
-                <div class="flex flex-col justify-center mb-4 items-center w-[130px] h-[130px] rounded-[50%] bg-[#E5E7EB]">
+                <div class="flex flex-col justify-center mb-4 items-center w-[140px] h-[140px] rounded-[50%] bg-[#E5E7EB]">
                   <img class="animate-spin" src={spinnerSVG} width={40} height={40} />
                   <p class="text-dark-green font-[thin-font] text-xs font-bold">
                     იტვირთება...
@@ -140,7 +169,7 @@ export const ProfileLeft = (props) => {
             </Show>
             <Show when={imageLoading()}>
             <button
-                onClick={handleProfileImageChange}
+                onClick={() => abort()}
                 class="mb-2 bg-gray-600 hover:bg-gray-500 w-[150px] text-white py-1 px-4  rounded-[16px] text-sm font-bold transition-all duration-300"
               >
                 გაუქმება 
@@ -152,7 +181,7 @@ export const ProfileLeft = (props) => {
               <img
                 id="prof_pic"
                 class="w-[130px] border-2 border-solid border-[#108a00] rounded-[50%] h-[130px]"
-                src={props.user().profile_image || defaultProfileSVG}
+                src={props.user().profile_image}
               ></img>
               <span class="bottom-1 right-4 absolute w-5 h-5 bg-[#108a00] border-2 border-white rounded-full"></span>
             </div>

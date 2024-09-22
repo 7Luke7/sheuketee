@@ -353,7 +353,7 @@ const JobPostSchema = new mongoose.Schema(
       type: Number,
       min: 1,
       required: true,
-      default: 1,
+      default: 1,                                                                                                                                                                                             
     },
     location: {
       type: LocationSchema,
@@ -367,14 +367,10 @@ const JobPostSchema = new mongoose.Schema(
     bids: {
       type: [biddersSchema],
       default: undefined
-    } ,
-    imageLength: {
-      type: Number,
-      default: undefined
-    }
+    } ,                                              
   },
   { timestamps: true }
-);
+);             
 
 export const JobPost =
   mongoose.models.JobPost || mongoose.model("JobPost", JobPostSchema);

@@ -1,5 +1,12 @@
 import { Header } from "~/Components/Header";
-import { createSignal, Switch, Match, batch, onCleanup, createEffect } from "solid-js";
+import {
+  createSignal,
+  Switch,
+  Match,
+  batch,
+  onCleanup,
+  createEffect,
+} from "solid-js";
 import { createAsync } from "@solidjs/router";
 import { create_job, get_location } from "../../api/damkveti/job";
 import { NotAuthorized } from "~/Components/NotAuthorized";
@@ -36,6 +43,7 @@ const CreateJob = () => {
   const [mainChecked, setMainChecked] = createSignal([]);
   const [showCategoryModal, setShowCategoryModal] = createSignal(false);
   const [currentStep, setCurrentStep] = createSignal("thumbnail");
+  const [thumbNail, setThumbnail] = createSignal();
 
   const MAX_SINGLE_FILE_SIZE = 5 * 1024 * 1024;
   const MAX_TOTAL_SIZE = 25 * 1024 * 1024;
@@ -81,9 +89,15 @@ const CreateJob = () => {
     }
 
     if (currentStep() === "thumbnail") {
-      setCurrentStep("gallery")
+      console.log(files, files[0]);
+      if (!image().length) {
+        setThumbnail(files[0]);
+        return setCurrentStep("gallery")
+      } else {
+        setThumbnail(files[0]);
+      }
     }
-    
+
     setImage([...image(), ...files]);
   };
   let toastTimeout;
@@ -192,14 +206,18 @@ const CreateJob = () => {
           }
         });
       }
-      if (!image().length) {
-        return setToastError("ფოტო სავალდებულოა.");
+      if (!thumbNail()) {
+        return setToastError("თამბნეილი სავალდებულოა.");
       }
-      
+      if (!image().length) {
+        return setToastError("გალერეა სავალდებულოა.");
+      }
+
       const response = await create_job(
         fd,
         markedLocation() || location(),
         image(),
+        thumbNail(),
         mileStone(),
         [...mainChecked(), ...parentChecked(), ...childChecked()]
       );
@@ -224,7 +242,7 @@ const CreateJob = () => {
           setMainChecked([]);
           setParentChecked([]);
           setChildChecked([]);
-          setCurrentStep("thumbnail")
+          setCurrentStep("thumbnail");
         });
       };
       await func();
@@ -245,6 +263,24 @@ const CreateJob = () => {
       alert(error);
     }
   };
+
+  let toastErrorTimeout
+  let toastExitTimeout
+  createEffect(() => {
+    if (!toastError()) return
+    toastErrorTimeout = setTimeout(() => {
+      setIsExiting(true);
+      toastExitTimeout = setTimeout(() => {
+        setIsExiting(false);
+        setToastError(null)
+      }, 500);
+    }, 5000);
+
+    onCleanup(() => {
+      if (toastErrorTimeout) clearTimeout(toastErrorTimeout);
+      if (toastExitTimeout) clearTimeout(toastExitTimeout);
+    });
+  })
 
   const toggleParentAccordion = (index) => {
     if (activeParentIndex() === index) {
@@ -648,16 +684,29 @@ const CreateJob = () => {
                       >
                         <img src={thumnail}></img>
                       </div>
-                      <div class={`${currentStep() === "gallery" ? "bg-dark-green-hover" : "bg-gray-200"} mt-2 w-px h-full md:mt-0 md:ms-2 md:w-full md:h-px md:flex-1 group-last:hidden`}></div>
+                      <div
+                        class={`${
+                          currentStep() === "thumbnail"
+                            ? "bg-dark-green-hover"
+                            : "bg-gray-200"
+                        } mt-2 w-px h-full md:mt-0 md:ms-2 md:w-full md:h-px md:flex-1 group-last:hidden`}
+                      ></div>
                     </div>
-                    <div class="grow md:grow-0 md:mt-3 pb-5">
+                    <button
+                      onClick={() => setCurrentStep("thumbnail")}
+                      type="button"
+                      class={`${
+                        currentStep() === "thumbnail" &&
+                        "bg-gray-100 border border-dark-green-hover"
+                      } grow md:grow-0 pt-3 mt-1 w-full rounded-[16px] p-2 pb-5 text-left`}
+                    >
                       <span class="block text-sm font-bold font-[font-medium] text-gray-800">
                         თამბნეილი
                       </span>
                       <p class="text-sm text-gray-500 font-bold font-[thin-font]">
                         სურათი გამოჩნდება პირველი.
                       </p>
-                    </div>
+                    </button>
                   </li>
 
                   <li class="md:shrink md:basis-0 flex-1 group flex gap-x-2 md:block">
@@ -670,18 +719,32 @@ const CreateJob = () => {
                       >
                         <img src={gallery}></img>
                       </div>
+                      <div
+                        class={`${
+                          currentStep() === "gallery"
+                            ? "bg-dark-green-hover"
+                            : "bg-gray-200"
+                        } mt-2 w-px h-full md:mt-0 md:ms-2 md:w-full md:h-px md:flex-1`}
+                      ></div>
                     </div>
-                    <div class="grow md:grow-0 md:mt-3 pb-5">
+                    <button
+                      onClick={() => setCurrentStep("gallery")}
+                      type="button"
+                      class={`${
+                        currentStep() === "gallery" &&
+                        "bg-gray-100 border border-dark-green-hover"
+                      } grow md:grow-0 pt-3 w-full mt-1 rounded-[16px] p-2 pb-5 text-left`}
+                    >
                       <span class="block text-sm font-bold font-[font-medium] text-gray-800">
                         გალერეა
                       </span>
                       <p class="text-sm font-[thin-font] font-bold text-gray-500">
                         სხვადასხვა ფოტოები.
                       </p>
-                    </div>
+                    </button>
                   </li>
                 </ul>
-                <div class="flex items-center justify-center w-full">
+                <div class="flex mt-3 mb-2 items-center justify-center w-full">
                   <label
                     for="dropzone-file"
                     class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50"
@@ -701,40 +764,73 @@ const CreateJob = () => {
                       onChange={(e) => handleFileChange(e)}
                       name="files[]"
                       multiple={currentStep() === "thumbnail" ? false : true}
-                      accept="image/jpeg, image/png, image/gif, image/webp, image/avif, image/svg+xml"
+                      accept="image/jpeg, image/png, image/webp, image/avif"
                       id="dropzone-file"
                       type="file"
                       class="hidden"
                     />
                   </label>
                 </div>
-                <Show when={image()}>
-                  <div class="flex flex-col gap-y-5 mt-4 w-full">
+                <Show when={thumbNail()}>
+                    <p class="text-md font-[normal-font] font-bold">
+                      თამბნეილი
+                    </p>
+                    <div class="bg-[#F5F7FB] h-[70px] rounded-[16px] w-full py-2 px-8">
+                      <div class="flex items-center justify-between">
+                        <span class="truncate pr-3 text-base font-[normal-font] text-[#07074D]">
+                          {thumbNail().name}
+                        </span>
+                        <button
+                          onClick={() => {
+                            setThumbnail(null);
+                          }}
+                          class="text-[#07074D]"
+                        >
+                          <img src={closeIcon} width={18} height={18}></img>
+                        </button>
+                      </div>
+                      <div class="flex flex-col relative h-[6px] w-full rounded-lg bg-[#E2E5EF]">
+                        <div class="w-full z-10 absolute h-full flex-1 rounded-lg bg-dark-green"></div>
+                        <span class="mt-2">
+                          {(thumbNail().size / (1024 * 1024)).toFixed(2)}MB
+                        </span>
+                      </div>
+                    </div>
+                </Show>
+                <Show when={image().length}>
+                  <div class="flex flex-col gap-y-2 mt-4 w-full">
+                    <p class="text-md font-[normal-font] font-bold">გალერეა</p>
                     <For each={image()}>
                       {(l, index) => (
-                        <div class="bg-[#F5F7FB] h-[70px] rounded-[16px] w-full py-2 px-8">
-                          <div class="flex items-center justify-between">
-                            <span class="truncate pr-3 text-base font-[normal-font] text-[#07074D]">
-                              {l.name}
-                            </span>
-                            <button
-                              onClick={() => {
-                                setImage(
-                                  image().filter((_, i) => i !== index())
-                                );
-                              }}
-                              class="text-[#07074D]"
-                            >
-                              <img src={closeIcon} width={18} height={18}></img>
-                            </button>
+                        <>
+                          <div class="bg-[#F5F7FB] h-[70px] rounded-[16px] w-full py-2 px-8">
+                            <div class="flex items-center justify-between">
+                              <span class="truncate pr-3 text-base font-[normal-font] text-[#07074D]">
+                                {l.name}
+                              </span>
+                              <button
+                                onClick={() => {
+                                  setImage(
+                                    image().filter((_, i) => i !== index())
+                                  );
+                                }}
+                                class="text-[#07074D]"
+                              >
+                                <img
+                                  src={closeIcon}
+                                  width={18}
+                                  height={18}
+                                ></img>
+                              </button>
+                            </div>
+                            <div class="flex flex-col relative h-[6px] w-full rounded-lg bg-[#E2E5EF]">
+                              <div class="w-full z-10 absolute h-full flex-1 rounded-lg bg-dark-green"></div>
+                              <span class="mt-2">
+                                {(l.size / (1024 * 1024)).toFixed(2)}MB
+                              </span>
+                            </div>
                           </div>
-                          <div class="flex flex-col relative h-[6px] w-full rounded-lg bg-[#E2E5EF]">
-                            <div class="w-full z-10 absolute h-full flex-1 rounded-lg bg-dark-green"></div>
-                            <span class="mt-2">
-                              {(l.size / (1024 * 1024)).toFixed(2)}MB
-                            </span>
-                          </div>
-                        </div>
+                        </>
                       )}
                     </For>
                   </div>

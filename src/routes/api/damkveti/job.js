@@ -29,7 +29,7 @@ const add_job_image = async (buffer, identifier, type) => {
   }
 };
 
-export const create_job = async (fd, location, image, mileStone, categories) => {
+export const create_job = async (fd, location, image, thumbNail, mileStone, categories) => {
   try {
     const event = getRequestEvent();
     const user = await verify_user(event);
@@ -43,10 +43,16 @@ export const create_job = async (fd, location, image, mileStone, categories) => 
         "გთხოვთ აირჩიოთ კატეგორია."
       ).ExntendToErrorName("ValidationError");
     }
+    if (!thumbNail) {
+      throw new CustomError(
+        "image",
+        "თამბნეილი სავალდებულოა."
+      ).ExntendToErrorName("ValidationError");
+    }
     if (!image.length || image.length === 0) {
       throw new CustomError(
         "image",
-        "ფოტო სავალდებულოა."
+        "გალერეა სავალდებულოა."
       ).ExntendToErrorName("ValidationError");
     }
     if (!fd.get("title").length) {
@@ -132,7 +138,6 @@ export const create_job = async (fd, location, image, mileStone, categories) => 
       mileStones: mileStone || null,
       price: fd.get("price"),
       location: location,
-      imageLength: image.length,
       categories
     });
 
@@ -140,39 +145,36 @@ export const create_job = async (fd, location, image, mileStone, categories) => 
       $addToSet: { jobs: job_post._id },
     });
 
+    console.log(thumbNail)
+    const thumbNail_bytes = await thumbNail.arrayBuffer(thumbNail);
+    const thumbNail_buffer = Buffer.from(thumbNail_bytes);
+    const thumb_compressed = await compress_image(thumbNail_buffer, 80, 200, 200);
+    await add_job_image(
+      thumb_compressed,
+      `${job_post.publicId}`,
+      "job-post-thumbnail"
+    );
+
     let count = 0;
 
-    for (let i in image) {
-      fd.append(`image${i}`, image[i]);
-    }
-
     for (let i = 0; i < image.length; i++) {
-      console.log(fd.get(`image${i}`), i)
-      const image = fd.get(`image${i}`);
-      if (image.size > MAX_SINGLE_FILE_SIZE) {
-        throw Error(`${file.name}, ფაილის ზომა აჭარბებს 5მბ ლიმიტს.`);
+      console.log(image[i], i)
+      const current_image = image[i]
+      if (current_image.size > MAX_SINGLE_FILE_SIZE) {
+        throw Error(`${current_image.name}, ფაილის ზომა აჭარბებს 5მბ ლიმიტს.`);
       }
-      count += image.size;
+      count += current_image.size;
       if (count > MAX_TOTAL_SIZE) {
         throw Error("ფაილების ჯამური ზომა აჭარბებს 25მბ ერთობლივ ლიმიტს.");
       }
-      const bytes = await image.arrayBuffer(image);
+      const bytes = await current_image.arrayBuffer(current_image);
       const buffer = Buffer.from(bytes);
-      if (i === image.length - 1) {
-        const compressed_buffer = await compress_image(buffer, 80, 200, 200); // mobile has to be added
-        await add_job_image(
-          compressed_buffer,
-          `${job_post.publicId}-${i}`,
-          "job-post-thumbnail"
-        );
-      } else {
-        const compressed_buffer = await compress_image(buffer, 80, 600, 400); // mobile has to be added
-        await add_job_image(
-          compressed_buffer,
-          `${job_post.publicId}-${i}`,
-          "job-post-gallery"
-        );
-      }
+      const compressed_buffer = await compress_image(buffer, 80, 600, 400); // mobile has to be added
+      await add_job_image(
+        compressed_buffer,
+        `${job_post.publicId}-${i}`,
+        "job-post-gallery"
+      );
     }
 
     return {

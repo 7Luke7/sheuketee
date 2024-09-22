@@ -68,16 +68,14 @@ const Damkveti = (props) => {
         src="https://unpkg.com/embla-carousel-autoplay/embla-carousel-autoplay.umd.js"
       ></script>
 
-      <div class={`${modal() && "pointer-events-none blur-[0.8px]"}`}>
         <Header />
-      </div>
       <div class="relative">
         <div class="w-[90%] mx-auto relative mt-8">
           <Show when={user()}>
             <Show when={modal()}>
               <div
                 id="modal"
-                class="bg-white shadow-2xl z-[50] top-1/2 transform -translate-y-1/2 -translate-x-1/2 left-1/2  border fixed p-4"
+                class="bg-white shadow-2xl z-40 top-1/2 transform -translate-y-1/2 -translate-x-1/2 left-1/2  border fixed p-4"
               >
                 <Switch>
                   <Match when={modal() === "ლოკაცია"}>
