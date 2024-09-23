@@ -1,6 +1,6 @@
-import searchIcon from "../../public/svg-images/svgexport-5.svg"
-import clear from "../../public/svg-images/svgexport-12.svg"
-import arrowDown from "../../public/svg-images/svgexport-8.svg"
+import searchIcon from "../svg-images/svgexport-5.svg"
+import clear from "../svg-images/svgexport-12.svg"
+import arrowDown from "../svg-images/svgexport-8.svg"
 import { useNavigate } from "@solidjs/router"
 
 export const Search = (props) => {

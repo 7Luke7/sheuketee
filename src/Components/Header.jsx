@@ -9,16 +9,16 @@ import {
   createSignal,
   onCleanup,
 } from "solid-js";
-import peopleIcon from "../../public/svg-images/svgexport-9.svg";
-import jobsIcon from "../../public/svg-images/svgexport-11.svg";
-import dropdownSVG from "../../public/svg-images/svgexport-8.svg";
-import envelopeSVG from "../../public/svg-images/envelope.svg";
-import person from "../../public/svg-images/person.svg";
-import gear from "../../public/svg-images/gear.svg";
-import bellSVG from "../../public/svg-images/bell.svg";
+import peopleIcon from "../svg-images/svgexport-9.svg";
+import jobsIcon from "../svg-images/svgexport-11.svg";
+import dropdownSVG from "../svg-images/svgexport-8.svg";
+import envelopeSVG from "../svg-images/envelope.svg";
+import person from "../svg-images/person.svg";
+import gear from "../svg-images/gear.svg";
+import bellSVG from "../svg-images/bell.svg";
 import { WorkDropdown } from "./header-comps/WorkDropdown";
-import defaultProfileSVG from "../../public/default_profile.png";
-import logoutSVG from "../../public/svg-images/box-arrow-right.svg";
+import defaultProfileSVG from "../default_profile.png";
+import logoutSVG from "../svg-images/box-arrow-right.svg";
 import { logout_user } from "~/routes/api/user";
 import { header } from "~/routes/api/header";
 

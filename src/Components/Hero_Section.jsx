@@ -1,5 +1,5 @@
 import { A } from "@solidjs/router"
-import HeroSVG from "../../public/svg-images/hero_svg.svg"
+import HeroSVG from "../svg-images/hero_svg.svg"
 import { PeopleWorking } from "./PeopleWorking"
 
 export const Hero = () => {

@@ -1,7 +1,7 @@
 import { Match, Switch, createEffect, batch, createSignal } from "solid-js";
-import ChevronRightBlackSVG from "../../../../../public/svg-images/ChevronRightBlack.svg";
-import ChevronLeftBlackSVG from "../../../../../public/svg-images/ChevronLeftBlack.svg";
-import dropdownSVG from "../../../../../public/svg-images/svgexport-8.svg"
+import ChevronRightBlackSVG from "../../../../svg-images/ChevronRightBlack.svg";
+import ChevronLeftBlackSVG from "../../../../svg-images/ChevronLeftBlack.svg";
+import dropdownSVG from "../../../../svg-images/svgexport-8.svg"
 import { check_user_age, handle_date_select } from "~/routes/api/damkveti/setup";
 import { A, createAsync, useNavigate } from "@solidjs/router";
 

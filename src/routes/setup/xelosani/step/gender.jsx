@@ -1,5 +1,5 @@
-import WomanSVG from "../../../../../public/svg-images/woman.svg"
-import ManSVG from "../../../../../public/svg-images/man.svg"
+import WomanSVG from "../../../../svg-images/woman.svg"
+import ManSVG from "../../../../svg-images/man.svg"
 import { Match, Switch, createSignal } from "solid-js";
 import { A, createAsync, useNavigate } from "@solidjs/router"
 import { check_user_gender, handle_user_gender } from "~/routes/api/xelosani/setup/setup";

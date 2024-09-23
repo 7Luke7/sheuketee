@@ -1,4 +1,4 @@
-import { createSignal, onMount, Show, Switch, Match, batch, onCleanup } from "solid-js";
+import { createSignal, onMount, Show, Switch, Match, batch } from "solid-js";
 import "ol/ol.css";
 import OSM from "ol/source/OSM";
 import TileLayer from "ol/layer/Tile";
@@ -10,10 +10,10 @@ import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
 import { Icon, Style, Circle as CircleStyle, Fill, Stroke } from "ol/style";
 import Modify from "ol/interaction/Modify";
-import SearchIcon from "../../../../public/svg-images/svgexport-5.svg";
-import closeIcon from "../../../../public/svg-images/svgexport-12.svg";
+import SearchIcon from "../../../svg-images/svgexport-5.svg";
+import closeIcon from "../../../svg-images/svgexport-12.svg";
 import { modify_user_location } from "~/routes/api/xelosani/modify/location";
-import redLocationIcon from "../../../../public/svg-images/redlocation.svg";
+import redLocationIcon from "../../../svg-images/redlocation.svg";
 
 export const ModifyLocaitonModal = (props) => {
   const [message, setMessage] = createSignal("");
@@ -242,8 +242,6 @@ export const ModifyLocaitonModal = (props) => {
     setMarkedLocation(location);
   };
 
-  let toastTimeout
-  let exitTimeout
   const handleLocationSubmit = async () => {
     try {
       const response = await modify_user_location(markedLocation());
@@ -254,17 +252,6 @@ export const ModifyLocaitonModal = (props) => {
           type: true,
         });
         props.setModal(null);
-        toastTimeout = setTimeout(() => {
-          props.setIsExiting(true);
-          exitTimeout = setTimeout(() => {
-            props.setIsExiting(false);
-            props.setToast(null);
-          }, 500);
-        }, 5000);
-      });
-      onCleanup(() => {
-        if (toastTimeout) clearTimeout(toastTimeout);
-        if (exitTimeout) clearTimeout(exitTimeout);
       });
     } catch (error) {
       console.log(error.message);

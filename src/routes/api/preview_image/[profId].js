@@ -1,8 +1,10 @@
 import { verify_user } from "../session_management";
 import { compress_image } from "../compress_images";
 
+const MAX_SINGLE_FILE_SIZE = 5 * 1024 * 1024;
+
 export async function POST({request, params}) {
-    try {
+  try {
       const redis_user = await verify_user({request});
 
       if (redis_user.profId !== params.profId) {
@@ -10,6 +12,10 @@ export async function POST({request, params}) {
       }
       const formData = await request.formData();
       const file = formData.get("profile_image")
+
+      if (file.size > MAX_SINGLE_FILE_SIZE) {
+        throw new Error(`${file.name}, ფაილის ზომა აჭარბებს 5მბ ლიმიტს.`)
+      }
   
       const bytes = await file.arrayBuffer(file);
       const buffer = Buffer.from(bytes);

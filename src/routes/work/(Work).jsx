@@ -14,9 +14,9 @@ import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { Icon, Style } from 'ol/style';
 import Geolocation from 'ol/Geolocation';
-import SearchIcon from "../../../public/svg-images/svgexport-5.svg";
-import CloseIcon from "../../../public/svg-images/svgexport-12.svg";
-import JobLocationIcon from "../../../public/svg-images/job.svg"; // Adjust path as needed
+import SearchIcon from "../../svg-images/svgexport-5.svg";
+import CloseIcon from "../../svg-images/svgexport-12.svg";
+import JobLocationIcon from "../../svg-images/job.svg"; // Adjust path as needed
 import { createAsync } from "@solidjs/router";
 import { get_jobs } from "../api/jobs";
 

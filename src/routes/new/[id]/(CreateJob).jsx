@@ -13,15 +13,15 @@ import { NotAuthorized } from "~/Components/NotAuthorized";
 import { CreateJobMap } from "./CreateJobMap";
 import { Show } from "solid-js";
 import { MileStoneModal } from "./MileStoneModal";
-import spinner from "../../../../public/svg-images/spinner.svg";
-import exclamationWhite from "../../../../public/svg-images/exclamationWhite.svg";
-import closeIcon from "../../../../public/svg-images/svgexport-12.svg";
-import airplane from "../../../../public/svg-images/airplane.svg";
-import uploadIcon from "../../../../public/svg-images/uploadIcon.svg";
+import spinner from "../../../svg-images/spinner.svg";
+import exclamationWhite from "../../../svg-images/exclamationWhite.svg";
+import closeIcon from "../../../svg-images/svgexport-12.svg";
+import airplane from "../../../svg-images/airplane.svg";
+import uploadIcon from "../../../svg-images/uploadIcon.svg";
 import jobs from "../../../Components/header-comps/jobs_list.json";
-import dropdownSVG from "../../../../public/svg-images/svgexport-8.svg";
-import gallery from "../../../../public/svg-images/images.svg";
-import thumnail from "../../../../public/svg-images/thumbnails-svgrepo-com.svg";
+import dropdownSVG from "../../../svg-images/svgexport-8.svg";
+import gallery from "../../../svg-images/images.svg";
+import thumnail from "../../../svg-images/thumbnails-svgrepo-com.svg";
 
 const CreateJob = () => {
   const location = createAsync(get_location);
@@ -29,13 +29,11 @@ const CreateJob = () => {
   const [image, setImage] = createSignal([]);
   const [markedLocation, setMarkedLocation] = createSignal();
   const [error, setError] = createSignal(null);
-  const [postUp, setPostUp] = createSignal(false);
   const [isExiting, setIsExiting] = createSignal(false);
   const [input, setInput] = createSignal("");
   const [title, setTitle] = createSignal("");
   const [totalSize, setTotalSize] = createSignal(0);
   const [mileStone, setMileStone] = createSignal([]);
-  const [toastError, setToastError] = createSignal();
   const [activeParentIndex, setActiveParentIndex] = createSignal(null);
   const [activeChildIndex, setActiveChildIndex] = createSignal(null);
   const [childChecked, setChildChecked] = createSignal([]);
@@ -44,6 +42,7 @@ const CreateJob = () => {
   const [showCategoryModal, setShowCategoryModal] = createSignal(false);
   const [currentStep, setCurrentStep] = createSignal("thumbnail");
   const [thumbNail, setThumbnail] = createSignal();
+  const [toast, setToast] = createSignal(null)
 
   const MAX_SINGLE_FILE_SIZE = 5 * 1024 * 1024;
   const MAX_TOTAL_SIZE = 25 * 1024 * 1024;
@@ -59,8 +58,13 @@ const CreateJob = () => {
   };
 
   const addMileStone = () => {
-    if (mileStone().length === 25)
-      return setToastError("მაქსიმალური 25 ეტაპის რაოდენობა მიღწეულია.");
+    if (mileStone().length === 25) {
+      return setToast({
+        type: false,
+        message: "მაქსიმალური 25 ეტაპის რაოდენობა მიღწეულია."
+      });
+    }
+
     setMileStone((a) => {
       return [
         ...a,
@@ -78,18 +82,23 @@ const CreateJob = () => {
 
     for (const file of files) {
       if (file.size > MAX_SINGLE_FILE_SIZE) {
-        return alert(`${file.name}, ფაილის ზომა აჭარბებს 5მბ ლიმიტს.`);
+        return setToast({
+          type: false,
+          message: `${file.name}, ფაილის ზომა აჭარბებს 5მბ ლიმიტს.`
+        });
       } else {
         setTotalSize((a) => (a += file.size));
       }
     }
 
     if (totalSize() > MAX_TOTAL_SIZE) {
-      return alert("ფაილების ჯამური ზომა აჭარბებს 25მბ ერთობლივ ლიმიტს.");
+      return setToast({
+        type: false,
+        message: "ფაილების ჯამური ზომა აჭარბებს 25მბ ერთობლივ ლიმიტს."
+      });
     }
 
     if (currentStep() === "thumbnail") {
-      console.log(files, files[0]);
       if (!image().length) {
         setThumbnail(files[0]);
         return setCurrentStep("gallery")
@@ -98,10 +107,10 @@ const CreateJob = () => {
       }
     }
 
+    // აქ შესაძლოა შეცდომაა როცა გალერეა სავსე ფოტოებით და თამბნეილს დაამატებ გაეშვებე ელსე სთეითმენთი და ეს ქვედაც გადაამოწმე მერე
+
     setImage([...image(), ...files]);
   };
-  let toastTimeout;
-  let exitTimeout;
 
   const createPost = async (e) => {
     e.preventDefault();
@@ -109,10 +118,17 @@ const CreateJob = () => {
     try {
       const fd = new FormData(e.target);
       if (!childChecked().length) {
-        return setToastError("გთხოვთ აირჩიოთ კატეგორია.");
+        return setToast({
+          type: false,
+          message: "გთხოვთ აირჩიოთ კატეგორია."
+        });
       }
 
       if (!fd.get("title").length) {
+        setToast({
+          type: false,
+          message: "სათაური სავალდებულოა."
+        });
         return setError([
           {
             field: "title",
@@ -121,6 +137,10 @@ const CreateJob = () => {
         ]);
       }
       if (fd.get("title").length > 100) {
+        setToast({
+          type: false,
+          message: "სათაური უნდა შეიცავდეს მაქსიმუმ 100 ასოს."
+        });
         return setError([
           {
             field: "title",
@@ -130,6 +150,10 @@ const CreateJob = () => {
       }
 
       if (!fd.get("description").length) {
+        setToast({
+          type: false,
+          message: "აღწერა სავალდებულოა."
+        });
         return setError([
           {
             field: "description",
@@ -138,6 +162,10 @@ const CreateJob = () => {
         ]);
       }
       if (fd.get("description").length > 1000) {
+        setToast({
+          type: false,
+          message: "აღწერა უნდა შეიცავდეს მაქსიმუმ 1000 ასოს."
+        });
         return setError([
           {
             field: "description",
@@ -146,6 +174,10 @@ const CreateJob = () => {
         ]);
       }
       if (!mileStoneModal() && !fd.get("price")) {
+        setToast({
+          type: false,
+          message: "ფასი სავალდებულოა თუ ეტაპები არ გაქვთ."
+        });
         return setError([
           {
             field: "price",
@@ -156,7 +188,10 @@ const CreateJob = () => {
       if (mileStone().length) {
         return mileStone().find((milestone, index) => {
           if (!milestone.title.length) {
-            setToastError(`${index + 1} ეტაპის სათაური სავალდებულოა.`);
+            setToast({
+              type: false,
+              message: `${index + 1} ეტაპის სათაური სავალდებულოა.`
+            });
             return setError([
               {
                 field: `mileStones.${index}.title`,
@@ -165,9 +200,10 @@ const CreateJob = () => {
             ]);
           }
           if (milestone.title.length > 100) {
-            setToastError(
-              `${index + 1} ეტაპის სათაური უნდა შეიცავდეს მაქსიმუმ 100 ასოს.`
-            );
+            setToast({
+              type: false,
+              message: `${index + 1} ეტაპის სათაური უნდა შეიცავდეს მაქსიმუმ 100 ასოს.`
+            });
             return setError([
               {
                 field: `mileStones.${index}.title`,
@@ -176,7 +212,10 @@ const CreateJob = () => {
             ]);
           }
           if (!milestone.description.length) {
-            setToastError(`${index + 1} ეტაპის აღწერა სავალდებულოა.`);
+            setToast({
+              type: false,
+              message: `${index + 1} ეტაპის აღწერა სავალდებულოა.`
+            });
             return setError([
               {
                 field: `mileStones.${index}.description`,
@@ -185,9 +224,10 @@ const CreateJob = () => {
             ]);
           }
           if (milestone.description.length > 1000) {
-            setToastError(
-              `${index + 1} ეტაპის აღწერა უნდა შეიცავდეს მაქსიმუმ 1000 ასოს.`
-            );
+            setToast({
+              type: false,
+              message: `${index + 1} ეტაპის აღწერა უნდა შეიცავდეს მაქსიმუმ 1000 ასოს.`
+            });
             return setError([
               {
                 field: `mileStones.${index}.description`,
@@ -196,7 +236,10 @@ const CreateJob = () => {
             ]);
           }
           if (!milestone.price) {
-            setToastError(`${index + 1} ეტაპის ფასი სავალდებულოა.`);
+            setToast({
+              type: false,
+              message: `${index + 1} ეტაპის ფასი სავალდებულოა.`
+            });
             return setError([
               {
                 field: `mileStones.${index}.description`,
@@ -207,10 +250,16 @@ const CreateJob = () => {
         });
       }
       if (!thumbNail()) {
-        return setToastError("თამბნეილი სავალდებულოა.");
+        return setToast({
+          type: false,
+          message: "თამბნეილი სავალდებულოა."
+        });
       }
       if (!image().length) {
-        return setToastError("გალერეა სავალდებულოა.");
+        return setToast({
+          type: false,
+          message: "გალერეა სავალდებულოა."
+        });
       }
 
       const response = await create_job(
@@ -223,10 +272,16 @@ const CreateJob = () => {
       );
 
       if (response.status === 500) {
-        setToastError("დაფიქსირდა სერვერული შეცდომა, სცადეთ მოგვიანებით.");
+        setToast({
+          type: false,
+          message: "დაფიქსირდა სერვერული შეცდომა, სცადეთ მოგვიანებით."
+        });
       }
       if (response.status === 400) {
-        setToastError(response.errors[0].message);
+        setToast({
+          type: false,
+          message: response.errors[0].message
+        });
         return setError(response.errors);
       }
 
@@ -235,7 +290,10 @@ const CreateJob = () => {
       document.getElementById("price").value = null;
       const func = async () => {
         batch(() => {
-          setPostUp(true);
+          setToast({
+            type: true,
+            message: "განცხადება წარმატებით აიტვირთა."
+          });
           setImage([]);
           setMileStone(null);
           setMileStoneModal(false);
@@ -246,33 +304,20 @@ const CreateJob = () => {
         });
       };
       await func();
-
-      toastTimeout = setTimeout(() => {
-        setIsExiting(true);
-        exitTimeout = setTimeout(() => {
-          setIsExiting(false);
-          setPostUp(null);
-        }, 500);
-      }, 5000);
-
-      onCleanup(() => {
-        if (toastTimeout) clearTimeout(toastTimeout);
-        if (exitTimeout) clearTimeout(exitTimeout);
-      });
     } catch (error) {
       alert(error);
     }
   };
 
-  let toastErrorTimeout
-  let toastExitTimeout
   createEffect(() => {
-    if (!toastError()) return
-    toastErrorTimeout = setTimeout(() => {
+    if (!toast()) return
+    let toastErrorTimeout
+    let toastExitTimeout
+      toastErrorTimeout = setTimeout(() => {
       setIsExiting(true);
       toastExitTimeout = setTimeout(() => {
         setIsExiting(false);
-        setToastError(null)
+        setToast(null)
       }, 500);
     }, 5000);
 
@@ -853,47 +898,25 @@ const CreateJob = () => {
           </div>
         </Match>
       </Switch>
-      <Show when={postUp()}>
-        <div
-          id="toast-simple"
-          class={`${
-            isExiting() ? "toast-exit" : "toast-enter"
-          } fixed bottom-5 right-1/2 transform translate-x-1/2 z-[200]`}
-          role="alert"
-        >
-          <div class="flex space-x-4 relative rtl:space-x-reverse text-gray-500 border-dark-green-hover border rounded-lg p-4 shadow items-center">
-            <button
-              class="absolute top-1 right-3"
-              onClick={() => setPostUp(false)}
-            >
-              <img width={14} height={14} src={closeIcon}></img>
-            </button>
-            <img class="rotate-[40deg]" src={airplane} />
-            <div class="ps-4 text-sm font-[normal-font]">
-              განცხადება წარმატებით აიტვირთა.
-            </div>
-          </div>
-        </div>
-      </Show>
-      <Show when={toastError()}>
+      <Show when={toast()}>
         <div
           class={`${
             isExiting() ? "toast-exit" : "toast-enter"
-          } fixed bottom-5 right-1/2 transform translate-x-1/2 z-[200]`}
+          } fixed bottom-5 z-[200] left-1/2 -translate-x-1/2`}
           role="alert"
         >
-          <div class="flex relative bg-white space-x-4 rtl:space-x-reverse text-gray-500 border-red-400 border rounded-lg p-4 shadow items-center">
+          <div class={`${!toast().type ? "border-red-400" : "border-dark-green-hover"} border flex relative bg-white space-x-4 rtl:space-x-reverse text-gray-500 border rounded-lg p-4 shadow items-center`}>
             <button
               class="absolute top-1 right-3"
-              onClick={() => setToastError(null)}
+              onClick={() => setToast(null)}
             >
               <img width={14} height={14} src={closeIcon}></img>
             </button>
-            <div class="bg-red-500 rounded-full">
-              <img src={exclamationWhite} />
-            </div>
-            <div class="ps-4 text-sm border-l text-red-600 font-[normal-font]">
-              {toastError()}
+              {!toast().type ? <div class="bg-red-500 rounded-full">
+                <img src={exclamationWhite} />
+                </div> : <img class="rotate-[40deg]" src={airplane} />}
+            <div class={`${!toast().type  && "text-red-600"} ps-4 border-l text-sm font-[normal-font]`}>
+              {toast().message}
             </div>
           </div>
         </div>

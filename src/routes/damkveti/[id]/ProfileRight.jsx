@@ -22,7 +22,7 @@ export const ProfileRight = (props) => {
           <div class="flex items-center justify-between">
             <A
               href="/setup/damkveti/step/about"
-              class="mt-2 w-[150px] bg-dark-green py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]"
+              class="px-4 py-2 mt-2 bg-dark-green font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]"
             >
               დაამატე აღწერა
             </A>
@@ -37,9 +37,7 @@ export const ProfileRight = (props) => {
           </p>
         </Match>
       </Switch>
-      <Switch>
-        <Match when={props.user().status === 200}>
-          <div>
+      <div>
           <h2 class="font-[normal-font] text-gray-800 font-bold text-lg mt-2">განცხადებები</h2>
             <div class="grid grid-cols-4 gap-x-5 mt-3 gap-y-5">
               <For each={props.user().jobs}>
@@ -90,26 +88,6 @@ export const ProfileRight = (props) => {
               </For>
             </div>
           </div>
-        </Match>
-        <Match when={props.user().status === 200}>
-          <div class="flex items-center justify-between">
-            <A
-              href="/setup/damkveti/step/about"
-              class="mt-2 w-[150px] bg-dark-green py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]"
-            >
-              დაამატე აღწერა
-            </A>
-            <p class="text-xs font-[thin-font] font-bold">
-              შემოუერთდა {props.user().creationDateDisplayable}
-            </p>
-          </div>
-        </Match>
-        <Match when={props.user().status === 401}>
-          <p class="text-gr text-xs font-[thin-font] font-bold">
-            მომხმარებელს ინფორმაცია არ აქვს დამატებული.
-          </p>
-        </Match>
-      </Switch>
     </div>
   );
 };

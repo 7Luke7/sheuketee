@@ -1,11 +1,10 @@
 import { A } from "@solidjs/router";
 import { For, Switch, createSignal } from "solid-js";
 import "./scrollbar.css";
-import dropdownSVG from "../../../../public/svg-images/svgexport-8.svg";
+import dropdownSVG from "../../../svg-images/svgexport-8.svg";
 import { JobType } from "./filter-comps/JobType";
 import { Pay } from "./filter-comps/Pay";
 import { Sort } from "./filter-comps/Sort";
-import { Location } from "./filter-comps/Location";
 import { Paginate } from "./Paginate";
 
 export const Jobs = (props) => {

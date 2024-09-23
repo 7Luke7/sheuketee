@@ -1,7 +1,7 @@
 import { MetaProvider } from "@solidjs/meta";
 import { createAsync, useNavigate } from "@solidjs/router";
 import { navigateToStep } from "~/routes/api/damkveti/step";
-import { Match, onMount, Show, Switch } from "solid-js";
+import { Match, Show, Switch } from "solid-js";
 import { createEffect, createSignal, onCleanup } from "solid-js";
 import { Header } from "~/Components/Header";
 import { get_damkveti } from "~/routes/api/user";
@@ -11,10 +11,10 @@ import { ProfileLeft } from "./ProfileLeft";
 import { ProfileRight } from "./ProfileRight";
 import { Footer } from "~/Components/Footer";
 import { FireworkConfetti } from "~/Components/FireworkConfetti";
-import checkedGreen from "../../../../public/svg-images/checkedGreen.svg"
-import airPlane from "../../../../public/svg-images/airplane.svg";
-import closeIcon from "../../../../public/svg-images/svgexport-12.svg";
-import exclamationWhite from "../../../../public/svg-images/exclamationWhite.svg";
+import checkedGreen from "../../../svg-images/checkedGreen.svg"
+import airPlane from "../../../svg-images/airplane.svg";
+import closeIcon from "../../../svg-images/svgexport-12.svg";
+import exclamationWhite from "../../../svg-images/exclamationWhite.svg";
 
 const Damkveti = (props) => {
   const user = createAsync(async () =>
@@ -48,6 +48,24 @@ const Damkveti = (props) => {
       setModal(null);
     }
   };
+
+  createEffect(() => {
+    if (!toast()) return
+    let toastTimeout
+    let exitTimeout
+    toastTimeout = setTimeout(() => {
+      setIsExiting(true);
+      exitTimeout = setTimeout(() => {
+        setIsExiting(false);
+        setToast(null);
+      }, 500);
+    }, 5000);
+
+    onCleanup(() => {
+      if (toastTimeout) clearTimeout(toastTimeout);
+      if (exitTimeout) clearTimeout(exitTimeout);
+    });
+  })
   
   createEffect(() => {
     document.addEventListener("click", clickFN);

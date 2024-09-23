@@ -1,7 +1,7 @@
 import { A } from "@solidjs/router"
-import arrowLeft from "../../public/svg-images/arrow-left.svg"
-import bell from "../../public/svg-images/bell.svg"
-import person from "../../public/svg-images/person.svg"
+import arrowLeft from "../svg-images/arrow-left.svg"
+import bell from "../svg-images/bell.svg"
+import person from "../svg-images/person.svg"
 
 const Account = (props) => {
     return <div class="m-5">

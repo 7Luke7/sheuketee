@@ -1,8 +1,8 @@
-import { createEffect, createSignal, batch, onCleanup } from "solid-js";
-import ChevronRightBlackSVG from "../../../../public/svg-images/ChevronRightBlack.svg";
-import ChevronLeftBlackSVG from "../../../../public/svg-images/ChevronLeftBlack.svg";
-import dropdownSVG from "../../../../public/svg-images/svgexport-8.svg";
-import closeIcon from "../../../../public/svg-images/svgexport-12.svg";
+import { createEffect, createSignal, batch } from "solid-js";
+import ChevronRightBlackSVG from "../../../svg-images/ChevronRightBlack.svg";
+import ChevronLeftBlackSVG from "../../../svg-images/ChevronLeftBlack.svg";
+import dropdownSVG from "../../../svg-images/svgexport-8.svg";
+import closeIcon from "../../../svg-images/svgexport-12.svg";
 import { modify_user_date } from "~/routes/api/xelosani/modify/date";
 
 export const ModifyAge = (props) => {
@@ -105,8 +105,6 @@ export const ModifyAge = (props) => {
     );
     return dateToCheck > today;
   };
-  let toastTimeout;
-  let exitTimeout;
 
   const handleDateSelect = async () => {
     try {
@@ -118,13 +116,6 @@ export const ModifyAge = (props) => {
           type: true,
         });
         props.setModal(null);
-        toastTimeout = setTimeout(() => {
-          props.setIsExiting(true);
-          exitTimeout = setTimeout(() => {
-            props.setIsExiting(false);
-            props.setToast(null);
-          }, 500);
-        }, 5000);
       });
     } catch (error) {
       console.log(error.message);
@@ -133,10 +124,6 @@ export const ModifyAge = (props) => {
       }
       return alert("წარმოიშვა შეცდომა ცადეთ მოგვიანებით.");
     }
-    onCleanup(() => {
-      if (toastTimeout) clearTimeout(toastTimeout);
-      if (exitTimeout) clearTimeout(exitTimeout);
-    });
   };
 
   return (

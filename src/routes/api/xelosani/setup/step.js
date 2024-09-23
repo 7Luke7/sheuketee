@@ -27,28 +27,6 @@ export const upload_profile_picture_no_verification = async (file, profId) => {
   }
 };
 
-export const upload_profile_picture_setup = async (file, prof_id) => {
-  try {
-    const event = getRequestEvent();
-    const redis_user = await verify_user(event);
-
-    if (redis_user.profId !== prof_id) {
-      throw new Error(401);
-    }
-
-    const response = await upload_profile_picture_no_verification(file, redis_user.profId);
-
-    const user = await Xelosani.findByIdAndUpdate(redis_user.userId, {
-      $inc: {stepPercent: 12.5}
-    },
-    { runValidators: true, new: true,}).select("stepPercent profId -_id -__t").lean()
-
-  return { ...user, imageResponse: response };
-  } catch (error) {
-    console.log(error);
-  }
-};
-
 export const navigateToStep = async () => {
   const BASE_URL = "/setup/xelosani/step";
   try {

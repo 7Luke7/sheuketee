@@ -1,6 +1,6 @@
 import { A } from "@solidjs/router"
 import { For, Show, batch, createSignal } from "solid-js"
-import dropdownGreenSVG from "../../../public/svg-images/svgexport-13.svg"
+import dropdownGreenSVG from "../../svg-images/svgexport-13.svg"
 import jobs from "./jobs_list"
 
 export const WorkDropdown = () => {

@@ -5,17 +5,16 @@ import {
   createSignal,
   Show,
   Switch,
-  onCleanup,
 } from "solid-js";
-import location from "../../../../public/svg-images/location.svg";
-import telephone from "../../../../public/svg-images/telephone.svg";
-import envelope from "../../../../public/svg-images/envelope.svg";
-import defaultProfileSVG from "../../../../public/default_profile.png";
-import CameraSVG from "../../../../public/svg-images/camera.svg";
-import pen from "../../../../public/svg-images/pen.svg";
-import cake from "../../../../public/svg-images/cake.svg";
-import spinnerSVG from "../../../../public/svg-images/spinner.svg";
-import jobApplication from "../../../../public/svg-images/job_application.svg";
+import location from "../../../svg-images/location.svg";
+import telephone from "../../../svg-images/telephone.svg";
+import envelope from "../../../svg-images/envelope.svg";
+import defaultProfileSVG from "../../../default_profile.png";
+import CameraSVG from "../../../svg-images/camera.svg";
+import pen from "../../../svg-images/pen.svg";
+import cake from "../../../svg-images/cake.svg";
+import spinnerSVG from "../../../svg-images/spinner.svg";
+import jobApplication from "../../../svg-images/job_application.svg";
 import { A } from "@solidjs/router";
 import { makeAbortable } from "@solid-primitives/resource";
 
@@ -26,12 +25,18 @@ export const ProfileLeft = (props) => {
   );
   const [file, setFile] = createSignal()
   const [signal,abort,filterErrors] = makeAbortable({timeout: 0, noAutoAbort: true});
-
-  let toastTimeout;
-  let exitTimeout;
   
+  const MAX_SINGLE_FILE_SIZE = 5 * 1024 * 1024;
+
   const handleProfileImageChange = async () => {
     setImageLoading(true)
+    if (file().size > MAX_SINGLE_FILE_SIZE) {
+      setImageLoading(false)
+      return props.setToast({
+        type: false,
+        message: `${file().name}, ფაილის ზომა აჭარბებს 5მბ ლიმიტს.`
+      });
+    }
     const formData = new FormData();
     formData.append('profile_image', file());
 
@@ -43,9 +48,14 @@ export const ProfileLeft = (props) => {
         signal: signal()
       });
 
-      if (response === "AbortError") {
-        throw new Error('AbortError');
+      if (!response.ok) {
+        setImageLoading(false)
+        return props.setToast({
+          message: "პროფილის ფოტო ვერ განახლდა, სცადეთ თავიდან.",
+          type: false,
+        });
       }
+
       const data = await response.text()
       if (data) {
         batch(() => {
@@ -55,17 +65,6 @@ export const ProfileLeft = (props) => {
             message: "პროფილის ფოტო განახლებულია.",
             type: true,
           });
-          toastTimeout = setTimeout(() => {
-            props.setIsExiting(true);
-            exitTimeout = setTimeout(() => {
-              props.setIsExiting(false);
-              props.setToast(null);
-            }, 500);
-          }, 5000);
-        });
-        onCleanup(() => {
-          if (toastTimeout) clearTimeout(toastTimeout);
-          if (exitTimeout) clearTimeout(exitTimeout);
         });
       }
     } catch (error) {
@@ -73,7 +72,6 @@ export const ProfileLeft = (props) => {
         filterErrors(error);
         setImageLoading(false)
       }
-      console.log(error)
     }
   };
 
@@ -82,6 +80,14 @@ export const ProfileLeft = (props) => {
     setImageLoading(true);
     const formData = new FormData();
     formData.append('profile_image', file);
+
+    if (file.size > MAX_SINGLE_FILE_SIZE) {
+      setImageLoading(false)
+      return props.setToast({
+        type: false,
+        message: `${file.name}, ფაილის ზომა აჭარბებს 5მბ ლიმიტს.`
+      });
+    }
   
     try {
       const response = await fetch(`/api/preview_image/${props.user().profId}`, {
@@ -91,10 +97,13 @@ export const ProfileLeft = (props) => {
         signal: signal()
       });      
 
-      if (response === "AbortError") {
-        throw new Error('AbortError');
-      }
-  
+      if (!response.ok) {
+        setImageLoading(false)
+        return props.setToast({
+          message: "ფოტო ვერ აიტვირთა, სცადეთ თავიდან.",
+          type: false,
+        });
+      }  
       const data = await response.text()
   
       if (data) {
@@ -109,7 +118,6 @@ export const ProfileLeft = (props) => {
         filterErrors(error);
         setImageLoading(false)
       }
-      console.log(error)
     }
   };
 
@@ -273,17 +281,12 @@ export const ProfileLeft = (props) => {
           </div>
           <div class="flex pb-1 px-2 items-center gap-x-1">
             <Switch>
-              <Match when={props.user().date}>
+              <Match when={props.user().displayBirthDate}>
                 <div class="flex justify-between w-full items-center">
                   <div class="flex items-end gap-x-2">
                     <img src={cake} />
                     <p class="text-gr text-xs font-[thin-font] font-bold">
-                      {new Date(props.user().date).toLocaleDateString("ka-GE", {
-                        weekday: "long",
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
+                      {props.user().displayBirthDate}
                     </p>
                   </div>
                   <Show when={props.user().status === 200}>

@@ -12,8 +12,8 @@ import VectorSource from "ol/source/Vector";
 import Geolocation from "ol/Geolocation";
 import { Icon, Style } from "ol/style";
 import Modify from "ol/interaction/Modify";
-import SearchIcon from "../../../../../public/svg-images/svgexport-5.svg";
-import CloseIcon from "../../../../../public/svg-images/svgexport-12.svg";
+import SearchIcon from "../../../../svg-images/svgexport-5.svg";
+import CloseIcon from "../../../../svg-images/svgexport-12.svg";
 import { handle_location, check_location } from "../../../api/damkveti/setup";
 
 const Location = () => {
@@ -86,7 +86,7 @@ const Location = () => {
         anchor: [0.5, 40],
         anchorXUnits: "fraction",
         anchorYUnits: "pixels",
-        src: "../../../../../public/svg-images/redlocation.svg",
+        src: "../../../../svg-images/redlocation.svg",
         scale: 1.25,
       }),
     });

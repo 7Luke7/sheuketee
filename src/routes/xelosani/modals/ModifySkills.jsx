@@ -1,9 +1,8 @@
-import closeIcon from "../../../../public/svg-images/svgexport-12.svg";
+import closeIcon from "../../../svg-images/svgexport-12.svg";
 import { modify_user_skills } from "~/routes/api/xelosani/modify/skills";
-import dropdownSVG from "../../../../public/svg-images/svgexport-8.svg";
+import dropdownSVG from "../../../svg-images/svgexport-8.svg";
 import jobs from "../../../Components/header-comps/jobs_list.json";
 import { For, Show, batch, createSignal } from "solid-js";
-import { onCleanup } from "solid-js";
 
 export const ModifySkill = (props) => {
   const [activeParentIndex, setActiveParentIndex] = createSignal(null);
@@ -117,15 +116,23 @@ export const ModifySkill = (props) => {
     }
   }
 
-  let toastTimeout;
-  let exitTimeout;
   const handle_user_skills = async (e) => {
     e.preventDefault();
-    const displayableSkills = parentChecked().map((parent) => ({
-        displaySkills: parent,
-        completedJobs: 0,
-        reviews: 0,
-      }));
+    const displayableSkills = parentChecked().map((parent, i) => {
+        if (props.skills.displayableSkills.some(a => a.displaySkills === parent)) {
+          return {
+            displaySkills: parent,
+            completedJobs: props.skills.displayableSkills[i].completedJobs,
+            reviews: props.skills.displayableSkills[i].reviews
+          }
+        } else {
+          return {
+            displaySkills: parent,
+            completedJobs: 0,
+            reviews: 0
+          }
+        }
+      });
       const skills = {
         parent: parentChecked(),
         child: childChecked(),
@@ -135,24 +142,12 @@ export const ModifySkill = (props) => {
     try {
       const response = await modify_user_skills(skills);
       if (response !== 200) throw new Error(response);
-      console.log(response)
       batch(() => {
         props.setToast({
           message: "სპეციალობა განახლებულია.",
           type: true,
         });
         props.setModal(null);
-        toastTimeout = setTimeout(() => {
-          props.setIsExiting(true);
-          exitTimeout = setTimeout(() => {
-            props.setIsExiting(false);
-            props.setToast(null);
-          }, 500);
-        }, 5000);
-        onCleanup(() => {
-          if (toastTimeout) clearTimeout(toastTimeout);
-          if (exitTimeout) clearTimeout(exitTimeout);
-        });
       });
     } catch (error) {
       alert(error);

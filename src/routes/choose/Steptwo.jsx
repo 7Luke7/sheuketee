@@ -1,5 +1,5 @@
 import { EmailPassword } from "~/Components/EmailPassword";
-import stepBack from "../../../public/svg-images/svgexport-25.svg";
+import stepBack from "../../svg-images/svgexport-25.svg";
 import { A, useNavigate } from "@solidjs/router";
 import { Show, createSignal } from "solid-js";
 import { RegisterUser } from "../api/authentication";

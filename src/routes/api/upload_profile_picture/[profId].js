@@ -4,6 +4,8 @@ import { compress_image } from "../compress_images";
 import { s3 } from "~/entry-server";
 import { Damkveti, Xelosani } from "../models/User";
 
+const MAX_SINGLE_FILE_SIZE = 5 * 1024 * 1024;
+
 export async function POST({request, params}) {
   let redis_user;
   let file
@@ -16,6 +18,10 @@ export async function POST({request, params}) {
 
     const formData = await request.formData();
     file = formData.get("profile_image");
+
+    if (file.size > MAX_SINGLE_FILE_SIZE) {
+      throw new Error(`${file.name}, ფაილის ზომა აჭარბებს 5მბ ლიმიტს.`)
+    }
 
     const head_params = {
       Bucket: process.env.S3_BUCKET_NAME,

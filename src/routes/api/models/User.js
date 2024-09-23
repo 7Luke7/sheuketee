@@ -88,41 +88,39 @@ const LocationSchema = new mongoose.Schema(
   }
 );
 
-const ServicesSchema = new mongoose.Schema(
-  {
-    title: {
-      type: String,
-      required: true,
-      minLength: 5,
-      maxLength: 100,
-    },
-    description: {
-      type: String,
-      required: true,
-      minLength: 20,
-      maxLength: 1000,
-    },
-    price: {
-      type: Number,
-      required: true,
-      min: 0,
-      max: 10000,
-    },
-    category: {
-      type: Array,
-      required: true,
-    },
-    location: [LocationSchema],
-    availability: {
-      type: [ScheduleSchema],
-    },
-    ratings: {
-      type: Number,
-      default: 0,
-      min: 0,
-      max: 5,
-    },
-    reviews: [
+const DisplayServiceDedicated = new mongoose.Schema({
+  groupCategory: {
+    type: String,
+    required: true,
+  },
+  grandChildCategory: {
+    type: String,
+    required: true
+  },
+  childCategory: {
+    type: String,
+    required: true
+  },
+  title: {
+    type: String,
+    required: true,
+    minLength: 5,
+    maxLength: 100,
+  },
+  description: {
+    type: String,
+    required: true,
+    minLength: 20,
+    maxLength: 1000,
+  },
+  price: {
+    type: Number,
+    required: true,
+    min: 0,
+    max: 10000,
+  },
+  reviews: {
+    type: [
       {
         user: { type: mongoose.Schema.Types.ObjectId, ref: "Damkveti" },
         comment: {
@@ -137,6 +135,33 @@ const ServicesSchema = new mongoose.Schema(
         },
       },
     ],
+    default: null
+  },
+  publicId: {
+    type: String,
+    unique: true,
+    required: [true, "publicId სავალდებულოა."],
+  },
+  _creator: { type: Schema.Types.ObjectId, ref: "Xelosani" },
+})
+
+const ServicesSchema = new mongoose.Schema(
+  {
+    category: {
+      type: String,
+      required: true,
+    },
+    display: [DisplayServiceDedicated],
+    location: [LocationSchema],
+    availability: {
+      type: [ScheduleSchema],
+    },
+    ratings: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5,
+    },
   },
   {
     timestamps: true,
@@ -246,10 +271,7 @@ const XelosaniSchema = new mongoose.Schema({
     type: [ScheduleSchema],
     default: undefined,
   },
-  services: {
-    type: [ServicesSchema],
-    default: undefined,
-  },
+  services: [{ type: Schema.Types.ObjectId, ref: "Services" }],
   workCount: {
     type: Number,
     default: null,
@@ -371,6 +393,7 @@ const JobPostSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );             
+export const Service = mongoose.models.Service || mongoose.model("Service", ServicesSchema);
 
 export const JobPost =
   mongoose.models.JobPost || mongoose.model("JobPost", JobPostSchema);

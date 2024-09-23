@@ -1,10 +1,10 @@
-import newPost from "../../public/svg-images/new_post.svg"
-import findWorker from "../../public/svg-images/findWorker.svg"
-import jobComplete from "../../public/svg-images/jobComplete.svg"
-import payment from "../../public/svg-images/payment.svg"
-import jobDone from "../../public/svg-images/job_done.svg"
-import interview from "../../public/svg-images/interview.svg"
-import job_hunt from "../../public/svg-images/job_hunt.svg"
+import newPost from "../svg-images/new_post.svg"
+import findWorker from "../svg-images/findWorker.svg"
+import jobComplete from "../svg-images/jobComplete.svg"
+import payment from "../svg-images/payment.svg"
+import jobDone from "../svg-images/job_done.svg"
+import interview from "../svg-images/interview.svg"
+import job_hunt from "../svg-images/job_hunt.svg"
 import { A } from "@solidjs/router"
 
 export const HowItWorks = () => {

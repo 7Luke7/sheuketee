@@ -1,6 +1,6 @@
 import { createAsync } from "@solidjs/router";
 import { get_notification_targets, toggle_notification } from "~/routes/api/user";
-import exclamationSVG from "../../../public/svg-images/exclamation.svg"
+import exclamationSVG from "../../svg-images/exclamation.svg"
 
 const toggleMailNotifications = async (emailRef) => {
   try {

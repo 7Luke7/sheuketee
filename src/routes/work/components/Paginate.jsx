@@ -1,5 +1,5 @@
-import chevronRight from "../../../../public/svg-images/chevron-right.svg"
-import chevronLeft from "../../../../public/svg-images/chevron-left.svg"
+import chevronRight from "../../../svg-images/chevron-right.svg"
+import chevronLeft from "../../../svg-images/chevron-left.svg"
 
 export const Paginate = () => {
     return <div class="flex sticky bottom-0 h-[35px] items-center justify-center bg-gray-100">

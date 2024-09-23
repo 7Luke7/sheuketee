@@ -1,7 +1,7 @@
 import { createSignal, createEffect, batch, Switch, Match } from "solid-js";
 import { A, useNavigate } from "@solidjs/router";
-import ChevronRightBlackSVG from "../../../../public/svg-images/ChevronRightBlack.svg";
-import ChevronLeftBlackSVG from "../../../../public/svg-images/ChevronLeftBlack.svg";
+import ChevronRightBlackSVG from "../../../svg-images/ChevronRightBlack.svg";
+import ChevronLeftBlackSVG from "../../../svg-images/ChevronLeftBlack.svg";
 import steps from "./steps.json"
 import { get_xelosani_step } from "~/routes/api/xelosani/setup/setup";
 

@@ -1,5 +1,5 @@
-import SearchIcon from "../../../../public/svg-images/svgexport-5.svg";
-import CloseIcon from "../../../../public/svg-images/svgexport-12.svg";
+import SearchIcon from "../../../svg-images/svgexport-5.svg";
+import CloseIcon from "../../../svg-images/svgexport-12.svg";
 import { createSignal, onMount, Show, Switch, Match } from "solid-js";
 import "ol/ol.css";
 import OSM from "ol/source/OSM";
@@ -71,7 +71,7 @@ export const CreateJobMap = (props) => {
               anchor: [0.5, 40],
               anchorXUnits: "fraction",
               anchorYUnits: "pixels",
-              src: "../../../../../public/svg-images/redlocation.svg",
+              src: "../../../../svg-images/redlocation.svg",
               scale: 1.25,
             }),
           }),

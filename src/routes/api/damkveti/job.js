@@ -145,7 +145,6 @@ export const create_job = async (fd, location, image, thumbNail, mileStone, cate
       $addToSet: { jobs: job_post._id },
     });
 
-    console.log(thumbNail)
     const thumbNail_bytes = await thumbNail.arrayBuffer(thumbNail);
     const thumbNail_buffer = Buffer.from(thumbNail_bytes);
     const thumb_compressed = await compress_image(thumbNail_buffer, 80, 200, 200);
@@ -158,7 +157,6 @@ export const create_job = async (fd, location, image, thumbNail, mileStone, cate
     let count = 0;
 
     for (let i = 0; i < image.length; i++) {
-      console.log(image[i], i)
       const current_image = image[i]
       if (current_image.size > MAX_SINGLE_FILE_SIZE) {
         throw Error(`${current_image.name}, ფაილის ზომა აჭარბებს 5მბ ლიმიტს.`);

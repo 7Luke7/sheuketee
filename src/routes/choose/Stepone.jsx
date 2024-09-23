@@ -1,6 +1,6 @@
 import { A } from "@solidjs/router"
-import hirer from "../../../public/svg-images/hirer.svg"
-import worker from "../../../public/svg-images/worker.svg"
+import hirer from "../../svg-images/hirer.svg"
+import worker from "../../svg-images/worker.svg"
 
 export const Stepone = ({setStep, current, setCurrent}) => {
 

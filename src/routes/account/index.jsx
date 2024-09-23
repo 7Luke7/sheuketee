@@ -1,13 +1,13 @@
 import { createAsync } from "@solidjs/router";
 import { Match, Show, Switch, createEffect, createSignal } from "solid-js";
-import eyeFillSVG from "../../../public/svg-images/eye-fill.svg";
-import eyeSlashSVG from "../../../public/svg-images/eye-slash.svg";
+import eyeFillSVG from "../../svg-images/eye-fill.svg";
+import eyeSlashSVG from "../../svg-images/eye-slash.svg";
 import { get_account, modify_user, update_password } from "~/routes/api/user";
 import {
   send_email_verification_code,
   verify_code,
 } from "../api/utils/verification";
-import exclamationSVG from "../../../public/svg-images/exclamation.svg";
+import exclamationSVG from "../../svg-images/exclamation.svg";
 
 const Account = () => {
   const user = createAsync(async () => {

@@ -1,9 +1,7 @@
 "use server";
 import { redisClient, s3 } from "~/entry-server";
 import { Damkveti, Xelosani } from "./models/User";
-import { compress_image } from "./compress_images";
 import {
-  PutObjectCommand,
   GetObjectCommand,
   HeadObjectCommand,
 } from "@aws-sdk/client-s3";
@@ -56,28 +54,43 @@ export const get_xelosani = async (prof_id) => {
       throw new Error(401);
     }
 
-    const { createdAt, _doc } = await Xelosani.findById(
+    const user = await Xelosani.findById(
       redis_user.userId,
-      "-_id -__v -updatedAt -notificationDevices -password"
-    );
+      "-_id -__v -skills.displayableSkills._id -updatedAt -notificationDevices -__t -password"
+    ).lean()
+
+    const displayBirthDate = new Date(user["date"]).toLocaleDateString("ka-GE", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
     const profile_image = await get_user_profile_image(prof_id);
-    const creationDateDisplayable = getTimeAgo(_doc.createdAt);
+    const creationDateDisplayable = getTimeAgo(user.createdAt);
     return JSON.stringify({
-      ..._doc,
+      ...user,
       profile_image,
+      displayBirthDate,
       creationDateDisplayable,
       status: 200,
     });
   } catch (error) {
     if (error.message === "401") {
-      const { createdAt, _doc } = await Xelosani.findOne(
+      const user = await Xelosani.findOne(
         { profId: prof_id },
-        "-_id -__v -stepPercent -notificationDevices -updatedAt -password"
-      );
+        "-_id -__v -stepPercent -notificationDevices -updatedAt -__t -password"
+      ).lean()
+      const displayBirthDate = new Date(user["date"]).toLocaleDateString("ka-GE", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
       const profile_image = await get_user_profile_image(prof_id);
-      const creationDateDisplayable = getTimeAgo(_doc.createdAt);
+      const creationDateDisplayable = getTimeAgo(user.createdAt);
       return JSON.stringify({
-        ..._doc,
+        ...user,
+        displayBirthDate,
         profile_image,
         creationDateDisplayable,
         status: 401,
@@ -354,24 +367,32 @@ export const get_damkveti = cache(async (prof_id) => {
       throw new Error(401);
     }
 
-    const { createdAt, _doc, jobs } = await Damkveti.findById(
+    const { jobs, ...user } = await Damkveti.findById(
       redis_user.userId,
-      "-_id -__v -updatedAt -notificationDevices -password"
-    ).populate("jobs", "-mileStones -_id -__v -updatedAt -_creator");
+      "-_id -__v -updatedAt -notificationDevices -__t -password"
+    ).populate("jobs", "-mileStones -_id -__v -updatedAt -_creator").lean()
+
+    const displayBirthDate = new Date(user["date"]).toLocaleDateString("ka-GE", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
 
     const profile_image = await get_user_profile_image(prof_id);
-    const creationDateDisplayable = getTimeAgo(createdAt);
+    const creationDateDisplayable = getTimeAgo(user.createdAt);
 
     const modedJobs = await Promise.all(jobs.map(async (j, i) => {
       const image = await get_user_job_image(`${j.publicId}-job-post-thumbnail`);
       const creationDateDisplayable = getTimeAgo(j.createdAt);
     
-      return {...j._doc, createdAt: creationDateDisplayable, thumbnail: image, profPic: profile_image};
+      return {...j, createdAt: creationDateDisplayable, thumbnail: image, profPic: profile_image};
     }));
     
     return JSON.stringify({
-      ..._doc,
+      ...user,
       jobs: modedJobs,
+      displayBirthDate,
       jobCount: jobs.length,
       profile_image,
       creationDateDisplayable,
@@ -379,14 +400,33 @@ export const get_damkveti = cache(async (prof_id) => {
     });
   } catch (error) {
     if (error.message === "401") {
-      const { createdAt, _doc } = await Damkveti.findOne(
-        { profId: prof_id },
-        "-_id -__v -stepPercent -notificationDevices -updatedAt -password"
-      );
+      const { jobs, ...user } = await Damkveti.findOne(
+        {profId: prof_id},
+        "-_id -__v -stePercent -updatedAt -notificationDevices -password"
+      ).populate("jobs", "-mileStones -_id -__v -updatedAt -_creator").lean()
+
+      const displayBirthDate = new Date(user["date"]).toLocaleDateString("ka-GE", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+  
       const profile_image = await get_user_profile_image(prof_id);
-      const creationDateDisplayable = getTimeAgo(createdAt);
+      const creationDateDisplayable = getTimeAgo(user.createdAt);
+  
+      const modedJobs = await Promise.all(jobs.map(async (j, i) => {
+        const image = await get_user_job_image(`${j.publicId}-job-post-thumbnail`);
+        const creationDateDisplayable = getTimeAgo(j.createdAt);
+      
+        return {...j, createdAt: creationDateDisplayable, thumbnail: image, profPic: profile_image};
+      }));
+      
       return JSON.stringify({
-        ..._doc,
+        ...user,
+        displayBirthDate,
+        jobs: modedJobs,
+        jobCount: jobs.length,
         profile_image,
         creationDateDisplayable,
         status: 401,

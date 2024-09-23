@@ -1,7 +1,7 @@
 import { A } from "@solidjs/router"
 import { Match, Switch } from "solid-js"
-import EditSVG from "../../../../public/svg-images/edit_icon.svg"
-import ExternalLinkSVG from "../../../../public/svg-images/external_link.svg"
+import EditSVG from "../../../svg-images/edit_icon.svg"
+import ExternalLinkSVG from "../../../svg-images/external_link.svg"
 
 export const Services = ({status}) => {
     return <div class="mt-2 grid grid-cols-4 gap-x-2">

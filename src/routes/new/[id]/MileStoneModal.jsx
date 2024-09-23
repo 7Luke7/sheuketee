@@ -1,5 +1,5 @@
 import { For } from "solid-js";
-import plus from "../../../../public/svg-images/plus.svg"
+import plus from "../../../svg-images/plus.svg"
 
 export const MileStoneModal = (props) => {
   return (

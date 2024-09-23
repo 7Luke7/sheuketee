@@ -1,37 +1,46 @@
 import { A, createAsync, useNavigate } from "@solidjs/router";
-import defaultProfileSVG from "../../../../../public/default_profile.png";
-import CameraSVG from "../../../../../public/svg-images/camera.svg";
-import spinnerSVG from "../../../../../public/svg-images/spinner.svg";
+import defaultProfileSVG from "../../../../default_profile.png";
+import CameraSVG from "../../../../svg-images/camera.svg";
+import spinnerSVG from "../../../../svg-images/spinner.svg";
 import { Match, Suspense, Switch, batch, createSignal } from "solid-js";
-import { preview_image } from "~/routes/api/user";
 import { profile_image_no_id } from "~/routes/api/damkveti/setup";
-import { upload_profile_picture_setup } from "~/routes/api/damkveti/step";
+import { makeAbortable } from "@solid-primitives/resource";
 
 const ProfilePictureStep = () => {
   const profile_image = createAsync(profile_image_no_id);
-  const [error, setError] = createSignal();
   const [imageLoading, setImageLoading] = createSignal(false);
   const [submitted, setSubmitted] = createSignal(false);
   const [file, setFile] = createSignal();
   const [imageUrl, setImageUrl] = createSignal(!profile_image()?.url ? defaultProfileSVG : profile_image()?.url);
+  const [signal,abort,filterErrors] = makeAbortable({timeout: 0, noAutoAbort: true});
 
-  console.log(profile_image()?.profId)
   const navigate = useNavigate()
 
   const handleProfileImageChange = async () => {
-    setImageLoading(true);
+    setImageLoading(true)
+    const formData = new FormData();
+    formData.append('profile_image', file());
+
     try {
-      const response = await upload_profile_picture_setup(
-        file(),
-        profile_image().profId
-      );
-      if (response.status === 400) {
-        return setMessage(response.message)
+      const response = await fetch(`/api/damkveti/upload_profile_picture_setup/${profile_image().profId}`, {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+        signal: signal()
+      });
+
+      if (!response.ok) {
+        return alert("პროფილის ფოტო ვერ განახლდა, სცადეთ თავიდან.")
       }
-      if (response.stepPercent > 100) {
-        return navigate(`/damkveti/${response.profId}`) //ჩანიშვნა
+
+      const data = await response.json()
+      console.log(data)
+      
+      if (data.stepPercent > 100) {
+        return navigate(`/damkveti/${data.profId}`)
       }
-      if (response.imageResponse) {
+
+      if (data.imageResponse) {
         batch(() => {
           setFile(null);
           setImageLoading(false);
@@ -39,26 +48,47 @@ const ProfilePictureStep = () => {
         });
       }
     } catch (error) {
-      alert(error.message || "Failed to process image");
-      setImageLoading(false);
+      if (error.name === "AbortError") {
+        filterErrors(error);
+        setImageLoading(false)
+      }
     }
   };
 
+  
   const handleFilePreview = async (file) => {
-    setImageLoading(true)
+    setImageLoading(true);
+    const formData = new FormData();
+    formData.append('profile_image', file);
+  
     try {
-      const response = await preview_image(file, profile_image().profId)
-      if (response) {
+      const response = await fetch(`/api/preview_image/${profile_image().profId}`, {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+        signal: signal()
+      });
+
+      if (!response.ok) {
+        return alert("ფოტო ვერ აიტვირთა, სცადეთ თავიდან.")
+      }
+  
+      const data = await response.text()
+  
+      if (data) {
         batch(() => {
-          setFile(file)
-          setImageLoading(false)
-          setImageUrl(response)
-        })
+          setFile(file);
+          setImageLoading(false);
+          setImageUrl(data);
+        });
       }
     } catch (error) {
-      console.log(error)
+      if (error.name === "AbortError") {
+        filterErrors(error);
+        setImageLoading(false)
+      }
     }
-  }
+  };
 
   return (
     <Switch>
@@ -80,9 +110,7 @@ const ProfilePictureStep = () => {
                       id="setup_image"
                       src={imageUrl()}
                       alt="Profile"
-                      class={`object-cover ${
-                        error() && "border-red-500"
-                      } w-[140px] border-2 h-[140px] rounded-full mb-4`}
+                      class="object-cover w-[140px] border-2 h-[140px] rounded-full mb-4"
                     />
                   </Suspense>
                   <img
@@ -119,7 +147,7 @@ const ProfilePictureStep = () => {
             </Show>
             <Show when={imageLoading()}>
             <button
-                onClick={handleProfileImageChange}
+                onClick={() => abort()}
                 class="mb-2 bg-gray-600 hover:bg-gray-500 w-[150px] text-white py-1 px-4  rounded-[16px] text-sm font-bold transition-all duration-300"
               >
                 გაუქმება 

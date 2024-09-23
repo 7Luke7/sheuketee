@@ -1,9 +1,9 @@
 import { A, createAsync, useNavigate } from "@solidjs/router";
 import { check_user_age, handle_date_select } from "~/routes/api/xelosani/setup/setup";
 import { Match, Switch, batch, createEffect, createSignal } from "solid-js";
-import ChevronRightBlackSVG from "../../../../../public/svg-images/ChevronRightBlack.svg";
-import ChevronLeftBlackSVG from "../../../../../public/svg-images/ChevronLeftBlack.svg";
-import dropdownSVG from "../../../../../public/svg-images/svgexport-8.svg"
+import ChevronRightBlackSVG from "../../../../svg-images/ChevronRightBlack.svg";
+import ChevronLeftBlackSVG from "../../../../svg-images/ChevronLeftBlack.svg";
+import dropdownSVG from "../../../../svg-images/svgexport-8.svg"
 
 const Age = () => {
   const get_user_age = createAsync(check_user_age)

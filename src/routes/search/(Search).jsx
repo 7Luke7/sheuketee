@@ -2,9 +2,9 @@ import { A, createAsync, useSearchParams } from "@solidjs/router";
 import { Header } from "~/Components/Header";
 import { MainSearch } from "../api/search";
 import { For } from "solid-js";
-import defaultProfileSVG from "../../../public/default_profile.png";
-import emptyStar from "../../../public/svg-images/svgexport-24.svg";
-import fullStar from "../../../public/svg-images/svgexport-19.svg";
+import defaultProfileSVG from "../../default_profile.png";
+import emptyStar from "../../svg-images/svgexport-24.svg";
+import fullStar from "../../svg-images/svgexport-19.svg";
 
 const Search = () => {
   const [searchParams, setSearchParams] = useSearchParams();

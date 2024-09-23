@@ -1,7 +1,7 @@
-import welcomeSVG from "../../public/svg-images/welcome.svg"
-import Pen from "../../public/svg-images/svgexport-16.svg"
-import Pin from "../../public/svg-images/svgexport-17.svg"
-import Star from "../../public/svg-images/svgexport-18.svg"
+import welcomeSVG from "../svg-images/welcome.svg"
+import Pen from "../svg-images/svgexport-16.svg"
+import Pin from "../svg-images/svgexport-17.svg"
+import Star from "../svg-images/svgexport-18.svg"
 import { A } from "@solidjs/router"
 
 export const SecondHero = () => {
