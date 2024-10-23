@@ -1,6 +1,5 @@
 'use server'
 import {getRequestEvent} from "solid-js/web"
-import {Xelosani} from "../../models/User"
 import {verify_user} from "../../session_management"
 
 export const modify_user_location = async (location) => {

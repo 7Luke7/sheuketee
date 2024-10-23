@@ -34,7 +34,7 @@ export async function POST({request, params}) {
 
     const bytes = await file.arrayBuffer(file);
     const buffer = Buffer.from(bytes);
-    const compressed_buffer = await compress_image(buffer, 80, 140, 140);
+    const compressed_buffer = await compress_image(buffer, 50, 140, 140);
     const s3_params = {
       Bucket: process.env.S3_BUCKET_NAME,
       Key: `${redis_user.profId}-profpic`,
@@ -50,7 +50,7 @@ export async function POST({request, params}) {
     if (error.name === "NotFound") {
       const bytes = await file.arrayBuffer(file);
       const buffer = Buffer.from(bytes);
-      const compressed_buffer = await compress_image(buffer, 80, 140, 140);
+      const compressed_buffer = await compress_image(buffer, 50, 140, 140);
 
       if (redis_user.role === 1) {
         await Xelosani.updateOne(

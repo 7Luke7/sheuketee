@@ -14,13 +14,13 @@ const Contact = () => {
     try {
       const formData = new FormData(event.target);
       const response = await handle_contact(formData, contact());
-      console.log(response)
-      if (response.status !== 200) throw new Error(response.message);
+      if (response.status !== 200) throw new Error(response);
       if (response.stepPercent > 100) {
         return navigate(`/damkveti/${response.profId}`); //ჩანიშვნა
       }
       setSubmitted(true);
     } catch (error) {
+      console.log(error)
       if (error.message === "401") {
         return alert("მომხმარებელი არ არის შესული სისტემაში.");
       }

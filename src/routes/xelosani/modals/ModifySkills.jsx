@@ -7,9 +7,10 @@ import { For, Show, batch, createSignal } from "solid-js";
 export const ModifySkill = (props) => {
   const [activeParentIndex, setActiveParentIndex] = createSignal(null);
   const [activeChildIndex, setActiveChildIndex] = createSignal(null);
-  const [childChecked, setChildChecked] = createSignal(props.skills.child)
-  const [parentChecked, setParentChecked] = createSignal(props.skills.parent)
-  const [mainChecked, setMainChecked] = createSignal(props.skills.main)
+  const [childChecked, setChildChecked] = createSignal(props.child)
+  const [parentChecked, setParentChecked] = createSignal(props.parent)
+  const [mainChecked, setMainChecked] = createSignal(props.main)
+  console.log(props.child, props.main)
 
   const toggleParentAccordion = (index) => {
     if (activeParentIndex() === index) {
@@ -31,99 +32,146 @@ export const ModifySkill = (props) => {
     }
   };
 
-  const handleParentChange = (isChecked, currentCategory, childCategories) => {
-    if (isChecked) {
-      batch(() => {
-        setChildChecked((prev) => {
-          return [...prev, ...childCategories]
-        })
-        setParentChecked((prev) => {
-          return [...prev, currentCategory]
-        })
-      })
-    } else {
-      batch(() => {
-        setChildChecked((prev) => {
-          const filt = prev.filter((p) => !childCategories.includes(p))
-          return filt
-        })
-        setParentChecked((prev) => {
-          const filt = prev.filter((p) => p !== currentCategory)
-          return filt
-        })
-      })
-    }
-  }
-
-  const handleGrandChange = (j, isChecked, parentCategory, allChild) => {
-    if (isChecked) {
-      setChildChecked((prev) => {
-        return [...prev, j]
-      })
-      if (!parentChecked().includes(parentCategory)) {
-        setParentChecked((prev) => {
-          return [...prev, parentCategory]
-        })
-      }
-    } else {
-      setChildChecked((prev) => {
-        const filt = prev.filter((p) => p !== j)
-        return filt
-      })
-      if (allChild.some((a) => childChecked().includes(a))) {
-        return  
-      } else {
-        setParentChecked((prev) => {
-          const filt = prev.filter((p) => p !== parentCategory)
-          return filt
-        })
-      }
-    }
-  }
-
-  const handleMainChange = (isChecked, currentCategory, currentCategoryList) => {
+  const handleParentChange = (
+    isChecked,
+    currentCategory,
+    childCategories,
+    index,
+    allParents,
+    m
+  ) => {
     if (isChecked) {
       batch(() => {
         setMainChecked((prev) => {
-          return [...prev, currentCategory]
-        })
+          return [...prev, m];
+        });
+        setChildChecked((prev) => {
+          return [...prev, ...childCategories];
+        });
+        setActiveChildIndex(index);
         setParentChecked((prev) => {
-          return [...prev, ...currentCategoryList.map((a) => a['კატეგორია'])];
-        })
+          return [...prev, currentCategory];
+        });
+      });
+    } else {
+      batch(() => {
+        setChildChecked((prev) => {
+          const filt = prev.filter((p) => !childCategories.includes(p));
+          return filt;
+        });
+        setActiveChildIndex(null);
+        setParentChecked((prev) => {
+          const filt = prev.filter((p) => p !== currentCategory);
+          return filt;
+        });
+        if (allParents.some((a) => parentChecked().includes(a["კატეგორია"]))) {
+          return;
+        } else {
+          if (!parentChecked().length) {
+            setMainChecked((prev) => {
+              const filt = prev.filter((p) => p !== m);
+              return filt;
+            });
+            setMainChecked([]);
+          }
+        }
+      });
+    }
+  };
+
+  const handleGrandChange = (j, isChecked, parentCategory, allChild, m) => {
+    if (isChecked) {
+      setMainChecked((prev) => {
+        return [...prev, m];
+      });
+      setChildChecked((prev) => {
+        return [...prev, j];
+      });
+      if (!parentChecked().includes(parentCategory)) {
+        setParentChecked((prev) => {
+          return [...prev, parentCategory];
+        });
+      }
+    } else {
+      setChildChecked((prev) => {
+        const filt = prev.filter((p) => p !== j);
+        return filt;
+      });
+      if (allChild.some((a) => childChecked().includes(a))) {
+        return;
+      } else {
+        setParentChecked((prev) => {
+          const filt = prev.filter((p) => p !== parentCategory);
+          return filt;
+        });
+        if (!parentChecked().length) {
+          setMainChecked([]);
+        }
+      }
+    }
+  };
+
+  const handleMainChange = (
+    isChecked,
+    currentCategory,
+    currentCategoryList,
+    index
+  ) => {
+    if (isChecked) {
+      batch(() => {
+        setMainChecked((prev) => {
+          return [...prev, currentCategory];
+        });
+        setParentChecked((prev) => {
+          return [
+            ...prev,
+            ...currentCategoryList[currentCategory].map((a) => a["კატეგორია"]),
+          ];
+        });
+        setActiveParentIndex(index());
         setChildChecked((prev) => {
           return [
-            ...prev, 
-            ...currentCategoryList.flatMap((a) => a['სამუშაოები'])
-          ]
-        })
-      })
+            ...prev,
+            ...currentCategoryList[currentCategory].flatMap(
+              (a) => a["სამუშაოები"]
+            ),
+          ];
+        });
+      });
     } else {
       batch(() => {
         setMainChecked((prev) => {
           return prev.filter((item) => item !== currentCategory);
         });
-      
+        setActiveParentIndex(null);
+
         setParentChecked((prev) => {
-          const filteredCategories = currentCategoryList.map((a) => a['კატეგორია']);
-          return prev.filter((category) => !filteredCategories.includes(category));
+          const filteredCategories = currentCategoryList[currentCategory].map(
+            (a) => a["კატეგორია"]
+          );
+          return prev.filter(
+            (category) => !filteredCategories.includes(category)
+          );
         });
-      
+
         setChildChecked((prev) => {
-          const childCategories = currentCategoryList.flatMap((a) => a['სამუშაოები']);
+          const childCategories = currentCategoryList[currentCategory].flatMap(
+            (a) => a["სამუშაოები"]
+          );
           return prev.filter((child) => !childCategories.includes(child));
         });
-      })    
+      });
     }
-  }
+  };
 
   const handle_user_skills = async (e) => {
     e.preventDefault();
     const displayableSkills = parentChecked().map((parent, i) => {
-        if (props.skills.displayableSkills.some(a => a.displaySkills === parent)) {
+        if (props.skills.some(a => a.displaySkills === parent)) {
           return {
             displaySkills: parent,
-            completedJobs: props.skills.displayableSkills[i].completedJobs,
-            reviews: props.skills.displayableSkills[i].reviews
+            completedJobs: props.skills[i].completedJobs,
+            reviews: props.skills[i].reviews
           }
         } else {
           return {
@@ -137,7 +185,7 @@ export const ModifySkill = (props) => {
         parent: parentChecked(),
         child: childChecked(),
         main: mainChecked(),
-        displayableSkills: displayableSkills
+        displayableSkills
       }
     try {
       const response = await modify_user_skills(skills);
@@ -153,6 +201,7 @@ export const ModifySkill = (props) => {
       alert(error);
     }
   };
+
   return (
     <div class="w-[1000px]">
         <div class="flex w-full justify-between items-center mb-2">
@@ -162,7 +211,7 @@ export const ModifySkill = (props) => {
         </button>
       </div>
       <div class="flex flex-col p-10 justify-between w-full items-center h-full mb-4">
-          <Show when={props.skills.displayableSkills && jobs}>
+          <Show when={props.skills && jobs}>
             <div class="grid grid-cols-2 justify-items-stretch gap-x-5 w-full">
               <For each={jobs.flatMap((obj) => Object.keys(obj))}>
                 {(m, Parentindex) => (
@@ -175,7 +224,7 @@ export const ModifySkill = (props) => {
                         <input
                           type="checkbox"
                           checked={mainChecked().includes(m)}
-                          onChange={(e) => handleMainChange(e.target.checked, m, jobs[0][m])}
+                          onChange={(e) => handleMainChange(e.target.checked, m, jobs[0], Parentindex)}
                           name="rules-confirmation"
                           class="accent-dark-green-hover"
                           id="must"
@@ -215,7 +264,7 @@ export const ModifySkill = (props) => {
                                   <input
                                     type="checkbox"
                                     checked={parentChecked().includes(child["კატეგორია"])}
-                                    onChange={(e) => handleParentChange(e.target.checked, child["კატეგორია"], child["სამუშაოები"])}
+                                    onChange={(e) => handleParentChange(e.target.checked, child["კატეგორია"], child["სამუშაოები"], index, jobs[0][m], m)}
                                     name="rules-confirmation"
                                     class="accent-dark-green-hover"
                                     id="must"
@@ -257,7 +306,7 @@ export const ModifySkill = (props) => {
                                         name="rules-confirmation"
                                         class="accent-dark-green-hover"
                                         id="must"
-                                        onChange={(e) => handleGrandChange(j, e.target.checked, child["კატეგორია"], child["სამუშაოები"])}
+                                        onChange={(e) => handleGrandChange(j, e.target.checked, child["კატეგორია"], child["სამუშაოები"], m)}
                                       ></input>
                                     </div>
                                   )}
@@ -278,7 +327,7 @@ export const ModifySkill = (props) => {
               onClick={handle_user_skills}
               class="py-2 w-full mt-3 px-3 rounded-md text-sm font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover"
             >
-              შეცვლა
+              დადასტურება
             </button>
           </div>
         </div>

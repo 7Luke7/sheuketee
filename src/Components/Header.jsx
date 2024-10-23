@@ -111,6 +111,14 @@ export const Header = () => {
                 განცხადების დამატება
               </A>
             </Show>
+            <Show when={user() && user().role === "xelosani"}>
+              <A
+                href={`/xelosani/services`}
+                class="bg-dark-green hover:bg-dark-green-hover text-white py-1 px-4  rounded-[16px] text-sm font-bold transition-all duration-300"
+              >
+                სერვისის დამატება
+              </A>
+            </Show>
             <Search
               value={value}
               setValue={setValue}

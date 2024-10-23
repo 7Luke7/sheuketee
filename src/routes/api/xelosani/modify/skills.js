@@ -1,7 +1,6 @@
 "use server"
 import { getRequestEvent } from "solid-js/web";
 import { verify_user } from "../../session_management";
-import { Xelosani } from "../../models/User";
 
 export const modify_user_skills = async (skills) => {
     try {

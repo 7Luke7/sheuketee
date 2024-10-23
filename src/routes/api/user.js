@@ -1,37 +1,36 @@
 "use server";
-import { redisClient, s3 } from "~/entry-server";
-import { Damkveti, Xelosani } from "./models/User";
-import {
-  GetObjectCommand,
-  HeadObjectCommand,
-} from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { getRequestEvent } from "solid-js/web";
 import { cache, json } from "@solidjs/router";
-import bcrypt from "bcrypt";
 import { verify_user } from "./session_management";
 import { CustomError } from "./utils/errors/custom_errors";
 import { HandleError } from "./utils/errors/handle_errors";
-import { get_user_job_image } from "./jobs";
+import { hide_email, hide_mobile_number } from "./utils/hide/mail";
+import { memcached_server_request } from "./utils/ext_requests/memcached_server_request";
+import { postgresql_server_request } from "./utils/ext_requests/posgresql_server_request";
 
 export const get_account = cache(async () => {
   try {
     const event = getRequestEvent();
-    const redis_user = await verify_user(event);
+    const session = await verify_user(event);
 
-    if (redis_user === 401) {
+    if (session === 401) {
       throw new Error(401);
     }
 
-    if (redis_user.role === 1) {
-      const user = await Xelosani.findById(
-        redis_user.userId,
-        "-_id -__v -skills -updatedAt -notificationDevices -location -createdAt -password -gender -date -about -stepPercent -profId"
-      );
-      return JSON.stringify(user._doc);
-    } else if (redis_user.role === 2) {
+    if (session.role === 1) {
+      const data = await postgresql_server_request("POST", `xelosani/account`, {
+        body: JSON.stringify({
+          userId: session.userId,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      return data;
+    } else if (session.role === 2) {
       const user = await Damkveti.findById(
-        redis_user.userId,
+        session.userId,
         "-_id -__v -skills -updatedAt -notificationDevices -createdAt -password -gender -date -about -stepPercent -profId"
       );
       return JSON.stringify(user._doc);
@@ -54,47 +53,121 @@ export const get_xelosani = async (prof_id) => {
       throw new Error(401);
     }
 
-    const user = await Xelosani.findById(
-      redis_user.userId,
-      "-_id -__v -skills.displayableSkills._id -updatedAt -notificationDevices -__t -password"
-    ).lean()
+    const user = await postgresql_server_request("GET", `xelosani/${redis_user.profId}`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
-    const displayBirthDate = new Date(user["date"]).toLocaleDateString("ka-GE", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    })
+    let displayBirthDate;
+    if (user.date && user.privacy && user.privacy.birthDate !== "private") {
+      displayBirthDate = new Date(user["date"]).toLocaleDateString("ka-GE", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    }
+
     const profile_image = await get_user_profile_image(prof_id);
-    const creationDateDisplayable = getTimeAgo(user.createdAt);
-    return JSON.stringify({
+    if (user.services) {
+      for (let i = 0; i < user.services.length; i++) {
+        const service_thumbnail = await get_s3_image(
+          `${user.services[i].publicId}-service-post-thumbnail`
+        );
+        user.services[i]["service_thumbnail"] = service_thumbnail;
+      }
+    }
+    const creationDateDisplayable = getTimeAgo(user.created_at);
+
+    const keys = Object.keys(user.privacy);
+    for (let i = 0; i < keys.length; i++) {
+      if (user.privacy[keys[i]] === "ნახევრად დამალვა") {
+        if (keys[i] === "email" && user.email) {
+          user["email"] = hide_email(user.email);
+        }
+        if (keys[i] === "phone" && user.phone) {
+          user["phone"] = hide_mobile_number(user.phone);
+        }
+      } else if (user.privacy[keys[i]] === "დამალვა") {
+        if (keys[i] === "email") {
+          delete user["email"];
+        }
+        if (keys[i] === "phone") {
+          delete user["phone"];
+        }
+        if (keys[i] === "birthDate") {
+          delete user["date"];
+        }
+      }
+    }
+
+    return {
       ...user,
       profile_image,
       displayBirthDate,
       creationDateDisplayable,
       status: 200,
-    });
+    };
   } catch (error) {
     if (error.message === "401") {
       const user = await Xelosani.findOne(
         { profId: prof_id },
-        "-_id -__v -stepPercent -notificationDevices -updatedAt -__t -password"
-      ).lean()
-      const displayBirthDate = new Date(user["date"]).toLocaleDateString("ka-GE", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
+        "-_id -__v -stepPercent -setupDone -skills.displayableSkills._id -__v -updatedAt -notificationDevices -__t -password"
+      )
+        .populate(
+          "services",
+          "-_id -__v -display -_creator -createdAt -updatedAt"
+        )
+        .lean();
+
+      let displayBirthDate;
+      if (user.date && user.privacy.birthDate !== "private") {
+        displayBirthDate = new Date(user["date"]).toLocaleDateString("ka-GE", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+      }
       const profile_image = await get_user_profile_image(prof_id);
+      if (user.services) {
+        for (let i = 0; i < user.services.length; i++) {
+          const service_thumbnail = await get_s3_image(
+            `${user.services[i].publicId}-service-post-thumbnail`
+          );
+          user.services[i]["service_thumbnail"] = service_thumbnail;
+        }
+      }
       const creationDateDisplayable = getTimeAgo(user.createdAt);
-      return JSON.stringify({
+      const keys = Object.keys(user.privacy);
+      for (let i = 0; i < keys.length; i++) {
+        if (user.privacy[keys[i]] === "semipublic") {
+          if (keys[i] === "email") {
+            user["email"] = hide_email(user.email);
+          }
+          if (keys[i] === "phone") {
+            user["phone"] = hide_mobile_number(user.phone);
+          }
+        } else if (user.privacy[keys[i]] === "private") {
+          if (keys[i] === "email") {
+            delete user["email"];
+          }
+          if (keys[i] === "phone") {
+            delete user["phone"];
+          }
+          if (keys[i] === "birthDate") {
+            delete user["date"];
+          }
+        }
+      }
+      return {
         ...user,
-        displayBirthDate,
         profile_image,
+        displayBirthDate,
         creationDateDisplayable,
         status: 401,
-      });
+      };
     }
   }
 };
@@ -151,7 +224,13 @@ export const logout_user = async () => {
   try {
     const event = getRequestEvent();
     const session = event.request.headers.get("cookie").split("sessionId=")[1];
-    await redisClient.del(session);
+
+    await memcached_server_request("DELETE", "user_session", {
+      body: JSON.stringify({ session }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
     return json("success", {
       status: 200,
       headers: {
@@ -167,75 +246,21 @@ export const logout_user = async () => {
 export const toggle_notification = async (target) => {
   try {
     const event = getRequestEvent();
-    const user_id = await verify_user(event);
+    const session = await verify_user(event);
 
-    if (target === "phone") {
-      const updated_xelosani = await (user_id.role === 1
-        ? Xelosani
-        : Damkveti
-      ).findByIdAndUpdate(
-        user_id.userId,
-        [
-          {
-            $set: {
-              notificationDevices: {
-                $cond: {
-                  if: { $in: [target, "$notificationDevices"] },
-                  then: {
-                    $filter: {
-                      input: "$notificationDevices",
-                      cond: { $ne: ["$$this", target] },
-                    },
-                  },
-                  else: { $concatArrays: ["$notificationDevices", [target]] },
-                },
-              },
-            },
-          },
-        ],
-        { new: true, fields: { notificationDevices: 1 } }
-      );
-
-      if (updated_xelosani.notificationDevices.includes(target)) {
-        return 1;
-      } else {
-        return 2;
+    await postgresql_server_request(
+      "PUT",
+      `xelosani/notification_targets`,
+      {
+          body: JSON.stringify({
+              target,
+              userId: session.userId
+          }),
+          headers: {
+              "Content-Type": "application/json"
+          }
       }
-    } else if (target === "email") {
-      const updated_xelosani = await (user_id.role === 1
-        ? Xelosani
-        : Damkveti
-      ).findByIdAndUpdate(
-        user_id.userId,
-        [
-          {
-            $set: {
-              notificationDevices: {
-                $cond: {
-                  if: { $in: [target, "$notificationDevices"] },
-                  then: {
-                    $filter: {
-                      input: "$notificationDevices",
-                      cond: { $ne: ["$$this", target] },
-                    },
-                  },
-                  else: { $concatArrays: ["$notificationDevices", [target]] },
-                },
-              },
-            },
-          },
-        ],
-        { new: true, fields: { notificationDevices: 1 } }
-      );
-
-      if (updated_xelosani.notificationDevices.includes(target)) {
-        return 1;
-      } else {
-        return 2;
-      }
-    } else {
-      return 500;
-    }
+    )
   } catch (error) {
     console.log(error);
   }
@@ -244,35 +269,18 @@ export const toggle_notification = async (target) => {
 export const get_notification_targets = async () => {
   try {
     const event = getRequestEvent();
-    const user_id = await verify_user(event);
+    const session = await verify_user(event);
 
-    const user = await (user_id.role === 1 ? Xelosani : Damkveti).findById(
-      user_id.userId,
-      "notificationDevices -_id"
-    );
-    return user.notificationDevices;
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-export const update_password = async (new_password) => {
-  try {
-    const event = getRequestEvent();
-    const user_id = await verify_user(event);
-
-    const salt = await bcrypt.genSalt(8);
-    const hash = await bcrypt.hash(new_password, salt);
-    await (user_id.role === 1 ? Xelosani : Damkveti).findByIdAndUpdate(
-      user_id.userId,
-      {
-        $set: {
-          password: hash,
-        },
-      }
-    );
-
-    return "წარმატება";
+    console.log(session)
+    const data = await postgresql_server_request("POST", `xelosani/notification_targets`, {
+      body: JSON.stringify({
+        userId: session.userId,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return data.notificationDevices;
   } catch (error) {
     console.log(error);
   }
@@ -284,56 +292,50 @@ const phoneRegex = /^\d{9}$/;
 export const modify_user = async (firstname, lastname, email, phone) => {
   try {
     const event = getRequestEvent();
-    const user_id = await verify_user(event);
+    const session = await verify_user(event);
     if (!firstname.length) {
       throw new CustomError(
         "სახელი",
         "სახელი უნდა შეიცავდეს მინიმუმ 1 ასოს."
-      ).ExntendToErrorName("ValidationError");
+      )
     }
 
     if (!lastname.length) {
       throw new CustomError(
         "გვარი",
         "გვარი უნდა შეიცავდეს მინიმუმ 1 ასოს."
-      ).ExntendToErrorName("ValidationError");
+      )
     }
 
-    if (email && email.length && !emailRegex.test(email)) {
-      throw new CustomError("მეილი", "მეილი არასწორია.").ExntendToErrorName(
-        "ValidationError"
-      );
+    if (!emailRegex.test(email)) {
+      throw new CustomError("მეილი", "მეილი არასწორია.")
     }
 
-    if (phone && phone.length && !phoneRegex.test(phone)) {
+    if (!phoneRegex.test(phone)) {
       throw new CustomError(
         "მობილური",
         "მობილურის ნომერი არასწორია."
-      ).ExntendToErrorName("ValidationError");
+      )
     }
 
-    const user = await (user_id.role === 1 ? Xelosani : Damkveti).findById(
-      user_id.userId
-    );
+    const data = await postgresql_server_request("PUT", `xelosani/account`, {
+      body: JSON.stringify({
+        userId: session.userId,
+        firstname,
+        lastname,
+        email,
+        phone
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
-    user.firstname = firstname;
-    user.lastname = lastname;
-    if (email && email.length) {
-      user.email = email;
-      user.stepPercent =
-        user.role === 1 ? user.stepPercent + 12.5 : user.stepPercent + 17;
-    }
-    if (phone && phone.length) {
-      user.phone = phone;
-      user.stepPercent =
-        user.role === 1 ? user.stepPercent + 12.5 : user.stepPercent + 17;
-    }
-
-    await user.save();
     return {
       status: 200,
     };
   } catch (error) {
+    console.log(error);
     if (error.name === "ValidationError") {
       const errors = new HandleError(error).validation_error();
       return {
@@ -352,13 +354,12 @@ export const modify_user = async (firstname, lastname, email, phone) => {
         status: 400,
       };
     }
-    console.log("დაფიქსირდა შეცდომა სერვერზე");
   }
 };
 
 ///////////////////////// DAMKVETI ///////////////////////////////////
 
-export const get_damkveti = cache(async (prof_id) => {
+export const get_damkveti = async (prof_id) => {
   try {
     const event = getRequestEvent();
     const redis_user = await verify_user(event);
@@ -370,70 +371,158 @@ export const get_damkveti = cache(async (prof_id) => {
     const { jobs, ...user } = await Damkveti.findById(
       redis_user.userId,
       "-_id -__v -updatedAt -notificationDevices -__t -password"
-    ).populate("jobs", "-mileStones -_id -__v -updatedAt -_creator").lean()
+    )
+      .populate("jobs", "-mileStones -_id -__v -updatedAt -_creator")
+      .lean();
 
-    const displayBirthDate = new Date(user["date"]).toLocaleDateString("ka-GE", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    })
-
-    const profile_image = await get_user_profile_image(prof_id);
-    const creationDateDisplayable = getTimeAgo(user.createdAt);
-
-    const modedJobs = await Promise.all(jobs.map(async (j, i) => {
-      const image = await get_user_job_image(`${j.publicId}-job-post-thumbnail`);
-      const creationDateDisplayable = getTimeAgo(j.createdAt);
-    
-      return {...j, createdAt: creationDateDisplayable, thumbnail: image, profPic: profile_image};
-    }));
-    
-    return JSON.stringify({
-      ...user,
-      jobs: modedJobs,
-      displayBirthDate,
-      jobCount: jobs.length,
-      profile_image,
-      creationDateDisplayable,
-      status: 200,
-    });
-  } catch (error) {
-    if (error.message === "401") {
-      const { jobs, ...user } = await Damkveti.findOne(
-        {profId: prof_id},
-        "-_id -__v -stePercent -updatedAt -notificationDevices -password"
-      ).populate("jobs", "-mileStones -_id -__v -updatedAt -_creator").lean()
-
-      const displayBirthDate = new Date(user["date"]).toLocaleDateString("ka-GE", {
+    let displayBirthDate;
+    if (user.date && user.privacy.birthDate !== "private") {
+      displayBirthDate = new Date(user["date"]).toLocaleDateString("ka-GE", {
         weekday: "long",
         year: "numeric",
         month: "long",
         day: "numeric",
-      })
-  
-      const profile_image = await get_user_profile_image(prof_id);
-      const creationDateDisplayable = getTimeAgo(user.createdAt);
-  
-      const modedJobs = await Promise.all(jobs.map(async (j, i) => {
-        const image = await get_user_job_image(`${j.publicId}-job-post-thumbnail`);
-        const creationDateDisplayable = getTimeAgo(j.createdAt);
-      
-        return {...j, createdAt: creationDateDisplayable, thumbnail: image, profPic: profile_image};
-      }));
-      
-      return JSON.stringify({
+      });
+    }
+
+    const profile_image = await get_user_profile_image(prof_id);
+    const creationDateDisplayable = getTimeAgo(user.createdAt);
+
+    const keys = Object.keys(user.privacy);
+    for (let i = 0; i < keys.length; i++) {
+      if (user.privacy[keys[i]] === "semipublic") {
+        if (keys[i] === "email") {
+          user["email"] = hide_email(user.email);
+        }
+        if (keys[i] === "phone") {
+          user["phone"] = hide_mobile_number(user.phone);
+        }
+      } else if (user.privacy[keys[i]] === "private") {
+        if (keys[i] === "email") {
+          delete user["email"];
+        }
+        if (keys[i] === "phone") {
+          delete user["phone"];
+        }
+        if (keys[i] === "birthDate") {
+          delete user["date"];
+        }
+      }
+    }
+
+    let modedJobs;
+    if (jobs || jobs.length) {
+      modedJobs = await Promise.all(
+        jobs.map(async (j, i) => {
+          const image = await get_s3_image(`${j.publicId}-job-post-thumbnail`);
+          const creationDateDisplayable = getTimeAgo(j.createdAt);
+
+          return {
+            ...j,
+            createdAt: creationDateDisplayable,
+            thumbnail: image,
+            profPic: profile_image,
+          };
+        })
+      );
+      return {
         ...user,
-        displayBirthDate,
         jobs: modedJobs,
+        displayBirthDate,
         jobCount: jobs.length,
         profile_image,
         creationDateDisplayable,
-        status: 401,
-      });
+        status: 200,
+      };
+    } else {
+      return {
+        ...user,
+        displayBirthDate,
+        profile_image,
+        creationDateDisplayable,
+        status: 200,
+      };
+    }
+  } catch (error) {
+    if (error.message === "401") {
+      const { jobs, ...user } = await Damkveti.findOne(
+        { profId: prof_id },
+        "-_id -__v -stepPercent -setupDone -updatedAt -notificationDevices -password"
+      )
+        .populate("jobs", "-mileStones -_id -__v -updatedAt -_creator")
+        .lean();
+      let displayBirthDate;
+      if (user.date && user.privacy.birthDate !== "private") {
+        displayBirthDate = new Date(user["date"]).toLocaleDateString("ka-GE", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+      }
+
+      const profile_image = await get_user_profile_image(prof_id);
+      const creationDateDisplayable = getTimeAgo(user.createdAt);
+
+      const keys = Object.keys(user.privacy);
+      for (let i = 0; i < keys.length; i++) {
+        if (user.privacy[keys[i]] === "semipublic") {
+          if (keys[i] === "email") {
+            user["email"] = hide_email(user.email);
+          }
+          if (keys[i] === "phone") {
+            user["phone"] = hide_mobile_number(user.phone);
+          }
+        } else if (user.privacy[keys[i]] === "private") {
+          if (keys[i] === "email") {
+            delete user["email"];
+          }
+          if (keys[i] === "phone") {
+            delete user["phone"];
+          }
+          if (keys[i] === "birthDate") {
+            delete user["date"];
+          }
+        }
+      }
+      let modedJobs;
+      if (jobs) {
+        modedJobs = await Promise.all(
+          jobs.map(async (j, i) => {
+            const image = await get_s3_image(
+              `${j.publicId}-job-post-thumbnail`
+            );
+            const creationDateDisplayable = getTimeAgo(j.createdAt);
+
+            return {
+              ...j,
+              createdAt: creationDateDisplayable,
+              thumbnail: image,
+              profPic: profile_image,
+            };
+          })
+        );
+        return {
+          ...user,
+          jobs: modedJobs,
+          displayBirthDate,
+          jobCount: jobs.length,
+          profile_image,
+          creationDateDisplayable,
+          status: 401,
+        };
+      } else {
+        return {
+          ...user,
+          displayBirthDate,
+          profile_image,
+          creationDateDisplayable,
+          status: 401,
+        };
+      }
     }
   }
-}, "damkveti");
+};
 
 export const setup_done = async () => {
   try {

@@ -44,7 +44,7 @@ export const ProfileRight = (props) => {
         <Show
           when={
             props.user().status === 200 &&
-            props.user().skills.displayableSkills.length
+            props.user().skills?.length
           }
         >
           <button onClick={() => props.setModal("სპეციალობა")}>
@@ -55,7 +55,7 @@ export const ProfileRight = (props) => {
       <div class="mt-2">
         <section class="w-full flex">
           <Switch>
-            <Match when={!props.user().skills.displayableSkills.length}>
+            <Match when={!props.user().skills?.length && props.user().setupDone}>
               <button
                 id="locationButton"
                 type="button"
@@ -66,7 +66,7 @@ export const ProfileRight = (props) => {
               </button>
             </Match>
             <Match when={props.user().skills}>
-              <SkillCarousel skills={props.user().skills}></SkillCarousel>
+                <SkillCarousel skills={props.user().skills}></SkillCarousel>
             </Match>
             <Match when={!props.user().skills}>
               <A
@@ -94,8 +94,8 @@ export const ProfileRight = (props) => {
       </div>
       <div class="mt-2">
         <Switch>
-          <Match when={props.user().services}>
-            <Services status={props.user().status}></Services>
+          <Match when={props.user().services} >
+              <Services services={props.user().services} setEditingServiceTarget={props.setEditingServiceTarget} setModal={props.setModal} status={props.user().status}></Services>
           </Match>
           <Match when={props.user().status === 200}>
             <A

@@ -1,5 +1,5 @@
 import { A } from "@solidjs/router";
-import { Match, Switch } from "solid-js";
+import { Match, Show, Switch } from "solid-js";
 
 export const ProfileRight = (props) => {
   return (
@@ -33,12 +33,13 @@ export const ProfileRight = (props) => {
         </Match>
         <Match when={props.user().status === 401}>
           <p class="text-gr text-xs font-[thin-font] font-bold">
-            მომხმარებელს ინფორმაცია არ აქვს დამატებული.
+            მომხმარებელს აღწერა არ აქვს დამატებული.
           </p>
         </Match>
       </Switch>
       <div>
           <h2 class="font-[normal-font] text-gray-800 font-bold text-lg mt-2">განცხადებები</h2>
+            <Show when={props.user().jobs}>
             <div class="grid grid-cols-4 gap-x-5 mt-3 gap-y-5">
               <For each={props.user().jobs}>
                 {(j, i) => {
@@ -87,6 +88,7 @@ export const ProfileRight = (props) => {
                 }}
               </For>
             </div>
+            </Show>
           </div>
     </div>
   );

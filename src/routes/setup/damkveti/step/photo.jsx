@@ -34,7 +34,6 @@ const ProfilePictureStep = () => {
       }
 
       const data = await response.json()
-      console.log(data)
       
       if (data.stepPercent > 100) {
         return navigate(`/damkveti/${data.profId}`)
@@ -43,15 +42,15 @@ const ProfilePictureStep = () => {
       if (data.imageResponse) {
         batch(() => {
           setFile(null);
-          setImageLoading(false);
           setSubmitted(true)
         });
       }
     } catch (error) {
       if (error.name === "AbortError") {
         filterErrors(error);
-        setImageLoading(false)
       }
+    } finally {
+      setImageLoading(false)
     }
   };
 

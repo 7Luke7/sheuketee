@@ -123,7 +123,7 @@ export const ProfileLeft = (props) => {
 
   return (
     <div class="flex sticky top-[50px] gap-y-3 flex-col">
-      <div class="border-2 py-2 flex flex-col px-2 items-center flex-[2]">
+      <div class="border-2 py-2 flex min-w-[240px] flex-col px-2 items-center flex-[2]">
         <Switch>
         <Match when={props.user().status !== 401}>
             <Switch>
@@ -189,7 +189,7 @@ export const ProfileLeft = (props) => {
               <img
                 id="prof_pic"
                 class="w-[130px] border-2 border-solid border-[#108a00] rounded-[50%] h-[130px]"
-                src={props.user().profile_image}
+                src={imageUrl()}
               ></img>
               <span class="bottom-1 right-4 absolute w-5 h-5 bg-[#108a00] border-2 border-white rounded-full"></span>
             </div>
@@ -233,13 +233,13 @@ export const ProfileLeft = (props) => {
           </div>
           <div class="flex pb-1 px-2 border-b items-center gap-x-1">
             <Switch>
-              <Match when={props.user().phone}>
+              <Match when={props.user().phone && props.user().privacy.phone !== "private"}>
                 <img src={telephone}></img>
                 <p class="text-gr text-xs ml-1 font-[thin-font] font-bold">
                   {props.user().phone}
                 </p>
               </Match>
-              <Match when={props.user().status === 200}>
+              <Match when={props.user().status === 200 && !props.user().phone && props.user().privacy.phone !== "private"}>
                 <A
                   href="/setup/damkveti/step/contact"
                   class="bg-dark-green w-full py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]"
@@ -247,23 +247,29 @@ export const ProfileLeft = (props) => {
                   დაამატე ტელ. ნომერი
                 </A>
               </Match>
-              <Match when={props.user().status === 401}>
+              <Match when={props.user().status === 401 && props.user().privacy.phone !== "private"}>
                 <img src={telephone}></img>
                 <p class="text-gr ml-1 text-xs font-[thin-font] font-bold">
-                  არ არის დამატებული
+                  ტელ.ნომერი არ არის დამატებული
+                </p>
+              </Match>
+              <Match when={props.user().privacy.phone === "private"}>
+                <img src={telephone}></img>
+                <p class="text-gr ml-1 text-xs font-[thin-font] font-bold">
+                  ტელ.ნომერი დამალულია
                 </p>
               </Match>
             </Switch>
           </div>
           <div class="flex px-2 pb-1 border-b items-center gap-x-1">
             <Switch>
-              <Match when={props.user().email}>
+              <Match when={props.user().email && props.user().privacy.email !== "private"}>
                 <img src={envelope}></img>
                 <p class="text-gr ml-1 text-xs font-[thin-font] font-bold">
                   {props.user().email}
                 </p>
               </Match>
-              <Match when={props.user().status === 200}>
+              <Match when={props.user().status === 200 && !props.user().email && props.user().privacy.email !== "private"}>
                 <A
                   href="/setup/damkveti/step/contact"
                   class="bg-dark-green w-full py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]"
@@ -271,19 +277,25 @@ export const ProfileLeft = (props) => {
                   დაამატე მეილი
                 </A>
               </Match>
-              <Match when={props.user().status === 401}>
+              <Match when={props.user().status === 401 && props.user().privacy.email !== "private"}>
                 <img src={envelope}></img>
                 <p class="text-gr ml-1 text-xs font-[thin-font] font-bold">
-                  არ არის დამატებული
+                  მეილი არ არის დამატებული
+                </p>
+              </Match>
+              <Match when={props.user().privacy.email === "private"}>
+                <img src={envelope}></img>
+                <p class="text-gr ml-1 text-xs font-[thin-font] font-bold">
+                  მეილი დამალულია
                 </p>
               </Match>
             </Switch>
           </div>
           <div class="flex pb-1 px-2 items-center gap-x-1">
             <Switch>
-              <Match when={props.user().displayBirthDate}>
+              <Match when={props.user().date && props.user().privacy.birthDate !== "private"}>
                 <div class="flex justify-between w-full items-center">
-                  <div class="flex items-end gap-x-2">
+                  <div class="flex items-end pr-1 gap-x-2">
                     <img src={cake} />
                     <p class="text-gr text-xs font-[thin-font] font-bold">
                       {props.user().displayBirthDate}
@@ -296,7 +308,7 @@ export const ProfileLeft = (props) => {
                   </Show>
                 </div>
               </Match>
-              <Match when={props.user().status === 200}>
+              <Match when={props.user().status === 200 && !props.user().date && props.user().privacy.birthDate !== "private"}>
                 <A
                   href="/setup/damkveti/step/age"
                   class="bg-dark-green w-full py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]"
@@ -304,10 +316,31 @@ export const ProfileLeft = (props) => {
                   დაამატე დაბ. თარიღი
                 </A>
               </Match>
-              <Match when={props.user().status === 401}>
+              <Match when={props.user().status === 401 && props.user().privacy.birthDate !== "private"}>
+              <div class="flex items-center">
+              <div class="flex items-end gap-x-2">
+                    <img src={cake} />
+                    <p class="text-gr text-xs font-[thin-font] font-bold">
+                      {props.user().displayBirthDate}
+                    </p>
+                  </div>
                 <p class="text-gr text-xs text-center font-[thin-font] font-bold">
-                  ასაკი არ არის დამატებული
+                  ასაკი არ არის დამატებული  
                 </p>
+                </div>
+              </Match>
+              <Match when={props.user().privacy.birthDate === "private"}>
+              <div class="flex items-center">
+              <div class="flex items-end gap-x-2">
+                    <img src={cake} />
+                    <p class="text-gr text-xs font-[thin-font] font-bold">
+                      {props.user().displayBirthDate}
+                    </p>
+                  </div>
+                <p class="text-gr text-xs text-center font-[thin-font] font-bold">
+                  ასაკი დამალულია
+                </p>
+                </div>
               </Match>
             </Switch>
           </div>
@@ -338,18 +371,18 @@ export const ProfileLeft = (props) => {
       <div class="border-2 py-2 flex flex-col px-2 flex-[2]">
         <div class="flex pb-1 px-2 border-b items-center gap-x-1">
           <Switch>
-            <Match when={props.user().phone}>
+            <Match when={props.user().jobCount}>
               <img src={jobApplication}></img>
               <p class="text-gr text-xs ml-1 font-[thin-font] font-bold">
-                {props.user().jobCount} განცხადება
+                {props.user().jobCount || 0} განცხადება
               </p>
             </Match>
             <Match when={props.user().status === 200}>
               <A
-                href="/setup/damkveti/step/contact"
+                href={`/new/${props.user().profId}`}
                 class="bg-dark-green w-full py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]"
               >
-                დაამატე ტელ. ნომერი
+                დაამატე განცხადება
               </A>
             </Match>
             <Match when={props.user().status === 401}>

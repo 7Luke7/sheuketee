@@ -107,6 +107,10 @@ const Login = () => {
                         <h1 class="text-xl font-bold text-slate-900 font-[boldest-font]">შესვლა</h1>
                         <form method="post" onSubmit={handleSubmit} class="w-full">
                             <EmailPassword error={error} />
+                            <p class='mb-2 mt-5 font-[thin-font] text-xs font-bold text-gray-700'>
+                                დაგავიწყდა პაროლი?
+                                <A href="/resetpassword" class="pl-2 text-dark-green underline">პაროლის აღდგენა</A>
+                            </p>
                             <button type="submit" class="font-[thin-font] text-center text-lg w-full font-bold bg-dark-green hover:bg-dark-green-hover transition ease-in delay-20 text-white px-3 py-2 rounded-[16px]">გაგრძელება</button>
                         </form>
                         <div class="flex items-center max-w-lg justify-start w-full">
@@ -119,9 +123,9 @@ const Login = () => {
 //                             <div scope="public_profile,email,user_location,user_hometown,user_birthday,user_gender" class="fb-login-button w-full" data-width="100%" data-size="large" data-button-type="" data-layout="" data-auto-logout-link="false" data-use-continue-as="false">
 //
 //                             </div>
-             </div>
+                          </div>
 */}
-                        <p class="text-center font-[thin-font] font-bold text-sm text-gray-700">არ გაქვს ექაუნთი? <A href="/choose" class="text-gr underline">რეგისტრაცია</A></p>
+                        <p class="text-center font-[thin-font] font-bold text-sm text-gray-700">არ გაქვს ექაუნთი? <A href="/register" class="text-gr underline">რეგისტრაცია</A></p>
                     </div>
                     <div>
                         <SmallFooter />

@@ -1,4 +1,4 @@
-import { Header } from "~/Components/Header";
+import { Header } from "~/Components/Header"
 import {
   createSignal,
   Switch,
@@ -8,20 +8,21 @@ import {
   createEffect,
 } from "solid-js";
 import { createAsync } from "@solidjs/router";
-import { create_job, get_location } from "../../api/damkveti/job";
+import { get_location } from "../../api/damkveti/job";
 import { NotAuthorized } from "~/Components/NotAuthorized";
 import { CreateJobMap } from "./CreateJobMap";
 import { Show } from "solid-js";
 import { MileStoneModal } from "./MileStoneModal";
 import spinner from "../../../svg-images/spinner.svg";
-import exclamationWhite from "../../../svg-images/exclamationWhite.svg";
 import closeIcon from "../../../svg-images/svgexport-12.svg";
-import airplane from "../../../svg-images/airplane.svg";
 import uploadIcon from "../../../svg-images/uploadIcon.svg";
 import jobs from "../../../Components/header-comps/jobs_list.json";
 import dropdownSVG from "../../../svg-images/svgexport-8.svg";
 import gallery from "../../../svg-images/images.svg";
 import thumnail from "../../../svg-images/thumbnails-svgrepo-com.svg";
+import { makeAbortable } from "@solid-primitives/resource";
+import { Toast } from "~/Components/ToastComponent";
+import {ManualLocation} from "./manual_location"
 
 const CreateJob = () => {
   const location = createAsync(get_location);
@@ -42,7 +43,18 @@ const CreateJob = () => {
   const [showCategoryModal, setShowCategoryModal] = createSignal(false);
   const [currentStep, setCurrentStep] = createSignal("thumbnail");
   const [thumbNail, setThumbnail] = createSignal();
-  const [toast, setToast] = createSignal(null)
+  const [toast, setToast] = createSignal(null);
+  const [signal, abort, filterErrors] = makeAbortable({
+    timeout: 0,
+    noAutoAbort: true,
+  });
+  const [isSendingRequest, setIsSendngRequest] = createSignal(false);
+  const [state, setState] = createSignal("თბილისი")
+  const [coordinates, setCoordinates] = createSignal({
+      city: "თბილისი",
+      cords: { "lat": 41.6938, "lng": 44.8015 }
+  })
+  const [streetAddress, setStreetAdress] = createSignal("")
 
   const MAX_SINGLE_FILE_SIZE = 5 * 1024 * 1024;
   const MAX_TOTAL_SIZE = 25 * 1024 * 1024;
@@ -61,7 +73,7 @@ const CreateJob = () => {
     if (mileStone().length === 25) {
       return setToast({
         type: false,
-        message: "მაქსიმალური 25 ეტაპის რაოდენობა მიღწეულია."
+        message: "მაქსიმალური 25 ეტაპის რაოდენობა მიღწეულია.",
       });
     }
 
@@ -79,12 +91,26 @@ const CreateJob = () => {
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
-
+    
     for (const file of files) {
+      if (!file.type.startsWith("image/")) {
+        return setToast({
+          type: false,
+          message: "გთხოვთ აირჩიოთ ფაილი ფოტო ფორმატით."
+        }) 
+      }
+    
+      const file_existence = image().some((a) => a.name === file.name)
+      if (file_existence) {
+        return setToast({
+          type: false,
+          message: `${file.name} უკვე დამატებული გაქვთ.`
+        })
+      }
       if (file.size > MAX_SINGLE_FILE_SIZE) {
         return setToast({
           type: false,
-          message: `${file.name}, ფაილის ზომა აჭარბებს 5მბ ლიმიტს.`
+          message: `${file.name}, ფაილის ზომა აჭარბებს 5მბ ლიმიტს.`,
         });
       } else {
         setTotalSize((a) => (a += file.size));
@@ -94,22 +120,20 @@ const CreateJob = () => {
     if (totalSize() > MAX_TOTAL_SIZE) {
       return setToast({
         type: false,
-        message: "ფაილების ჯამური ზომა აჭარბებს 25მბ ერთობლივ ლიმიტს."
+        message: "ფაილების ჯამური ზომა აჭარბებს 25მბ ერთობლივ ლიმიტს.",
       });
     }
 
     if (currentStep() === "thumbnail") {
       if (!image().length) {
         setThumbnail(files[0]);
-        return setCurrentStep("gallery")
+        return setCurrentStep("gallery");
       } else {
         setThumbnail(files[0]);
       }
+    } else {
+      setImage([...image(), ...files]);
     }
-
-    // აქ შესაძლოა შეცდომაა როცა გალერეა სავსე ფოტოებით და თამბნეილს დაამატებ გაეშვებე ელსე სთეითმენთი და ეს ქვედაც გადაამოწმე მერე
-
-    setImage([...image(), ...files]);
   };
 
   const createPost = async (e) => {
@@ -120,14 +144,15 @@ const CreateJob = () => {
       if (!childChecked().length) {
         return setToast({
           type: false,
-          message: "გთხოვთ აირჩიოთ კატეგორია."
+          message: "გთხოვთ აირჩიოთ კატეგორია.",
         });
       }
 
-      if (!fd.get("title").length) {
+      const title = fd.get("title");
+      if (!title.length) {
         setToast({
           type: false,
-          message: "სათაური სავალდებულოა."
+          message: "სათაური სავალდებულოა.",
         });
         return setError([
           {
@@ -136,23 +161,24 @@ const CreateJob = () => {
           },
         ]);
       }
-      if (fd.get("title").length > 100) {
+      if (title.length > 60) {
         setToast({
           type: false,
-          message: "სათაური უნდა შეიცავდეს მაქსიმუმ 100 ასოს."
+          message: "სათაური უნდა შეიცავდეს მაქსიმუმ 60 ასოს.",
         });
         return setError([
           {
             field: "title",
-            message: "სათაური უნდა შეიცავდეს მაქსიმუმ 100 ასოს.",
+            message: "სათაური უნდა შეიცავდეს მაქსიმუმ 60 ასოს.",
           },
         ]);
       }
 
-      if (!fd.get("description").length) {
+      const description = fd.get("description");
+      if (!description.length) {
         setToast({
           type: false,
-          message: "აღწერა სავალდებულოა."
+          message: "აღწერა სავალდებულოა.",
         });
         return setError([
           {
@@ -161,22 +187,23 @@ const CreateJob = () => {
           },
         ]);
       }
-      if (fd.get("description").length > 1000) {
+      if (description.length > 600) {
         setToast({
           type: false,
-          message: "აღწერა უნდა შეიცავდეს მაქსიმუმ 1000 ასოს."
+          message: "აღწერა უნდა შეიცავდეს მაქსიმუმ 600 ასოს.",
         });
         return setError([
           {
             field: "description",
-            message: "აღწერა უნდა შეიცავდეს მაქსიმუმ 1000 ასოს.",
+            message: "აღწერა უნდა შეიცავდეს მაქსიმუმ 600 ასოს.",
           },
         ]);
       }
+
       if (!mileStoneModal() && !fd.get("price")) {
         setToast({
           type: false,
-          message: "ფასი სავალდებულოა თუ ეტაპები არ გაქვთ."
+          message: "ფასი სავალდებულოა თუ ეტაპები არ გაქვთ.",
         });
         return setError([
           {
@@ -185,102 +212,150 @@ const CreateJob = () => {
           },
         ]);
       }
-      if (mileStone().length) {
-        return mileStone().find((milestone, index) => {
+
+      if (mileStone() && mileStone().length) {
+        const errorFound = mileStone().find((milestone, index) => {
           if (!milestone.title.length) {
             setToast({
               type: false,
-              message: `${index + 1} ეტაპის სათაური სავალდებულოა.`
+              message: `${index + 1} ეტაპის სათაური სავალდებულოა.`,
             });
-            return setError([
+            setError([
               {
                 field: `mileStones.${index}.title`,
                 message: "ეტაპის სათაური სავალდებულოა.",
               },
             ]);
+            return true;
           }
-          if (milestone.title.length > 100) {
+          if (milestone.title.length > 60) {
             setToast({
               type: false,
-              message: `${index + 1} ეტაპის სათაური უნდა შეიცავდეს მაქსიმუმ 100 ასოს.`
+              message: `${
+                index + 1
+              } ეტაპის სათაური უნდა შეიცავდეს მაქსიმუმ 60 ასოს.`,
             });
-            return setError([
+            setError([
               {
                 field: `mileStones.${index}.title`,
-                message: "ეტაპის სათაური უნდა შეიცავდეს მაქსიმუმ 100 ასოს.",
+                message: "ეტაპის სათაური უნდა შეიცავდეს მაქსიმუმ 60 ასოს.",
               },
             ]);
+            return true;
           }
+
           if (!milestone.description.length) {
             setToast({
               type: false,
-              message: `${index + 1} ეტაპის აღწერა სავალდებულოა.`
+              message: `${index + 1} ეტაპის აღწერა სავალდებულოა.`,
             });
-            return setError([
+            setError([
               {
                 field: `mileStones.${index}.description`,
                 message: "ეტაპის აღწერა სავალდებულოა.",
               },
             ]);
+            return true;
           }
-          if (milestone.description.length > 1000) {
+          if (milestone.description.length > 600) {
             setToast({
               type: false,
-              message: `${index + 1} ეტაპის აღწერა უნდა შეიცავდეს მაქსიმუმ 1000 ასოს.`
+              message: `${
+                index + 1
+              } ეტაპის აღწერა უნდა შეიცავდეს მაქსიმუმ 600 ასოს.`,
             });
-            return setError([
+            setError([
               {
                 field: `mileStones.${index}.description`,
-                message: "ეტაპის აღწერა უნდა შეიცავდეს მაქსიმუმ 1000 ასოს.",
+                message: "ეტაპის აღწერა უნდა შეიცავდეს მაქსიმუმ 600 ასოს.",
               },
             ]);
+            return true;
           }
+
           if (!milestone.price) {
             setToast({
               type: false,
-              message: `${index + 1} ეტაპის ფასი სავალდებულოა.`
+              message: `${index + 1} ეტაპის ფასი სავალდებულოა.`,
             });
-            return setError([
+            setError([
               {
-                field: `mileStones.${index}.description`,
+                field: `mileStones.${index}.price`,
                 message: "ეტაპის ფასი სავალდებულოა.",
               },
             ]);
+            return true;
           }
         });
+
+        if (errorFound) return;
       }
+
       if (!thumbNail()) {
         return setToast({
           type: false,
-          message: "თამბნეილი სავალდებულოა."
-        });
-      }
-      if (!image().length) {
-        return setToast({
-          type: false,
-          message: "გალერეა სავალდებულოა."
+          message: "თამბნეილი სავალდებულოა.",
         });
       }
 
-      const response = await create_job(
-        fd,
-        markedLocation() || location(),
-        image(),
-        thumbNail(),
-        mileStone(),
-        [...mainChecked(), ...parentChecked(), ...childChecked()]
+      if (!image().length) {
+        return setToast({
+          type: false,
+          message: "გალერეა სავალდებულოა.",
+        });
+      }
+
+      if (location() || markedLocation()) {
+        fd.append(
+          "location",
+          JSON.stringify(markedLocation()) || JSON.stringify(location())
+        );
+      }
+      fd.append("thumbnail", thumbNail());
+      fd.append(
+        "categories",
+        JSON.stringify([
+          ...mainChecked(),
+          ...parentChecked(),
+          ...childChecked(),
+        ])
       );
+      fd.append("mileStone", JSON.stringify(mileStone()));
+      fd.append("galleryLength", image().length);
+
+      for (let i = 0; i < image().length; i++) {
+        fd.append(`job-${i}-gallery-image`, image()[i]);
+      }
+
+      if (!streetAddress().length) {
+        return setToast({
+          type: false,
+          message: "ქუჩის მისამართი სავალდებულოა.",
+        }); 
+      }
+
+      fd.append("streetAddress", streetAddress)
+      fd.append("city", coordinates())
+      fd.append("state", state())
+
+      setIsSendngRequest(true);
+      const response = await fetch("/api/damkveti/create_job", {
+        method: "POST",
+        body: fd,
+        credentials: "include",
+        signal: signal(),
+      });
 
       if (response.status === 500) {
         setToast({
           type: false,
-          message: "დაფიქსირდა სერვერული შეცდომა, სცადეთ მოგვიანებით."
+          message: "დაფიქსირდა სერვერული შეცდომა, სცადეთ მოგვიანებით.",
         });
       }
       if (response.status === 400) {
         setToast({
           type: false,
-          message: response.errors[0].message
+          message: response.errors[0].message,
         });
         return setError(response.errors);
       }
@@ -292,32 +367,37 @@ const CreateJob = () => {
         batch(() => {
           setToast({
             type: true,
-            message: "განცხადება წარმატებით აიტვირთა."
+            message: "განცხადება წარმატებით აიტვირთა.",
           });
           setImage([]);
           setMileStone(null);
           setMileStoneModal(false);
           setMainChecked([]);
+          setThumbnail(null);
           setParentChecked([]);
           setChildChecked([]);
+          setActiveChildIndex(null)
+          setActiveParentIndex(null)
           setCurrentStep("thumbnail");
         });
       };
       await func();
     } catch (error) {
-      alert(error);
+      filterErrors(error);
+    } finally {
+      setIsSendngRequest(false);
     }
   };
 
   createEffect(() => {
-    if (!toast()) return
-    let toastErrorTimeout
-    let toastExitTimeout
-      toastErrorTimeout = setTimeout(() => {
+    if (!toast()) return;
+    let toastErrorTimeout;
+    let toastExitTimeout;
+    toastErrorTimeout = setTimeout(() => {
       setIsExiting(true);
       toastExitTimeout = setTimeout(() => {
         setIsExiting(false);
-        setToast(null)
+        setToast(null);
       }, 500);
     }, 5000);
 
@@ -325,7 +405,7 @@ const CreateJob = () => {
       if (toastErrorTimeout) clearTimeout(toastErrorTimeout);
       if (toastExitTimeout) clearTimeout(toastExitTimeout);
     });
-  })
+  });
 
   const toggleParentAccordion = (index) => {
     if (activeParentIndex() === index) {
@@ -347,12 +427,23 @@ const CreateJob = () => {
     }
   };
 
-  const handleParentChange = (isChecked, currentCategory, childCategories) => {
+  const handleParentChange = (
+    isChecked,
+    currentCategory,
+    childCategories,
+    index,
+    allParents,
+    m
+  ) => {
     if (isChecked) {
       batch(() => {
+        setMainChecked((prev) => {
+          return [...prev, m];
+        });
         setChildChecked((prev) => {
           return [...prev, ...childCategories];
         });
+        setActiveChildIndex(index);
         setParentChecked((prev) => {
           return [...prev, currentCategory];
         });
@@ -363,16 +454,28 @@ const CreateJob = () => {
           const filt = prev.filter((p) => !childCategories.includes(p));
           return filt;
         });
+        setActiveChildIndex(null);
         setParentChecked((prev) => {
           const filt = prev.filter((p) => p !== currentCategory);
           return filt;
         });
+        if (allParents.some((a) => parentChecked().includes(a["კატეგორია"]))) {
+          return;
+        } else {
+          setMainChecked((prev) => {
+            const filt = prev.filter((p) => p !== m);
+            return filt;
+          });
+        }
       });
     }
   };
 
-  const handleGrandChange = (j, isChecked, parentCategory, allChild) => {
+  const handleGrandChange = (j, isChecked, parentCategory, allChild, m, allParents) => {
     if (isChecked) {
+      setMainChecked((prev) => {
+        return [...prev, m];
+      });
       setChildChecked((prev) => {
         return [...prev, j];
       });
@@ -393,6 +496,9 @@ const CreateJob = () => {
           const filt = prev.filter((p) => p !== parentCategory);
           return filt;
         });
+        if (!parentChecked().length) {
+          setMainChecked([]);
+        }
       }
     }
   };
@@ -400,7 +506,8 @@ const CreateJob = () => {
   const handleMainChange = (
     isChecked,
     currentCategory,
-    currentCategoryList
+    currentCategoryList,
+    index
   ) => {
     if (isChecked) {
       batch(() => {
@@ -408,12 +515,18 @@ const CreateJob = () => {
           return [...prev, currentCategory];
         });
         setParentChecked((prev) => {
-          return [...prev, ...currentCategoryList.map((a) => a["კატეგორია"])];
+          return [
+            ...prev,
+            ...currentCategoryList[currentCategory].map((a) => a["კატეგორია"]),
+          ];
         });
+        setActiveParentIndex(index());
         setChildChecked((prev) => {
           return [
             ...prev,
-            ...currentCategoryList.flatMap((a) => a["სამუშაოები"]),
+            ...currentCategoryList[currentCategory].flatMap(
+              (a) => a["სამუშაოები"]
+            ),
           ];
         });
       });
@@ -422,9 +535,10 @@ const CreateJob = () => {
         setMainChecked((prev) => {
           return prev.filter((item) => item !== currentCategory);
         });
+        setActiveParentIndex(null);
 
         setParentChecked((prev) => {
-          const filteredCategories = currentCategoryList.map(
+          const filteredCategories = currentCategoryList[currentCategory].map(
             (a) => a["კატეგორია"]
           );
           return prev.filter(
@@ -433,7 +547,7 @@ const CreateJob = () => {
         });
 
         setChildChecked((prev) => {
-          const childCategories = currentCategoryList.flatMap(
+          const childCategories = currentCategoryList[currentCategory].flatMap(
             (a) => a["სამუშაოები"]
           );
           return prev.filter((child) => !childCategories.includes(child));
@@ -453,10 +567,10 @@ const CreateJob = () => {
           <h1 class="heading text-center font-bold text-2xl m-5 text-gray-800">
             დაამატე განცხადება
           </h1>
-          <div class="flex w-full justify-center">
-            <div class="flex w-[1200px] mt-2 border border-gray-300">
+          <div class="flex flex-col w-[80%] mx-auto justify-center">
+            <div class="flex mt-2 border border-gray-300">
               <Show when={jobs && showCategoryModal()}>
-                <div class="fixed top-1/2 -translate-y-1/2 border bg-white z-[500] py-4 px-12 w-[800px] left-1/2 -translate-x-1/2">
+                <div class="fixed top-1/2 -translate-y-1/2 border bg-white z-[500] py-4 px-12 min-h-[480px] w-[950px] left-1/2 -translate-x-1/2">
                   <div class="flex items-center justify-between">
                     <h3 class="font-bold font-[bolder-font] text-xl">
                       აირჩიე კატეგორია
@@ -482,7 +596,8 @@ const CreateJob = () => {
                                   handleMainChange(
                                     e.target.checked,
                                     m,
-                                    jobs[0][m]
+                                    jobs[0],
+                                    Parentindex
                                   )
                                 }
                                 name="rules-confirmation"
@@ -532,7 +647,10 @@ const CreateJob = () => {
                                             handleParentChange(
                                               e.target.checked,
                                               child["კატეგორია"],
-                                              child["სამუშაოები"]
+                                              child["სამუშაოები"],
+                                              index,
+                                              jobs[0][m],
+                                              m
                                             )
                                           }
                                           name="rules-confirmation"
@@ -583,7 +701,9 @@ const CreateJob = () => {
                                                   j,
                                                   e.target.checked,
                                                   child["კატეგორია"],
-                                                  child["სამუშაოები"]
+                                                  child["სამუშაოები"],
+                                                  m,
+                                                  jobs[0][m],
                                                 )
                                               }
                                             ></input>
@@ -625,7 +745,7 @@ const CreateJob = () => {
                   placeholder="სათაური"
                   onInput={(e) => setTitle(e.target.value)}
                   id="title"
-                  maxLength={100}
+                  maxLength={60}
                   name="title"
                   type="text"
                 />
@@ -636,7 +756,7 @@ const CreateJob = () => {
                     </p>
                   </Show>
                   <div class="ml-auto text-gray-400 text-xs font-[thin-font]">
-                    {title().trim().length}/100
+                    {title().trim().length}/60
                   </div>
                 </div>
                 <textarea
@@ -644,7 +764,7 @@ const CreateJob = () => {
                   spellcheck="false"
                   name="description"
                   onInput={(e) => setInput(e.target.value)}
-                  maxlength={1000}
+                  maxlength={600}
                   id="desc"
                   placeholder="აღწერეთ თქვენი განცხადების დეტალები"
                 ></textarea>
@@ -655,7 +775,7 @@ const CreateJob = () => {
                     </p>
                   </Show>
                   <div class="count ml-auto text-gray-400 text-xs font-[thin-font]">
-                    {input().trim().length}/1000
+                    {input().trim().length}/600
                   </div>
                 </div>
                 <div class="flex items-center mb-4">
@@ -700,7 +820,7 @@ const CreateJob = () => {
                     }}
                     class={`bg-gray-800 px-4 py-2 ${
                       mileStoneModal() ? "w-[200px]" : "w-full"
-                    } font-[thin-font] text-sm hover:bg-gray-700 transition ease-in delay-20 text-white text-center rounded-[16px]`}
+                    } font-[thin-font] font-bold text-sm hover:bg-gray-700 transition ease-in delay-20 text-white text-center rounded-[16px]`}
                   >
                     {mileStoneModal() == false ? (
                       "დაყოფა ეტაპებად"
@@ -727,7 +847,10 @@ const CreateJob = () => {
                           "bg-green-100 rounded-full"
                         } p-2`}
                       >
-                        <img src={thumnail}></img>
+                        <img
+                          src={thumnail}
+                          onClick={() => setCurrentStep("thumbnail")}
+                        ></img>
                       </div>
                       <div
                         class={`${
@@ -749,7 +872,7 @@ const CreateJob = () => {
                         თამბნეილი
                       </span>
                       <p class="text-sm text-gray-500 font-bold font-[thin-font]">
-                        სურათი გამოჩნდება პირველი.
+                        სურათი გამოჩნდება წინა გვერდზე.
                       </p>
                     </button>
                   </li>
@@ -762,7 +885,10 @@ const CreateJob = () => {
                           "bg-green-100 rounded-full"
                         } p-2`}
                       >
-                        <img src={gallery}></img>
+                        <img
+                          src={gallery}
+                          onClick={() => setCurrentStep("gallery")}
+                        ></img>
                       </div>
                       <div
                         class={`${
@@ -817,34 +943,32 @@ const CreateJob = () => {
                   </label>
                 </div>
                 <Show when={thumbNail()}>
-                    <p class="text-md font-[normal-font] font-bold">
-                      თამბნეილი
-                    </p>
-                    <div class="bg-[#F5F7FB] h-[70px] rounded-[16px] w-full py-2 px-8">
-                      <div class="flex items-center justify-between">
-                        <span class="truncate pr-3 text-base font-[normal-font] text-[#07074D]">
-                          {thumbNail().name}
-                        </span>
-                        <button
-                          onClick={() => {
-                            setThumbnail(null);
-                          }}
-                          class="text-[#07074D]"
-                        >
-                          <img src={closeIcon} width={18} height={18}></img>
-                        </button>
-                      </div>
-                      <div class="flex flex-col relative h-[6px] w-full rounded-lg bg-[#E2E5EF]">
-                        <div class="w-full z-10 absolute h-full flex-1 rounded-lg bg-dark-green"></div>
-                        <span class="mt-2">
-                          {(thumbNail().size / (1024 * 1024)).toFixed(2)}MB
-                        </span>
-                      </div>
+                  <p class="text-md font-[normal-font] font-bold">თამბნეილი</p>
+                  <div class="bg-[#F5F7FB] h-[70px] rounded-[16px] w-full py-2 px-8">
+                    <div class="flex items-center justify-between">
+                      <span class="truncate pr-3 text-base font-[normal-font] text-[#07074D]">
+                        {thumbNail().name}
+                      </span>
+                      <button
+                        onClick={() => {
+                          setThumbnail(null);
+                        }}
+                        class="text-[#07074D]"
+                      >
+                        <img src={closeIcon} width={18} height={18}></img>
+                      </button>
                     </div>
+                    <div class="flex flex-col relative h-[6px] w-full rounded-lg bg-[#E2E5EF]">
+                      <div class="w-full z-10 absolute h-full flex-1 rounded-lg bg-dark-green"></div>
+                      <span class="mt-2">
+                        {(thumbNail().size / (1024 * 1024)).toFixed(2)}MB
+                      </span>
+                    </div>
+                  </div>
                 </Show>
                 <Show when={image().length}>
                   <div class="flex flex-col gap-y-2 mt-4 w-full">
-                    <p class="text-md font-[normal-font] font-bold">გალერეა</p>
+                    <p class="text-md font-[normal-font] font-bold">გალერეა ({image().length})</p>
                     <For each={image()}>
                       {(l, index) => (
                         <>
@@ -881,54 +1005,60 @@ const CreateJob = () => {
                   </div>
                 </Show>
                 <div class="buttons flex items-center w-full mt-3">
-                  <button
-                    type="submit"
-                    class="border border-gray-300 rounded-[16px] p-1 px-4 w-full text-center font-semibold cursor-pointer text-gray-200 ml-2 bg-dark-green"
-                  >
-                    პოსტის გამოქვეყნება
-                  </button>
+                  {isSendingRequest() ? (
+                    <button
+                      type="button"
+                      onClick={() => abort()}
+                      class="border border-gray-300 rounded-[16px] p-1 px-4 w-full cursor-pointer ml-2 bg-gray-600"
+                    >
+                      <div class="flex items-center justify-center">
+                        <img
+                          src={spinner}
+                          class="animate-spin mr-2"
+                          alt="იტვირთება..."
+                        />
+                        <p class="font-[normal-font] font-bold text-base text-gray-200">
+                          გაუქმება
+                        </p>
+                      </div>
+                    </button>
+                  ) : (
+                    <button
+                      type="submit"
+                      class="border border-gray-300 rounded-[16px] p-1 px-4 w-full text-center text-base font-bold font-[normal-font] cursor-pointer text-gray-200 ml-2 bg-dark-green"
+                    >
+                      განცხადების გამოქვეყნება
+                    </button>
+                  )}
                 </div>
               </form>
-              <CreateJobMap
-                location={location}
-                markedLocation={markedLocation}
-                setMarkedLocation={setMarkedLocation}
-              ></CreateJobMap>
+              <Switch>
+                <Match when={location()}>
+                  <ManualLocation location={location} setStreetAdress={setStreetAdress} streetAddress={streetAddress} state={state} setState={setState} coordinates={coordinates} setCoordinates={setCoordinates}></ManualLocation>
+                </Match>
+                <Match when={!location()}>
+                  {/* <CreateJobMap
+                  location={location}
+                  markedLocation={markedLocation}
+                  setMarkedLocation={setMarkedLocation}
+                  ></CreateJobMap> */}
+                </Match>
+              </Switch>
             </div>
+            <Show when={mileStoneModal()}>
+              <MileStoneModal
+                addMileStone={addMileStone}
+                error={error}
+                removeMileStone={removeMileStone}
+                mileStone={mileStone}
+                setMileStone={setMileStone}
+              ></MileStoneModal>
+            </Show>
           </div>
         </Match>
       </Switch>
       <Show when={toast()}>
-        <div
-          class={`${
-            isExiting() ? "toast-exit" : "toast-enter"
-          } fixed bottom-5 z-[200] left-1/2 -translate-x-1/2`}
-          role="alert"
-        >
-          <div class={`${!toast().type ? "border-red-400" : "border-dark-green-hover"} border flex relative bg-white space-x-4 rtl:space-x-reverse text-gray-500 border rounded-lg p-4 shadow items-center`}>
-            <button
-              class="absolute top-1 right-3"
-              onClick={() => setToast(null)}
-            >
-              <img width={14} height={14} src={closeIcon}></img>
-            </button>
-              {!toast().type ? <div class="bg-red-500 rounded-full">
-                <img src={exclamationWhite} />
-                </div> : <img class="rotate-[40deg]" src={airplane} />}
-            <div class={`${!toast().type  && "text-red-600"} ps-4 border-l text-sm font-[normal-font]`}>
-              {toast().message}
-            </div>
-          </div>
-        </div>
-      </Show>
-      <Show when={mileStoneModal()}>
-        <MileStoneModal
-          addMileStone={addMileStone}
-          error={error}
-          removeMileStone={removeMileStone}
-          mileStone={mileStone}
-          setMileStone={setMileStone}
-        ></MileStoneModal>
+          <Toast toast={toast} setToast={setToast} isExiting={isExiting} setIsExiting={setIsExiting}></Toast>
       </Show>
     </section>
   );

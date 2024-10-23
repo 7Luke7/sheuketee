@@ -8,7 +8,7 @@ import {
   createEffect,
   Show,
 } from "solid-js";
-import { createAsync } from "@solidjs/router";
+import { createAsync, useNavigate } from "@solidjs/router";
 import { NotAuthorized } from "~/Components/NotAuthorized";
 import exclamationWhite from "../../../svg-images/exclamationWhite.svg";
 import closeIcon from "../../../svg-images/svgexport-12.svg";
@@ -21,6 +21,11 @@ import thumnail from "../../../svg-images/thumbnails-svgrepo-com.svg";
 import { get_location } from "~/routes/api/xelosani/get_location";
 import { CreateJobMap } from "~/routes/new/[id]/CreateJobMap";
 import { SmallFooter } from "~/Components/SmallFooter";
+import { ServicesModal } from "./ServicesModal";
+import { ServiceSchedule } from "./ServiceSchedule";
+import { makeAbortable } from "@solid-primitives/resource";
+import spinner from "../../../svg-images/spinner.svg";
+import { Toast } from "~/Components/ToastComponent";
 
 /*
 
@@ -37,15 +42,26 @@ const Services = () => {
   const [input, setInput] = createSignal("");
   const [title, setTitle] = createSignal("");
   const [totalSize, setTotalSize] = createSignal(0);
-  const [activeParentIndex, setActiveParentIndex] = createSignal(null);
+  const [activeParentIndex, setActiveParentIndex] = createSignal();
   const [activeChildIndex, setActiveChildIndex] = createSignal(null);
   const [childChecked, setChildChecked] = createSignal([]);
-  const [parentChecked, setParentChecked] = createSignal([]);
-  const [mainChecked, setMainChecked] = createSignal([]);
+  const [parentChecked, setParentChecked] = createSignal();
+  const [mainChecked, setMainChecked] = createSignal();
   const [showCategoryModal, setShowCategoryModal] = createSignal(false);
   const [currentStep, setCurrentStep] = createSignal("thumbnail");
   const [thumbNail, setThumbnail] = createSignal();
   const [toast, setToast] = createSignal(null);
+  const [service, setService] = createSignal([]);
+  const [showSchedule, setShowSchedule] = createSignal();
+  const [isUsingMainSchedule, setIsUsingMainSchedule] = createSignal(false);
+  const [schedule, setSchedule] = createSignal();
+  const [signal, abort, filterErrors] = makeAbortable({
+    timeout: 0,
+    noAutoAbort: true,
+  });
+  const [isSendingRequest, setIsSendingRequest] = createSignal(false);
+
+  const navigate = useNavigate();
 
   const MAX_SINGLE_FILE_SIZE = 5 * 1024 * 1024;
   const MAX_TOTAL_SIZE = 25 * 1024 * 1024;
@@ -54,6 +70,21 @@ const Services = () => {
     const files = Array.from(e.target.files);
 
     for (const file of files) {
+      if (!file.type.startsWith("image/")) {
+        return setToast({
+          type: false,
+          message: "გთხოვთ აირჩიოთ ფაილი ფოტო ფორმატით."
+        }) 
+      }
+    
+      const file_existence = image().some((a) => a.name === file.name)
+      if (file_existence) {
+        return setToast({
+          type: false,
+          message: `${file.name} უკვე დამატებული გაქვთ.`
+        })
+      }
+      
       if (file.size > MAX_SINGLE_FILE_SIZE) {
         return setToast({
           type: false,
@@ -78,9 +109,9 @@ const Services = () => {
       } else {
         setThumbnail(files[0]);
       }
+    } else {
+      setImage([...image(), ...files]);
     }
-
-    setImage([...image(), ...files]);
   };
 
   const createPost = async (e) => {
@@ -88,135 +119,215 @@ const Services = () => {
     setError(null);
     try {
       const fd = new FormData(e.target);
+
       if (!childChecked().length) {
-        return setToast({
-          type: false,
-          message: "გთხოვთ აირჩიოთ კატეგორია.",
-        });
+        setToast({ type: false, message: "გთხოვთ აირჩიოთ კატეგორია." });
+        return;
       }
 
-      if (!fd.get("title").length) {
+      const title = fd.get("title");
+      if (title.length < 5) {
         setToast({
           type: false,
-          message: "სათაური სავალდებულოა.",
+          message: "სათაური უნდა შეიცავდეს მინიმუმ 5 ასოს.",
         });
-        return setError([
-          {
-            field: "title",
-            message: "სათაური სავალდებულოა.",
-          },
+        setError([
+          { field: "title", message: "სათაური უნდა შეიცავდეს მინიმუმ 5 ასოს." },
         ]);
+        return;
       }
-      if (fd.get("title").length > 100) {
+      if (title.length > 60) {
         setToast({
           type: false,
-          message: "სათაური უნდა შეიცავდეს მაქსიმუმ 100 ასოს.",
+          message: "სათაური უნდა შეიცავდეს მაქსიმუმ 60 ასოს.",
         });
-        return setError([
+        setError([
           {
             field: "title",
-            message: "სათაური უნდა შეიცავდეს მაქსიმუმ 100 ასოს.",
+            message: "სათაური უნდა შეიცავდეს მაქსიმუმ 60 ასოს.",
           },
         ]);
+        return;
       }
 
-      if (!fd.get("description").length) {
+      const description = fd.get("description");
+      if (description.length < 20) {
         setToast({
           type: false,
-          message: "აღწერა სავალდებულოა.",
+          message: "მიმოხილვა უნდა შეიცავდეს მინიმუმ 20 ასოს.",
         });
-        return setError([
+        setError([
           {
             field: "description",
-            message: "აღწერა სავალდებულოა.",
+            message: "მიმოხილვა უნდა შეიცავდეს მინიმუმ 20 ასოს.",
           },
         ]);
+        return;
       }
-      if (fd.get("description").length > 1000) {
+      if (description.length > 300) {
         setToast({
           type: false,
-          message: "აღწერა უნდა შეიცავდეს მაქსიმუმ 1000 ასოს.",
+          message: "მიმოხილვა უნდა შეიცავდეს მაქსიმუმ 300 ასოს.",
         });
-        return setError([
+        setError([
           {
             field: "description",
-            message: "აღწერა უნდა შეიცავდეს მაქსიმუმ 1000 ასოს.",
+            message: "მიმოხილვა უნდა შეიცავდეს მაქსიმუმ 300 ასოს.",
           },
         ]);
+        return;
       }
+
       if (!fd.get("price")) {
-        setToast({
-          type: false,
-          message: "ფასი სავალდებულოა თუ ეტაპები არ გაქვთ.",
-        });
-        return setError([
-          {
-            field: "price",
-            message: "ფასი სავალდებულოა.",
-          },
-        ]);
+        setToast({ type: false, message: "ფასი სავალდებულოა." });
+        setError([{ field: "price", message: "ფასი სავალდებულოა." }]);
+        return;
       }
+
+      if (service && service().length) {
+        const error = service().find((service, index) => {
+          if (service.title.length < 5) {
+            setToast({
+              type: false,
+              message: `${
+                index + 1
+              } ქვესერვისის სათაური უნდა შეიცავდეს მინიმუმ 5 ასოს.`,
+            });
+            setError([
+              {
+                field: `service.${index}.title`,
+                message: "ქვესერვისის სათაური უნდა შეიცავდეს მინიმუმ 5 ასოს.",
+              },
+            ]);
+            return true;
+          }
+          if (service.title.length > 60) {
+            setToast({
+              type: false,
+              message: `${
+                index + 1
+              } ქვესერვისის სათაური უნდა შეიცავდეს მაქსიმუმ 60 ასოს.`,
+            });
+            setError([
+              {
+                field: `service.${index}.title`,
+                message: "ქვესერვისის სათაური უნდა შეიცავდეს მაქსიმუმ 60 ასოს.",
+              },
+            ]);
+            return true;
+          }
+          if (service.description.length < 20) {
+            setToast({
+              type: false,
+              message: `${
+                index + 1
+              } ქვესერვისის აღწერა სავალდებულოა უნდა შეიცავდეს მინიმუმ 20 ასოს.`,
+            });
+            setError([
+              {
+                field: `service.${index}.description`,
+                message:
+                  "ქვესერვისის აღწერა სავალდებულოა უნდა შეიცავდეს მინიმუმ 20 ასოს.",
+              },
+            ]);
+            return true;
+          }
+          if (!service.price) {
+            setToast({
+              type: false,
+              message: `${index + 1} ქვესერვისის ფასი სავალდებულოა.`,
+            });
+            setError([
+              {
+                field: `service.${index}.price`,
+                message: "ქვესერვისის ფასი სავალდებულოა.",
+              },
+            ]);
+            return true;
+          }
+        });
+
+        if (error) return;
+      }
+
       if (!thumbNail()) {
-        return setToast({
-          type: false,
-          message: "თამბნეილი სავალდებულოა.",
-        });
+        setToast({ type: false, message: "თამბნეილი სავალდებულოა." });
+        return;
       }
+
       if (!image().length) {
-        return setToast({
-          type: false,
-          message: "გალერეა სავალდებულოა.",
-        });
+        setToast({ type: false, message: "გალერეა სავალდებულოა." });
+        return;
       }
 
-      fd.append("location", markedLocation() || location());
-      fd.append("image", image());
+      fd.append(
+        "location",
+        JSON.stringify(markedLocation()) || JSON.stringify(location())
+      );
       fd.append("thumbnail", thumbNail());
-      fd.append("categories", [
-        ...mainChecked(),
-        ...parentChecked(),
-        ...childChecked(),
-      ]);
+      fd.append("mainCategory", mainChecked());
+      fd.append("parentCategory", parentChecked());
+      fd.append("childCategory", JSON.stringify(childChecked()));
+      fd.append("service", JSON.stringify(service()));
+      fd.append("galleryLength", image().length);
 
+      if (isUsingMainSchedule()) {
+        fd.append("schedule", JSON.stringify(location().schedule));
+      }
+      if (schedule()) {
+        fd.append("schedule", JSON.stringify(schedule()));
+      }
+
+      for (let i = 0; i < image().length; i++) {
+        fd.append(`service-${i}-gallery-image`, image()[i]);
+      }
+
+      setIsSendingRequest(true);
       const response = await fetch("/api/xelosani/service/add_service", {
         method: "POST",
         body: fd,
         credentials: "include",
+        signal: signal(),
       });
+
+      if (!response.ok) {
+        return props.setToast({
+          message: "პროფილის ფოტო ვერ განახლდა, სცადეთ თავიდან.",
+          type: false,
+        });
+      }
 
       if (response.status === 500) {
         setToast({
           type: false,
           message: "დაფიქსირდა სერვერული შეცდომა, სცადეთ მოგვიანებით.",
         });
-      }
-      if (response.status === 400) {
-        setToast({
-          type: false,
-          message: response.errors[0].message,
-        });
-        return setError(response.errors);
-      }
+      } else if (response.status === 400) {
+        const data = await response.json();
+        setToast({ typle: false, message: data.errors[0].message });
+        setError(data.errors);
+      } else {
+        document.getElementById("title").value = "";
+        document.getElementById("desc").value = "";
+        document.getElementById("price").value = null;
 
-      document.getElementById("title").value = "";
-      document.getElementById("desc").value = "";
-      document.getElementById("price").value = null;
-      const func = async () => {
         batch(() => {
-          setToast({
-            type: true,
-            message: "განცხადება წარმატებით აიტვირთა.",
-          });
+          setToast({ type: true, message: "განცხადება წარმატებით აიტვირთა." });
           setImage([]);
-          setMainChecked([]);
-          setParentChecked([]);
+          setMainChecked();
+          setParentChecked();
+          setService([]);
+          setThumbnail(null);
           setChildChecked([]);
           setCurrentStep("thumbnail");
         });
-      };
-      await func();
+      }
     } catch (error) {
-      alert(error);
+      if (error.name === "AbortError") {
+        filterErrors(error);
+      }
+    } finally {
+      setIsSendngRequest(false);
     }
   };
 
@@ -240,8 +351,10 @@ const Services = () => {
 
   const toggleParentAccordion = (index) => {
     if (activeParentIndex() === index) {
-      setActiveParentIndex(null);
-      setActiveChildIndex(null);
+      batch(() => {
+        setActiveParentIndex(null);
+        setActiveChildIndex(null);
+      });
     } else {
       batch(() => {
         setActiveParentIndex(index);
@@ -258,55 +371,83 @@ const Services = () => {
     }
   };
 
-  const handleParentChange = (isChecked, currentCategory, childCategories, index) => {
+  const handleParentChange = (
+    isChecked,
+    currentCategory,
+    childCategories,
+    index,
+    m
+  ) => {
     if (isChecked) {
-      toggleChildAccordion(index)
+      toggleChildAccordion(index);
+      const structured_services = childCategories.map((cc, i) => {
+        return {id: i, title: "", category: cc, description: "", price: null}
+      })
+      setService(structured_services);
       batch(() => {
-        setChildChecked((prev) => {
-          return [...prev, ...childCategories];
-        });
-        setParentChecked((prev) => {
-          return [...prev, currentCategory];
-        });
+        setMainChecked(m);
+        setChildChecked(childCategories);
+        setParentChecked(currentCategory);
       });
     } else {
       batch(() => {
+        setService([])
         setChildChecked((prev) => {
           const filt = prev.filter((p) => !childCategories.includes(p));
           return filt;
         });
-        setParentChecked((prev) => {
-          const filt = prev.filter((p) => p !== currentCategory);
-          return filt;
-        });
+        setMainChecked(null);
+        setParentChecked(null);
       });
     }
   };
 
-  const handleGrandChange = (j, isChecked, parentCategory, allChild) => {
+  const handleGrandChange = (j, i, isChecked, parentCategory, allChild, m) => {
     if (isChecked) {
+      if (parentChecked() !== parentCategory) {
+        setParentChecked(parentCategory);
+
+        setChildChecked([]);
+        setMainChecked(m);
+      }
       setChildChecked((prev) => {
+        if (parentChecked() && parentChecked() !== parentCategory) {
+          return [prev];
+        }
         return [...prev, j];
       });
-      if (!parentChecked().includes(parentCategory)) {
-        setParentChecked((prev) => {
-          return [...prev, parentCategory];
+        setService((prev) => {
+          if (prev.some(p => p.id === i())) {
+            return
+          } else {
+            return [
+              ...prev,
+              { id: i, title: "", category: j, description: "", price: null },
+            ];
+          }
         });
-      }
     } else {
+      setService((prev) => {
+        return prev.filter((_, index) => index !== i());
+      });
       setChildChecked((prev) => {
         const filt = prev.filter((p) => p !== j);
         return filt;
       });
-      if (allChild.some((a) => childChecked().includes(a))) {
-        return;
-      } else {
-        setParentChecked((prev) => {
-          const filt = prev.filter((p) => p !== parentCategory);
-          return filt;
-        });
+      if (!allChild.some((a) => childChecked().includes(a))) {
+        setParentChecked(null);
+        setMainChecked(null);
       }
     }
+  };
+
+  const removeService = (index) => {
+    setService((prev) => {
+      return prev.filter((_, i) => i !== index);
+    });
+    setChildChecked((prev) => {
+      return prev.filter((_, i) => i !== index);
+    });
   };
 
   return (
@@ -323,7 +464,7 @@ const Services = () => {
           <div class="flex w-full justify-center">
             <div class="flex w-[80%] mt-2 border border-gray-300">
               <Show when={jobs && showCategoryModal()}>
-                <div class="fixed top-1/2 -translate-y-1/2 border bg-white z-[500] py-4 px-12 min-h-[480px] w-[880px] left-1/2 -translate-x-1/2">
+                <div class="fixed top-1/2 -translate-y-1/2 border bg-white z-[500] py-4 px-12 min-h-[480px] w-[950px] left-1/2 -translate-x-1/2">
                   <div class="flex items-center justify-between">
                     <h3 class="font-bold font-[bolder-font] text-xl">
                       აირჩიე სპეციალობა
@@ -378,20 +519,21 @@ const Services = () => {
                                       <div class="flex items-center gap-x-2">
                                         <input
                                           type="checkbox"
-                                          checked={parentChecked().includes(
+                                          checked={
+                                            parentChecked() ===
                                             child["კატეგორია"]
-                                          )}
+                                          }
                                           onChange={(e) =>
                                             handleParentChange(
                                               e.target.checked,
                                               child["კატეგორია"],
                                               child["სამუშაოები"],
-                                              index()
+                                              index(),
+                                              m
                                             )
                                           }
                                           name="rules-confirmation"
                                           class="accent-dark-green-hover"
-                                          id="must"
                                         ></input>
                                         <span
                                           class={`text-slate-800 transition-transform duration-300 ${
@@ -431,13 +573,14 @@ const Services = () => {
                                               )}
                                               name="rules-confirmation"
                                               class="accent-dark-green-hover"
-                                              id="must"
                                               onChange={(e) =>
                                                 handleGrandChange(
                                                   j,
+                                                  i,
                                                   e.target.checked,
                                                   child["კატეგორია"],
-                                                  child["სამუშაოები"]
+                                                  child["სამუშაოები"],
+                                                  m
                                                 )
                                               }
                                             ></input>
@@ -455,7 +598,10 @@ const Services = () => {
                     </For>
                   </div>
                   <button
-                    onClick={() => setShowCategoryModal(false)}
+                    onClick={() => {
+                      setShowCategoryModal(false);
+                      navigate("#serviceWrapper");
+                    }}
                     class="border mt-4 border-gray-300 rounded-[16px] p-1 px-4 w-full text-center font-semibold cursor-pointer text-gray-200 bg-dark-green"
                   >
                     დადასტურება
@@ -471,7 +617,7 @@ const Services = () => {
                   onClick={() => setShowCategoryModal(true)}
                   class="bg-gray-800 px-4 py-2 mb-4 font-[thin-font] text-md font-bold hover:bg-gray-700 transition ease-in delay-20 text-white text-center rounded-[16px]"
                 >
-                  აირჩიე კატეგორიები
+                  დაამატე სპეციალობა
                 </button>
                 <input
                   class="bg-gray-100 font-[bolder-font] border border-gray-300 p-2 mb-2 outline-none"
@@ -479,7 +625,7 @@ const Services = () => {
                   placeholder="სათაური"
                   onInput={(e) => setTitle(e.target.value)}
                   id="title"
-                  maxLength={100}
+                  maxLength={60}
                   name="title"
                   type="text"
                 />
@@ -490,7 +636,7 @@ const Services = () => {
                     </p>
                   </Show>
                   <div class="ml-auto text-gray-400 text-xs font-[thin-font]">
-                    {title().trim().length}/100
+                    {title().trim().length}/60
                   </div>
                 </div>
                 <textarea
@@ -498,9 +644,9 @@ const Services = () => {
                   spellcheck="false"
                   name="description"
                   onInput={(e) => setInput(e.target.value)}
-                  maxlength={1000}
+                  maxlength={300}
                   id="desc"
-                  placeholder="აღწერეთ თქვენი სერვისის დეტალები"
+                  placeholder="თქვენი სერვისის მიმოხილვა"
                 ></textarea>
                 <div class="icons flex items-center text-gray-500 justify-between m-2">
                   <Show when={error()?.some((a) => a.field === "description")}>
@@ -509,27 +655,66 @@ const Services = () => {
                     </p>
                   </Show>
                   <div class="count ml-auto text-gray-400 text-xs font-[thin-font]">
-                    {input().trim().length}/1000
+                    {input().trim().length}/300
                   </div>
                 </div>
-                <div class="flex items-center mb-4">
-                  <input
-                    class="bg-gray-100 font-[bolder-font] w-3/12 border border-gray-300 p-2 outline-none"
-                    placeholder="ფასი"
-                    min={1}
-                    id="price"
-                    name="price"
-                    type="number"
-                  />
-                  <span class="text-2xl font-[bolder-font]">₾</span>
+                <div class="flex items-center justify-between">
+                  <div class="flex items-end gap-x-1">
+                    <input
+                      class="bg-gray-100 font-[boldest-font] w-3/4 font-bold border border-gray-300 p-2 outline-none"
+                      placeholder="ფასი"
+                      min={1}
+                      id="price"
+                      name="price"
+                      type="number"
+                    />
+                    <span class="text-2xl font-[bolder-font]">₾</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowSchedule(true)}
+                    class="bg-gray-800 px-4 py-2 font-bold font-[thin-font] text-xs hover:bg-gray-700 transition ease-in delay-20 text-white text-center rounded-[16px]"
+                  >
+                    დაამატე განრიგი (სურვილისამებრ)
+                  </button>
+                  <Show
+                    when={location().schedule && location().schedule.length}
+                  >
+                    <span class="text-sm font-[thin-font] font-bold">ან</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsUsingMainSchedule((prev) => !prev);
+                        if (isUsingMainSchedule()) {
+                          setSchedule(null);
+                          return setToast({
+                            type: true,
+                            message: "თქვენ იყენებთ მთავარ განრიგს.",
+                          });
+                        } else {
+                          return setToast({
+                            type: false,
+                            message: "თქვენ არ იყენებთ მთავარ განრიგს.",
+                          });
+                        }
+                      }}
+                      class={`${
+                        !isUsingMainSchedule()
+                          ? "hover:bg-gray-700 bg-gray-800"
+                          : "bg-dark-green hover:bg-dark-green-hover"
+                      } px-4 py-2 font-bold font-[thin-font] text-xs transition ease-in delay-20 text-white text-center rounded-[16px]`}
+                    >
+                      გამოიყენე მთავარი განრიგი
+                    </button>
+                  </Show>
                 </div>
                 <Show when={error()?.some((a) => a.field === "price")}>
-                  <p class="text-xs text-red-500 font-[thin-font] font-bold mb-4">
+                  <p class="text-xs text-red-500 font-[thin-font] font-bold mt-1">
                     {error().find((a) => a.field === "price").message}
                   </p>
                 </Show>
 
-                <ul class="relative flex flex-col md:flex-row gap-2">
+                <ul class="relative flex flex-col md:flex-row gap-2 mt-4">
                   <li class="md:shrink md:basis-0 flex-1 group flex gap-x-2 md:block">
                     <div class="min-w-7 min-h-7 flex flex-col items-center md:w-full md:inline-flex md:flex-wrap md:flex-row text-xs align-middle">
                       <div
@@ -538,7 +723,10 @@ const Services = () => {
                           "bg-green-100 rounded-full"
                         } p-2`}
                       >
-                        <img src={thumnail}></img>
+                        <img
+                          src={thumnail}
+                          onClick={() => setCurrentStep("thumbnail")}
+                        ></img>
                       </div>
                       <div
                         class={`${
@@ -560,7 +748,7 @@ const Services = () => {
                         თამბნეილი
                       </span>
                       <p class="text-sm text-gray-500 font-bold font-[thin-font]">
-                        სურათი გამოჩნდება პირველი.
+                        სურათი გამოჩნდება წინა გვერდზე.
                       </p>
                     </button>
                   </li>
@@ -573,7 +761,10 @@ const Services = () => {
                           "bg-green-100 rounded-full"
                         } p-2`}
                       >
-                        <img src={gallery}></img>
+                        <img
+                          src={gallery}
+                          onClick={() => setCurrentStep("gallery")}
+                        ></img>
                       </div>
                       <div
                         class={`${
@@ -690,13 +881,43 @@ const Services = () => {
                   </div>
                 </Show>
                 <div class="buttons flex items-center w-full mt-3">
-                  <button
-                    type="submit"
-                    class="border border-gray-300 rounded-[16px] p-1 px-4 w-full text-center font-semibold cursor-pointer text-gray-200 ml-2 bg-dark-green"
-                  >
-                    სერვისის დამატება
-                  </button>
+                  {isSendingRequest() ? (
+                    <button
+                      type="button"
+                      onClick={() => abort()}
+                      class="border border-gray-300 rounded-[16px] p-1 px-4 w-full cursor-pointer ml-2 bg-dark-green"
+                    >
+                      <div class="flex items-center justify-center">
+                        <img
+                          src={spinner}
+                          class="animate-spin mr-2"
+                          alt="იტვირთება..."
+                        />
+                        <p class="font-[normal-font] font-bold text-base text-gray-200">
+                          გაუქმება
+                        </p>
+                      </div>
+                    </button>
+                  ) : (
+                    <button
+                      type="submit"
+                      class="border border-gray-300 rounded-[16px] p-1 px-4 w-full text-center text-base font-bold font-[normal-font] cursor-pointer text-gray-200 ml-2 bg-dark-green"
+                    >
+                      სერვისის გამოქვეყნება
+                    </button>
+                  )}
                 </div>
+                <Show when={showSchedule()}>
+                  <div class="bg-white shadow-2xl z-[10] top-1/2 transform -translate-y-1/2 -translate-x-1/2 left-1/2  border fixed p-4">
+                    <ServiceSchedule
+                      setSchedule={setSchedule}
+                      schedule={schedule}
+                      setToast={setToast}
+                      setIsUsingMainSchedule={setIsUsingMainSchedule}
+                      setShowSchedule={setShowSchedule}
+                    ></ServiceSchedule>
+                  </div>
+                </Show>
               </form>
               <CreateJobMap
                 location={location}
@@ -708,39 +929,15 @@ const Services = () => {
         </Match>
       </Switch>
       <Show when={toast()}>
-        <div
-          class={`${
-            isExiting() ? "toast-exit" : "toast-enter"
-          } fixed bottom-5 z-[200] left-1/2 -translate-x-1/2`}
-          role="alert"
-        >
-          <div
-            class={`${
-              !toast().type ? "border-red-400" : "border-dark-green-hover"
-            } border flex relative bg-white space-x-4 rtl:space-x-reverse text-gray-500 border rounded-lg p-4 shadow items-center`}
-          >
-            <button
-              class="absolute top-1 right-3"
-              onClick={() => setToast(null)}
-            >
-              <img width={14} height={14} src={closeIcon}></img>
-            </button>
-            {!toast().type ? (
-              <div class="bg-red-500 rounded-full">
-                <img src={exclamationWhite} />
-              </div>
-            ) : (
-              <img class="rotate-[40deg]" src={airplane} />
-            )}
-            <div
-              class={`${
-                !toast().type && "text-red-600"
-              } ps-4 border-l text-sm font-[normal-font]`}
-            >
-              {toast().message}
-            </div>
-          </div>
-        </div>
+          <Toast toast={toast} setToast={setToast} isExiting={isExiting} setIsExiting={setIsExiting}></Toast>
+      </Show>
+      <Show when={service().length}>
+        <ServicesModal
+          error={error}
+          removeService={removeService}
+          service={service}
+          setService={setService}
+        ></ServicesModal>
       </Show>
       <div class="w-[80%] mx-auto my-4">
         <SmallFooter></SmallFooter>

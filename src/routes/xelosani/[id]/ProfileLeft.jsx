@@ -66,7 +66,6 @@ export const ProfileLeft = (props) => {
     }
   };
 
-  
   const handleFilePreview = async (file) => {
     setImageLoading(true);
     if (file.size > MAX_SINGLE_FILE_SIZE) {
@@ -88,7 +87,6 @@ export const ProfileLeft = (props) => {
       });      
 
       if (!response.ok) {
-        setImageLoading(false)
         return props.setToast({
           message: "ფოტო ვერ აიტვირთა, სცადეთ თავიდან.",
           type: false,
@@ -100,21 +98,21 @@ export const ProfileLeft = (props) => {
       if (data) {
         batch(() => {
           setFile(file);
-          setImageLoading(false);
           setImageUrl(data);
         });
       }
     } catch (error) {
       if (error.name === "AbortError") {
         filterErrors(error);
-        setImageLoading(false)
       }
+    } finally {
+      setImageLoading(false)
     }
   };
 
   return (
     <div class="flex sticky top-[50px] gap-y-3 flex-col">
-      <div class="border-2 py-2 flex flex-col px-2 items-center flex-[2]">
+      <div class="border-2 py-2 flex flex-col min-w-[240px] px-2 items-center flex-[2]">
         <Switch>
           <Match when={props.user().status !== 401}>
             <Switch>
@@ -228,14 +226,14 @@ export const ProfileLeft = (props) => {
             </Switch>
           </div>
           <div class="flex pb-1 px-2 border-b items-center gap-x-1">
-            <Switch>
-              <Match when={props.user().phone}>
+          <Switch>
+              <Match when={props.user().phone && props.user().privacy.phone !== "private"}>
                 <img src={telephone}></img>
                 <p class="text-gr text-xs ml-1 font-[thin-font] font-bold">
                   {props.user().phone}
                 </p>
               </Match>
-              <Match when={props.user().status === 200}>
+              <Match when={props.user().status === 200 && !props.user().phone && props.user().privacy.phone !== "private"}>
                 <A
                   href="/setup/xelosani/step/contact"
                   class="bg-dark-green w-full py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]"
@@ -243,23 +241,29 @@ export const ProfileLeft = (props) => {
                   დაამატე ტელ. ნომერი
                 </A>
               </Match>
-              <Match when={props.user().status === 401}>
+              <Match when={props.user().status === 401 && props.user().privacy.phone !== "private"}>
                 <img src={telephone}></img>
                 <p class="text-gr ml-1 text-xs font-[thin-font] font-bold">
-                  არ არის დამატებული
+                  ტელ.ნომერი არ არის დამატებული
+                </p>
+              </Match>
+              <Match when={props.user().privacy.phone === "private"}>
+                <img src={telephone}></img>
+                <p class="text-gr ml-1 text-xs font-[thin-font] font-bold">
+                  ტელ.ნომერი დამალულია
                 </p>
               </Match>
             </Switch>
           </div>
           <div class="flex px-2 pb-1 border-b items-center gap-x-1">
-            <Switch>
-              <Match when={props.user().email}>
+          <Switch>
+              <Match when={props.user().email && props.user().privacy.email !== "private"}>
                 <img src={envelope}></img>
                 <p class="text-gr ml-1 text-xs font-[thin-font] font-bold">
                   {props.user().email}
                 </p>
               </Match>
-              <Match when={props.user().status === 200}>
+              <Match when={props.user().status === 200 && !props.user().email && props.user().privacy.email !== "private"}>
                 <A
                   href="/setup/xelosani/step/contact"
                   class="bg-dark-green w-full py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]"
@@ -267,19 +271,25 @@ export const ProfileLeft = (props) => {
                   დაამატე მეილი
                 </A>
               </Match>
-              <Match when={props.user().status === 401}>
+              <Match when={props.user().status === 401 && props.user().privacy.email !== "private"}>
                 <img src={envelope}></img>
                 <p class="text-gr ml-1 text-xs font-[thin-font] font-bold">
-                  არ არის დამატებული
+                  მეილი არ არის დამატებული
+                </p>
+              </Match>
+              <Match when={props.user().privacy.email === "private"}>
+                <img src={envelope}></img>
+                <p class="text-gr ml-1 text-xs font-[thin-font] font-bold">
+                  მეილი დამალულია
                 </p>
               </Match>
             </Switch>
           </div>
           <div class="flex pb-1 border-b px-2 items-center gap-x-1">
-            <Switch>
-              <Match when={props.user().displayBirthDate}>
+          <Switch>
+              <Match when={props.user().date && props.user().privacy.birthDate !== "private"}>
                 <div class="flex justify-between w-full items-center">
-                  <div class="flex items-center gap-x-2">
+                  <div class="flex items-end pr-1 gap-x-2">
                     <img src={cake} />
                     <p class="text-gr text-xs font-[thin-font] font-bold">
                       {props.user().displayBirthDate}
@@ -287,12 +297,12 @@ export const ProfileLeft = (props) => {
                   </div>
                   <Show when={props.user().status === 200}>
                     <button onClick={() => props.setModal("ასაკი")}>
-                      <img src={pen} id="age" />
+                      <img src={pen} id="age" width={14} />
                     </button>
                   </Show>
                 </div>
               </Match>
-              <Match when={props.user().status === 200}>
+              <Match when={props.user().status === 200 && !props.user().date && props.user().privacy.birthDate !== "private"}>
                 <A
                   href="/setup/xelosani/step/age"
                   class="bg-dark-green w-full py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]"
@@ -300,10 +310,31 @@ export const ProfileLeft = (props) => {
                   დაამატე დაბ. თარიღი
                 </A>
               </Match>
-              <Match when={props.user().status === 401}>
+              <Match when={props.user().status === 401 && props.user().privacy.birthDate !== "private"}>
+              <div class="flex items-center">
+              <div class="flex items-end gap-x-2">
+                    <img src={cake} />
+                    <p class="text-gr text-xs font-[thin-font] font-bold">
+                      {props.user().displayBirthDate}
+                    </p>
+                  </div>
                 <p class="text-gr text-xs text-center font-[thin-font] font-bold">
-                  ასაკი არ არის დამატებული
+                  ასაკი არ არის დამატებული  
                 </p>
+                </div>
+              </Match>
+              <Match when={props.user().privacy.birthDate === "private"}>
+              <div class="flex items-center">
+              <div class="flex items-end gap-x-2">
+                    <img src={cake} />
+                    <p class="text-gr text-xs font-[thin-font] font-bold">
+                      {props.user().displayBirthDate}
+                    </p>
+                  </div>
+                <p class="text-gr text-xs text-center font-[thin-font] font-bold">
+                  ასაკი დამალულია
+                </p>
+                </div>
               </Match>
             </Switch>
           </div>
@@ -334,21 +365,21 @@ export const ProfileLeft = (props) => {
       <div class="border-2 px-2 py-2">
         <div class="flex items-center border-b justify-between">
           <h2 class="text-lg font-[bolder-font]">სამუშაო განრიგი</h2>
-          <Show when={props.user().status === 200 && props.user().schedule}>
+          <Show when={props.user().status === 200 && props.user().schedules}>
             <button onClick={() => props.setModal("განრიგი")}>
               <img src={pen} id="schedule" />
             </button>
           </Show>
         </div>
         <Switch>
-          <Match when={props.user().schedule}>
+          <Match when={props.user().schedules}>
             <ul class="mt-1">
-              <For each={props.user().schedule}>
+              <For each={props.user().schedules}>
                 {(s, i) => (
                   <li class="font-[thin-font] w-full items-center justify-between text-sm font-bold flex gap-x-2">
-                    <p>{s.day}</p>
+                    <p>{s.day_of_week}</p>
                     <div class="flex items-center">
-                      <p>{s.startTime}</p>-<p>{s.endTime}</p>
+                      <p>{s.available_from}</p>-<p>{s.available_to}</p>
                     </div>
                   </li>
                 )}

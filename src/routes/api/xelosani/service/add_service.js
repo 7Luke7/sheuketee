@@ -1,26 +1,36 @@
-import { Service } from "../../models/User";
+"use server"
 import { verify_user } from "../../session_management";
 import { CustomError } from "../../utils/errors/custom_errors";
 import crypto from "node:crypto";
+import { HandleError } from "../../utils/errors/handle_errors";
+import { compress_image } from "../../compress_images";
+import { add_image_to_s3 } from "../../damkveti/job";
 
-async function POST({request}) {
+const MAX_SINGLE_FILE_SIZE = 5 * 1024 * 1024;
+const MAX_TOTAL_SIZE = 25 * 1024 * 1024;
+
+export async function POST({request}) {
     try {
         const user = await verify_user({request});
-        if (user === 401 || user.role === 1) {
+        if (user === 401 || user.role === 2) {
           return 401;
         }
 
-        const formData = await formData()
+        const formData = await request.formData()
 
-        const location = formData.get("location")
-        const image = formData.get("image")
+        const location = JSON.parse(formData.get("location"))
+        const imageLength = formData.get("galleryLength")
         const thumbNail = formData.get("thumbnail")
-        const categories = formData.get("categories")
         const description = formData.get("description")
         const title = formData.get("title")
         const price = formData.get("price")
+        const mainCategory = formData.get("mainCategory");
+        const parentCategory = formData.get("parentCategory")
+        const childCategory = JSON.parse(formData.get("childCategory"))
+        const service = JSON.parse(formData.get("service"))
+        const schedule = JSON.parse(formData.get("schedule"))
 
-        if (!categories.length) {
+        if (!childCategory || !childCategory.length) {
           throw new CustomError(
             "category",
             "გთხოვთ აირჩიოთ კატეგორია."
@@ -32,66 +42,125 @@ async function POST({request}) {
             "თამბნეილი სავალდებულოა."
           ).ExntendToErrorName("ValidationError");
         }
-        if (!image.length || image.length === 0) {
+        if (!imageLength) {
           throw new CustomError(
             "image",
             "გალერეა სავალდებულოა."
           ).ExntendToErrorName("ValidationError");
         }
-        if (!title.length) {
+        if (title.length < 5) {
           throw new CustomError(
             "title",
-            "სათაური სავალდებულოა."
+            "სათაური უნდა შეიცავდეს მინიმუმ 5 ასოს."
           ).ExntendToErrorName("ValidationError");
         }
-        if (title.length > 100) {
+        if (title.length > 60) {
           throw new CustomError(
             "title",
-            "სათაური უნდა შეიცავდეს მაქსიმუმ 100 ასოს."
+            "სათაური უნდა შეიცავდეს მაქსიმუმ 60 ასოს."
           ).ExntendToErrorName("ValidationError");
         }
     
-        if (!description.length) {
+        if (description.length < 20) {
           throw new CustomError(
             "description",
-            "აღწერა სავალდებულოა."
+            "მიმოხილვა უნდა შეიცავდეს მინიმუმ 20 ასოს."
           ).ExntendToErrorName("ValidationError");
         }
-        if (description.length > 1000) {
+        if (description.length > 300) {
           throw new CustomError(
             "description",
-            "აღწერა უნდა შეიცავდეს მაქსიმუმ 1000 ასო."
+            "მიმოხილვა უნდა შეიცავდეს მაქსიმუმ 300 ასოს."
+          ).ExntendToErrorName("ValidationError");
+        }
+
+        if (!price) {
+          throw new CustomError(
+            "price",
+            `სერვისის ფასი სავალდებულოა.`
           ).ExntendToErrorName("ValidationError");
         }
     
+        if (service && service.length) {
+          for (let i = 0; i < service.length; i++) {
+              if (service[i].title.length < 5) {
+                  throw new CustomError(
+                    `service.${i}.title`,
+                    `${i + 1} ქვესერვისის სათაური უნდა შეიცავდეს მინიმუმ 5 ასოს.`
+                  ).ExntendToErrorName("ValidationError");
+                }
+
+                if (service[i].title.length > 60) {
+                  throw new CustomError(
+                    `service.${i}.title`,
+                    `${i + 1} ქვესერვისის სათაური უნდა შეიცავდეს მაქსიმუმ 60 ასოს.`
+                  ).ExntendToErrorName("ValidationError");
+                }
+
+                if (service[i].description.length < 20) {
+                  throw new CustomError(
+                    `service.${i}.description`,
+                    `${i + 1} ქვესერვისის აღწერა უნდა შეიცავდეს მინიმუმ 20 ასოს.`
+                  ).ExntendToErrorName("ValidationError");
+                }
+
+                if (service[i].description.length > 300) {
+                  throw new CustomError(
+                    `service.${i}.description`,
+                    `${i + 1} ქვესერვისის აღწერა უნდა შეიცავდეს მაქსიმუმ 300 ასოს.`
+                  ).ExntendToErrorName("ValidationError");
+                }
+        
+                if (!service[i].price) {
+                  throw new CustomError(
+                    `service.${i}.price`,
+                    `${i + 1} ქვესერვისის ფასი სავალდებულოა.`
+                  ).ExntendToErrorName("ValidationError");
+                }
+
+              const random_id = crypto.randomUUID();
+              service[i]["publicId"] = random_id;
+              service[i]["childCategory"] = childCategory;
+              service[i]["parentCategory"] = parentCategory
+          }
+        }
+
+        const tags = ["mock"]
         const random_id = crypto.randomUUID();
-    
-        const job_post = await Service.create({
-          publicId: random_id,
+
+        const service_post = await Service.create({
           _creator: user.userId,
-          title: title,
-          description: description,
-          price: price,
-          location: location,
-          categories,
-        //   availability
-        //   ratings
-        //   reviews
+          display: service,
+          categories: [...childCategory, mainCategory, parentCategory],
+          publicId: random_id, 
+          tags: tags,
+          location,
+          mainTitle: title,
+          mainCategory: mainCategory,
+          availability: schedule,
+          mainDescription: description,
+          mainPrice: price
         });
     
+        await Xelosani.findByIdAndUpdate(user.userId, {
+          $addToSet: {
+            services: service_post._id
+          }
+        })
+
         const thumbNail_bytes = await thumbNail.arrayBuffer(thumbNail);
         const thumbNail_buffer = Buffer.from(thumbNail_bytes);
-        const thumb_compressed = await compress_image(thumbNail_buffer, 80, 200, 200);
-        await add_job_image(
+        const thumb_compressed = await compress_image(thumbNail_buffer, 50, 200, 200);
+        await add_image_to_s3(
           thumb_compressed,
-          `${job_post.publicId}`,
-          "job-post-thumbnail"
+          service_post.publicId,
+          "service-post-thumbnail"
         );
     
         let count = 0;
     
-        for (let i = 0; i < image.length; i++) {
-          const current_image = image[i]
+        for (let i = 0; i < imageLength; i++) {
+          const current_image = formData.get(`service-${i}-gallery-image`)
           if (current_image.size > MAX_SINGLE_FILE_SIZE) {
             throw Error(`${current_image.name}, ფაილის ზომა აჭარბებს 5მბ ლიმიტს.`);
           }
@@ -101,11 +170,11 @@ async function POST({request}) {
           }
           const bytes = await current_image.arrayBuffer(current_image);
           const buffer = Buffer.from(bytes);
-          const compressed_buffer = await compress_image(buffer, 80, 600, 400); // mobile has to be added
-          await add_job_image(
+          const compressed_buffer = await compress_image(buffer, 50, 600, 400); // mobile has to be added
+          await add_image_to_s3(
             compressed_buffer,
-            `${job_post.publicId}-${i}`,
-            "job-post-gallery"
+            `${service_post.publicId}-${i}`,
+            "service-post-gallery"
           );
         }
     
@@ -113,7 +182,6 @@ async function POST({request}) {
             status: 200
         };
       } catch (error) {
-        console.log(error)
         if (error.name === "ValidationError") {
           const errors = new HandleError(error).validation_error();
           return {

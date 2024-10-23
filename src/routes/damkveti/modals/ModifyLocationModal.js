@@ -370,7 +370,7 @@ export const ModifyLocaitonModal = (props) => {
             onClick={handleLocationSubmit}
             className="py-2 w-full px-3 rounded-md text-sm font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover"
           >
-            შეცვლა
+            დადასტურება
           </button>
         </div>
       </div>

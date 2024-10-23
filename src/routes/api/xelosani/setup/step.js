@@ -1,16 +1,14 @@
 "use server";
 import { getRequestEvent } from "solid-js/web";
-import { Xelosani } from "../../models/User";
 import { verify_user } from "../../session_management";
-import { s3 } from "~/entry-server";
-import { HeadObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { compress_image } from "../../compress_images";
+import { postgresql_server_request } from "../../utils/ext_requests/posgresql_server_request";
 
 export const upload_profile_picture_no_verification = async (file, profId) => {
   try {
     const bytes = await file.arrayBuffer(file);
     const buffer = Buffer.from(bytes);
-    const compressed_buffer = await compress_image(buffer, 80, 140, 140);
+    const compressed_buffer = await compress_image(buffer, 50, 140, 140);
     const params = {
       Bucket: process.env.S3_BUCKET_NAME,
       Key: `${profId}-profpic`,
@@ -32,16 +30,12 @@ export const navigateToStep = async () => {
   try {
     const event = getRequestEvent();
     const redis_user = await verify_user(event);
-    const user = await Xelosani.findById(redis_user.userId);
-
-    const params = {
-      Bucket: process.env.S3_BUCKET_NAME,
-      Region: "eu-central-1",
-      Key: `${redis_user.profId}-profpic`,
-    };
-
-    const headCommand = new HeadObjectCommand(params);
-    await s3.send(headCommand);
+    const user = await postgresql_server_request("GET", `xelosani/get_step_data/${redis_user.profId}`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }); 
+    console.log(user)
 
     if (!user.phone) {
       return `${BASE_URL}/contact`;

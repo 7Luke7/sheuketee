@@ -12,14 +12,10 @@ import { ProfileRight } from "./ProfileRight";
 import { Footer } from "~/Components/Footer";
 import { FireworkConfetti } from "~/Components/FireworkConfetti";
 import checkedGreen from "../../../svg-images/checkedGreen.svg"
-import airPlane from "../../../svg-images/airplane.svg";
-import closeIcon from "../../../svg-images/svgexport-12.svg";
-import exclamationWhite from "../../../svg-images/exclamationWhite.svg";
+import { Toast } from "~/Components/ToastComponent";
 
 const Damkveti = (props) => {
-  const user = createAsync(async () =>
-    JSON.parse(await get_damkveti(props.params.id))
-  );
+  const user = createAsync(() => get_damkveti(props.params.id));
   const navigate = useNavigate();
   const [modal, setModal] = createSignal(null);
   const [toast, setToast] = createSignal();
@@ -48,24 +44,6 @@ const Damkveti = (props) => {
       setModal(null);
     }
   };
-
-  createEffect(() => {
-    if (!toast()) return
-    let toastTimeout
-    let exitTimeout
-    toastTimeout = setTimeout(() => {
-      setIsExiting(true);
-      exitTimeout = setTimeout(() => {
-        setIsExiting(false);
-        setToast(null);
-      }, 500);
-    }, 5000);
-
-    onCleanup(() => {
-      if (toastTimeout) clearTimeout(toastTimeout);
-      if (exitTimeout) clearTimeout(exitTimeout);
-    });
-  })
   
   createEffect(() => {
     document.addEventListener("click", clickFN);
@@ -77,15 +55,6 @@ const Damkveti = (props) => {
 
   return (
     <MetaProvider>
-      <script
-        defer
-        src="https://unpkg.com/embla-carousel/embla-carousel.umd.js"
-      ></script>
-      <script
-        defer
-        src="https://unpkg.com/embla-carousel-autoplay/embla-carousel-autoplay.umd.js"
-      ></script>
-
         <Header />
       <div class="relative">
         <div class="w-[90%] mx-auto relative mt-8">
@@ -172,28 +141,8 @@ const Damkveti = (props) => {
           </div>
         </div>
         <Show when={toast()}>
-        <div
-          class={`${
-            isExiting() ? "toast-exit" : "toast-enter"
-          } fixed bottom-5 z-[200] left-1/2 -translate-x-1/2`}
-          role="alert"
-        >
-          <div class={`${!toast().type ? "border-red-400" : "border-dark-green-hover"} border flex relative bg-white space-x-4 rtl:space-x-reverse text-gray-500 border rounded-lg p-4 shadow items-center`}>
-            <button
-              class="absolute top-1 right-3"
-              onClick={() => setToast(null)}
-            >
-              <img width={14} height={14} src={closeIcon}></img>  
-            </button>
-              {!toast().type ? <div class="bg-red-500 rounded-full">
-                <img src={exclamationWhite} />
-                </div> : <img class="rotate-[40deg]" src={airPlane} />}
-            <div class={`${!toast().type  && "text-red-600"} ps-4 border-l text-sm font-[normal-font]`}>
-              {toast().message}
-            </div>
-          </div>
-        </div>
-      </Show>
+          <Toast toast={toast} setToast={setToast} isExiting={isExiting} setIsExiting={setIsExiting}></Toast>
+        </Show>
       </div>
     </MetaProvider>
   );

@@ -56,7 +56,7 @@ export const ModifyWorkSchedule = (props) => {
                     </div>
                 })}
                 <button type="submit" className="py-2 w-full px-3 rounded-md text-sm font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover">
-                    გაგრძელება
+                    დადასტურება
                 </button>
             </form>
         </div>

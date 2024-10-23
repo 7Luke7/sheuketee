@@ -5,7 +5,7 @@ export const MileStoneModal = (props) => {
   return (
     <div
       id="milestoneWrapper"
-      class="p-4 min-h-[460px] relative mb-5 bg-white border-t-0 border mx-auto w-[1200px]"
+      class="p-4 min-h-[460px] relative mb-5 bg-white border-t-0 border w-full"
     >
       <h2 class="text-lg font-[normal-font] text-center text-gray-800 font-bold">
         სამუშაოს ეტაპებად დაყოფა
@@ -43,7 +43,7 @@ export const MileStoneModal = (props) => {
                     cm[index()].description = e.target.value
                     return cm
                 })}
-                maxlength="600"
+                maxlength={600}
                 id="desc"
                 placeholder="აღწერეთ ეტაპის დეტალები"
               ></textarea>

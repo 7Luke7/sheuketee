@@ -87,10 +87,10 @@ export const Review = () => {
   const add_review_modal = () => {};
 
   return (
-    <section class="bg-white py-8 antialiased dark:bg-gray-900 md:py-16">
+    <section class="bg-white py-8 antialiased md:py-16">
       <div class="px-4 2xl:px-0">
         <div class="flex items-center gap-2">
-          <h2 class="text-2xl font-[bolder-font] text-gray-900 dark:text-white">
+          <h2 class="text-2xl font-[bolder-font] text-gray-900">
             შეფასებები
           </h2>
 
@@ -102,12 +102,12 @@ export const Review = () => {
               <img src={fullStar}></img>
               <img src={fullStar}></img>
             </div>
-            <p class="text-sm font-medium leading-none text-gray-500 dark:text-gray-400">
+            <p class="text-sm font-medium leading-none text-gray-500">
               (4.6)
             </p>
             <a
               href="#"
-              class="text-sm font-medium leading-none text-gray-900 underline hover:no-underline dark:text-white"
+              class="text-sm font-medium leading-none text-gray-900 underline hover:no-underline"
             >
               {" "}
               645 შეფასება{" "}
@@ -117,7 +117,7 @@ export const Review = () => {
 
         <div class="my-6 gap-8 sm:flex sm:items-start md:my-8">
           <div class="shrink-0 space-y-4">
-            <p class="text-2xl font-[bolder-font] leading-none text-gray-900 dark:text-white">
+            <p class="text-2xl font-[bolder-font] leading-none text-gray-900">
               ჯამში: 4.65
             </p>
             <button
@@ -133,12 +133,12 @@ export const Review = () => {
           <For each={reviews}>{(r) => {
             return <div class="mt-6 min-w-0 flex-1 space-y-3 sm:mt-0">
             <A href="#" class="flex group hover:underline hover:decoration-gr items-center gap-2">
-              <p class="w-2 shrink-0 text-start group-hover:text-dark-green text-sm font-medium leading-none text-gray-900 dark:text-white">
+              <p class="w-2 shrink-0 text-start group-hover:text-dark-green text-sm font-medium leading-none text-gray-900">
                 {r.rating}
               </p>
               <img src={fullStar}></img>
 
-              <div class="h-3.5 w-80 rounded-full bg-gray-200 dark:bg-gray-700">
+              <div class="h-3.5 w-80 rounded-full bg-gray-200">
                 <div
                   class="h-3.5 rounded-full bg-dark-green"
                   style="width: 20%"
@@ -146,7 +146,7 @@ export const Review = () => {
               </div>
               <span
                 href="#"
-                class="w-8 shrink-0 group-hover:text-dark-green text-right text-sm font-medium leading-none text-primary-700 dark:text-primary-500 sm:w-auto sm:text-left"
+                class="w-8 shrink-0 group-hover:text-dark-green text-right text-sm font-medium leading-none text-primary-700 sm:w-auto sm:text-left"
               >
                 {r.reviewCount} შეფასება
               </span>
@@ -157,7 +157,7 @@ export const Review = () => {
           </div>
         </div>
 
-        <div class="mt-6 divide-y divide-gray-200 dark:divide-gray-700">
+        <div class="mt-6 divide-y divide-gray-200">
           <For each={mock_data}>
             {(d) => {
               return (
@@ -176,10 +176,10 @@ export const Review = () => {
                     </div>
 
                     <div class="space-y-0.5">
-                      <p class="text-base font-[normal-font] font-bold text-gray-800 dark:text-white">
+                      <p class="text-base font-[normal-font] font-bold text-gray-800">
                         {d.name}
                       </p>
-                      <p class="text-sm font-[normal-font] font-semibold text-gray-500 dark:text-gray-400">
+                      <p class="text-sm font-[normal-font] font-semibold text-gray-500">
                         {d.date}
                       </p>
                     </div>
@@ -199,7 +199,7 @@ export const Review = () => {
                           clip-rule="evenodd"
                         />
                       </svg>
-                      <p class="text-sm font-[bolder-font] text-gray-700 font-bold dark:text-white">
+                      <p class="text-sm font-[bolder-font] text-gray-700 font-bold">
                         {d.verifiedPurchase}
                       </p>
                     </div>

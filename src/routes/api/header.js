@@ -20,9 +20,9 @@ export const header = cache(async () => {
             role = "damkveti"
         }
 
-        const profile_image = await get_user_profile_image(redis_user.profId, "profId")
+        // const profile_image = await get_user_profile_image(redis_user.profId)
         return {
-            profile_image,
+            profile_image: "https://hatrabbits.com/wp-content/uploads/2017/01/random.jpg",
             profId: redis_user.profId,
             role
         }

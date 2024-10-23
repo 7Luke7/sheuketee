@@ -1,14 +1,15 @@
 import { EmailPassword } from "~/Components/EmailPassword";
-import stepBack from "../../svg-images/svgexport-25.svg";
+import stepBack from "../../../svg-images/svgexport-25.svg";
 import { A, useNavigate } from "@solidjs/router";
 import { Show, createSignal } from "solid-js";
-import { RegisterUser } from "../api/authentication";
+import { RegisterUser } from "../../api/authentication";
 
-export const Steptwo = ({ setStep, current }) => {
+const Role = (props) => {
   const [error, setError] = createSignal(null);
   const navigate = useNavigate();
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
   const phoneRegex = /^\d{9}$/;
+  const role = props.location.pathname.split("/")[2] === "xelosani" ? "ხელოსანი" : "დამკვეთი"
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -19,7 +20,7 @@ export const Steptwo = ({ setStep, current }) => {
         return setError([
           {
             field: "firstname",
-            message: "სახელი არასოწრია.",
+            message: "სახელი სავალდებულოა.",
           },
         ]);
       }
@@ -27,7 +28,7 @@ export const Steptwo = ({ setStep, current }) => {
         return setError([
           {
             field: "lastname",
-            message: "გვარი არასოწრია.",
+            message: "გვარი სავალდებულოა.",
           },
         ]);
       }
@@ -56,7 +57,7 @@ export const Steptwo = ({ setStep, current }) => {
             message: "გთხოვთ დაეთანხმოთ სერვისის წესებსა და კონფიდენციალურობის პოლიტიკას."
         }])
       }
-      const result = await RegisterUser(formData, current());
+      const result = await RegisterUser(formData, props.location.pathname.split("/")[2]);
       if (result.status === 400) {
         return setError(result.errors);
       }
@@ -71,13 +72,14 @@ export const Steptwo = ({ setStep, current }) => {
   return (
     <div class="flex-[10] border p-5 mt-5 rounded border-slate-300 border-2 flex flex-col gap-y-5 justify-center items-center">
       <div class="flex gap-x-5">
+        <A href="/register">
         <img
           src={stepBack}
           class="cursor-pointer"
-          onClick={() => setStep(0)}
         ></img>
+        </A>
         <h1 class="text-xl font-bold text-slate-900 font-[boldest-font]">
-          გაიარე რეგისტრაცია როგორც <span class="text-gr">{current()}</span>
+          გაიარე რეგისტრაცია როგორც <span class="text-gr">{role}</span>
         </h1>
       </div>
       <form method="post" onSubmit={handleSubmit} class="w-full max-w-lg">
@@ -159,7 +161,7 @@ export const Steptwo = ({ setStep, current }) => {
             type="submit"
             class="font-[thin-font] text-center text-lg font-bold bg-dark-green hover:bg-dark-green-hover transition ease-in delay-20 text-white px-3 py-2 rounded-[16px]"
           >
-            რეგისტრაცია როგორც {current()}
+            რეგისტრაცია როგორც {role}
           </button>
         </div>
         <Show when={error()?.some((a) => a.field === "rules")}>
@@ -167,12 +169,9 @@ export const Steptwo = ({ setStep, current }) => {
             {error().find((a) => a.field === "rules").message}
           </p>
         </Show>
-        <Show when={error()?.some((a) => a.field === "phoneEmailRegister")}>
-          <p class="text-xs text-red-500 mt-1 font-[thin-font] font-bold">
-            {error().find((a) => a.field === "phoneEmailRegister").message}
-          </p>
-        </Show>
       </form>
     </div>
   );
 };
+
+export default Role

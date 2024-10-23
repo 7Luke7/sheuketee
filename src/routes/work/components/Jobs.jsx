@@ -95,7 +95,7 @@ export const Jobs = (props) => {
         <div class="sticky top-[41px] z-[10]">
           <Switch>
             <Match when={isOpen().jobType}>
-              <JobType></JobType>
+              {/* <JobType></JobType> */}
             </Match>
             <Match when={isOpen().location}>
               {/* <Location findLocation={props.findLocation} marker={props.marker} map={props.map}></Location> */}

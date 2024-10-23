@@ -1,17 +1,6 @@
 'use server'
-import { redisClient } from "~/entry-server";
-import crypto from "node:crypto"
 
-export const create_session = async (profId, userId, role) => {
-    try {
-        const session_id = crypto.randomBytes(16).toString("hex")
-        await redisClient.set(session_id, JSON.stringify({ profId, userId, role }), {PX: 7 * 24 * 60 * 60 * 1000});
-
-        return session_id
-    } catch (error) {
-        console.log(error)
-    }
-}
+import { memcached_server_request } from "./utils/ext_requests/memcached_server_request"
 
 export const verify_user = async (event) => {
     try {
@@ -22,7 +11,17 @@ export const verify_user = async (event) => {
         if (!session) {
             throw new Error(401)
         }
-        const user = await redisClient.get(session);
+
+        const user = await memcached_server_request(
+            "POST",
+            "user_session",
+            {
+                body: JSON.stringify({session}),
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            }
+        )
 
         if (!user) {
             throw new Error(401)

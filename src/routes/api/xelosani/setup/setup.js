@@ -1,19 +1,21 @@
 "use server";
 import { getRequestEvent } from "solid-js/web";
-import { Xelosani } from "../../models/User";
 import { verify_user } from "../../session_management";
-import { GetObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { s3 } from "~/entry-server";
 import { HandleError } from "../../utils/errors/handle_errors";
+import { postgresql_server_request } from "../../utils/ext_requests/posgresql_server_request";
+import { CustomError } from "../../utils/errors/custom_errors";
 
 export const get_xelosani_step = async () => {
   try {
     const event = getRequestEvent();
     const redis_user = await verify_user(event);
 
-    const user = await Xelosani.findById(redis_user.userId, "stepPercent setupDone");
-
+    const user = await postgresql_server_request("GET", `xelosani/step_percent/${redis_user.profId}`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    
     return {
       stepPercent: user.stepPercent,
       setupDone: user.setupDone
@@ -74,58 +76,23 @@ export const handle_contact = async (formData, contact) => {
       throw new Error(401);
     }
 
-    const user = await Xelosani.findOne({
-      $or: [
-        { phone: contact === "phone" ? inputText : null },
-        { email: contact === "email" ? inputText : null },
-      ],
-      _id: { $ne: redis_user.userId },
+    const user = await postgresql_server_request("PUT", `xelosani/update_${contact}/${redis_user.profId}`, {
+      body: JSON.stringify({[contact]: inputText}),
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
 
-    if (user) {
-      if (contact === "phone" && user.phone === inputText) {
-        throw new Error("მომხმარებელი ტელეფონის ნომრით უკვე არსებობს.");
-      } else if (contact === "email" && user.email === inputText) {
-        throw new Error("მომხმარებელი მეილით უკვე არსებობს.");
-      }
-    }
-
-    let xelosani
-
-    if (contact === "phone") {
-      xelosani = await Xelosani.findOneAndUpdate(
-        { _id: redis_user.userId },
-        {
-          $set: {
-            phone: inputText,
-          },
-          $inc: {
-            stepPercent: 12.5,
-          },
-        },
-        { new: true, runValidators: true }
-      ).select("stepPercent profId -_id -__t").lean()
-    } else {
-      xelosani = await Xelosani.findOneAndUpdate(
-        { _id: redis_user.userId },
-        {
-          $set: {
-            email: inputText,
-          },
-          $inc: {
-            stepPercent: 12.5,
-          },
-        },
-        { new: true, runValidators: true }
-      ).select("stepPercent profId -_id -__t").lean()
+    if (user.status === 400) {
+      throw new Error("11000")
     }
 
     return {
-      ...xelosani,
+      ...user,
       status: 200
     };
   } catch (error) {
-    if (error.code === 11000) {
+    if (error.message === "11000") {
       return new HandleError().duplicate_error(
         contact === "phone" ? "ტელეფონის ნომრით" : "მეილით"
       );
@@ -147,7 +114,11 @@ export const check_contact = async () => {
       throw new Error(401);
     }
 
-    const user = await Xelosani.findById(redis_user.userId, "phone email");
+    const user = await postgresql_server_request("GET", `xelosani/get_contact/${redis_user.profId}`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
     if (user.email && !user.phone) {
       return "phone";
@@ -173,7 +144,11 @@ export const check_about = async () => {
       throw new Error(401);
     }
 
-    const user = await Xelosani.findById(redis_user.userId, "about");
+    const user = await postgresql_server_request("GET", `xelosani/about/${redis_user.profId}`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
     return user.about;
   } catch (error) {
@@ -193,29 +168,25 @@ export const handle_about = async (formData) => {
       throw new Error(401);
     }
 
-    const user = await Xelosani.findOneAndUpdate(
-      { _id: redis_user.userId },
-      {
-        $set: {
-          about: about,
-        },
-        $inc: {
-          stepPercent: 12.5,
-        },
+    if (about.length < 75) {
+      throw new CustomError("about", "აღწერა უნდა შეიცავდეს მინიმუმ 75 ასოს.")
+    }
+    if (about.length > 600) {
+      throw new CustomError("about", "აღწერა უნდა შეიცავდეს მაქსიმუმ 600 ასოს.")
+    }
+
+    const user = await postgresql_server_request("PUT", `xelosani/about/${redis_user.profId}`, {
+      body: JSON.stringify({about}),
+      headers: {
+        "Content-Type": "application/json",
       },
-      {
-        new: true,
-        runValidators: true,
-      }
-    ).select("stepPercent profId -_id -__t").lean()
+    });      
 
     return { ...user, status: 200 };
   } catch (error) {
-    if (error.name === "ValidationError") {
-      const handled_error = new HandleError(error).validation_error();
-      return { ...handled_error[0], status: 400 };
-    }
-    return error.message;
+    console.log(error)
+    const handled_error = new HandleError(error).validation_error();
+    return { ...handled_error[0], status: 400 };
   }
 };
 
@@ -228,7 +199,11 @@ export const check_user_age = async () => {
       throw new Error(401);
     }
 
-    const user = await Xelosani.findById(redis_user.userId, "date");
+    const user = await postgresql_server_request("GET", `xelosani/get_age/${redis_user.profId}`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
     return user.date;
   } catch (error) {
@@ -247,14 +222,14 @@ export const handle_date_select = async (date) => {
       throw new Error(401);
     }
 
-    const user = await Xelosani.findOneAndUpdate(
-      { _id: redis_user.userId },
-      {
-        $set: { date: date },
-        $inc: { stepPercent: 12.5 },
+    const user = await postgresql_server_request("PUT", `xelosani/update_date/${redis_user.profId}`, {
+      body: JSON.stringify({
+        date
+      }),
+      headers: {
+        "Content-Type": "application/json",
       },
-      { runValidators: true, new: true,}
-    ).select("stepPercent profId -_id -__t").lean()
+    });
 
     return { ...user, status: 200 };
   } catch (error) {
@@ -273,7 +248,11 @@ export const check_selected_jobs = async () => {
       throw new Error(401);
     }
 
-    const user = await Xelosani.findById(redis_user.userId, "skills");
+    const user = await postgresql_server_request("GET", `xelosani/get_skills/${redis_user.profId}`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
     if (!user.skills) {
       return 400;
@@ -296,18 +275,14 @@ export const handle_selected_skills = async (skills) => {
       throw new Error(401);
     }
 
-    const user = await Xelosani.findOneAndUpdate(
-      { _id: redis_user.userId },
-      {
-        $set: {
-          skills: skills,
-        },
-        $inc: {
-          stepPercent: 12.5,
-        },
+    const user = await postgresql_server_request("POST", `xelosani/insert_skills/${redis_user.profId}`, {
+      body: JSON.stringify({
+        skills
+      }),
+      headers: {
+        "Content-Type": "application/json",
       },
-      { runValidators: true, new: true,}
-    ).select("stepPercent profId -_id -__t").lean()
+    });
 
     return { ...user, status: 200 };
   } catch (error) {
@@ -327,18 +302,14 @@ export const handle_user_gender = async (gender) => {
       throw new Error(401);
     }
 
-    const user = await Xelosani.findOneAndUpdate(
-      { _id: redis_user.userId },
-      {
-        $set: {
-          gender: gender,
-        },
-        $inc: {
-          stepPercent: 12.5,
-        },
+    const user = await postgresql_server_request("PUT", `xelosani/update_gender/${redis_user.profId}`, {
+      body: JSON.stringify({
+        gender
+      }),
+      headers: {
+        "Content-Type": "application/json",
       },
-      { runValidators: true, new: true,}
-    ).select("stepPercent profId -_id -__t").lean()
+    });
 
     return { ...user, status: 200 };
   } catch (error) {
@@ -357,7 +328,11 @@ export const check_user_gender = async () => {
       throw new Error(401);
     }
 
-    const user = await Xelosani.findById(redis_user.userId, "gender");
+    const user = await postgresql_server_request("GET", `xelosani/get_gender/${redis_user.profId}`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
     return user.gender;
   } catch (error) {
@@ -407,7 +382,12 @@ export const check_location = async () => {
       throw new Error(401);
     }
 
-    const user = await Xelosani.findById(redis_user.userId, "location");
+    console.log(redis_user)
+    const user = await postgresql_server_request("GET", `xelosani/get_location/${redis_user.profId}`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
     if (user.location) {
       return 400;
@@ -430,7 +410,11 @@ export const check_user_schedule = async () => {
       throw new Error(401);
     }
 
-    const user = await Xelosani.findById(redis_user.userId, "schedule");
+    const user = await postgresql_server_request("GET", `xelosani/get_schedule/${redis_user.profId}`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
     if (!user.schedule) {
       return 400;
@@ -445,7 +429,7 @@ export const check_user_schedule = async () => {
 };
 
 export const add_user_schedule = async (formData) => {
-  const insertableObject = [
+  const schedule = [
     {
       startTime: formData.get("ორშაბათი-საწყისი-დრო"),
       endTime: formData.get("ორშაბათი-სასრული-დრო"),
@@ -491,72 +475,14 @@ export const add_user_schedule = async (formData) => {
       throw new Error(401);
     }
 
-    const user = await Xelosani.findOneAndUpdate(
-      { _id: redis_user.userId },
-      {
-        $set: {
-          schedule: insertableObject,
-        },
-        $inc: {
-          stepPercent: 12.5,
-        },
+    const user = await postgresql_server_request("POST", `xelosani/insert_schedule/${redis_user.profId}`, {
+      body: JSON.stringify({
+        schedule
+      }),
+      headers: {
+        "Content-Type": "application/json",
       },
-      { runValidators: true, new: true}
-    ).select("stepPercent profId -_id -__t").lean()
-
-    return { ...user, status: 200 };
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-export const check_services = async () => {
-  try {
-    const event = getRequestEvent();
-    const redis_user = await verify_user(event);
-
-    if (redis_user === 401) {
-      throw new Error(401);
-    }
-
-    const user = await Xelosani.findById(redis_user.userId, "phone email");
-
-    if (user.email && !user.phone) {
-      return "phone";
-    } else if (user.phone && !user.email) {
-      return "email";
-    } else {
-      return "fine";
-    }
-  } catch (error) {
-    if (error.message === "401") {
-      return 401;
-    }
-    console.log(error);
-  }
-};
-
-export const handle_services = async (formData) => {
-  try {
-    const event = getRequestEvent();
-    const redis_user = await verify_user(event);
-
-    if (redis_user === 401) {
-      throw new Error(401);
-    }
-
-    const user = await Xelosani.findOneAndUpdate(
-      { _id: redis_user.userId },
-      {
-        $set: {
-          schedule: insertableObject,
-        },
-        $inc: {
-          stepPercent: 12.5,
-        },
-      },
-      { runValidators: true, new: true}
-    ).select("stepPercent profId -_id -__t").lean()
+    });
 
     return { ...user, status: 200 };
   } catch (error) {

@@ -1,6 +1,6 @@
 import { For, createSignal } from "solid-js"
-import jobs from "./all_jobs.json"
 import clear from "../../../../svg-images/svgexport-12.svg"
+import jobs from "~/Components/header-comps/jobs_list.json"
 
 export const JobType = () => {
     const [allJobs, setAllJobs] = createSignal(jobs)

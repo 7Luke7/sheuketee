@@ -2,7 +2,7 @@ import { Header } from "~/Components/Header";
 import { get_xelosani } from "../../api/user";
 import { createAsync, useNavigate } from "@solidjs/router";
 import { Footer } from "~/Components/Footer";
-import checkedGreen from "../../../svg-images/checkedGreen.svg"
+import checkedGreen from "../../../svg-images/checkedGreen.svg";
 import {
   Show,
   createEffect,
@@ -14,25 +14,22 @@ import {
 import { ProfileLeft } from "./ProfileLeft";
 import { ProfileRight } from "./ProfileRight";
 import { navigateToStep } from "~/routes/api/xelosani/setup/step";
-import { ModifyLocaitonModal } from "../modals/ModifyLocationModal";
+// import { ModifyLocaitonModal } from "../modals/ModifyLocationModal";
 import { ModifyWorkSchedule } from "../modals/ModifyWorkSchedule";
 import { ModifyAge } from "../modals/ModifyAge";
 import { MetaProvider } from "@solidjs/meta";
 import { ModifySkill } from "../modals/ModifySkills";
 import { FireworkConfetti } from "~/Components/FireworkConfetti";
-import airPlane from "../../../svg-images/airplane.svg";
-import closeIcon from "../../../svg-images/svgexport-12.svg";
-import exclamationWhite from "../../../svg-images/exclamationWhite.svg";
 import { Review } from "./Review";
+import { ModifyServiceFront } from "../modals/ModifyServiceFront";
+import { Toast } from "~/Components/ToastComponent";
 
 const Xelosani = (props) => {
-  const user = createAsync(async () =>
-    JSON.parse(await get_xelosani(props.params.id))
-  );
+  const user = createAsync(() => get_xelosani(props.params.id))
   const navigate = useNavigate();
   const [modal, setModal] = createSignal(null);
   const [toast, setToast] = createSignal();
-  const [isExiting, setIsExiting] = createSignal(false);
+  const [editingService, setEditingServiceTarget] = createSignal();
 
   const handlenavigateToStep = async () => {
     try {
@@ -44,37 +41,48 @@ const Xelosani = (props) => {
     }
   };
   const clickFN = (event) => {
-    if (
-      !event.target.closest("#search_wrapper") &&
-      !event.target.closest("#search_btn") &&
-      !event.target.closest("#inner_search_wrapper") &&
-      event.target.id !== "daynumber" &&
-      !event.target.closest("#yeardropdown") &&
-      event.target.id !== "locationButton" &&
-      event.target.id !== "schedule" &&
-      !event.target.closest("#modal") &&
-      event.target.id !== "age"
-    ) {
-      setModal(null);
-    }
-  };
+    const ignoreIds = [
+      "daynumber",
+      "locationButton",
+      "schedule",
+      "approve-modify",
+      "delete-thumbnail-button",
+      "div-button",
+      "toast-button2",
+      "toast-button",
+      "age",
+      "cancel-service-file-preview",
+      "service_btn",
+    ];
 
-  createEffect(() => {
-    if (!toast()) return
-    let toastTimeout;
-    let exitTimeout;
-    toastTimeout = setTimeout(() => {
-      setIsExiting(true);
-      exitTimeout = setTimeout(() => {
-        setIsExiting(false);
-        setToast(null);
-      }, 500);
-    }, 5000);
-    onCleanup(() => {
-      if (toastTimeout) clearTimeout(toastTimeout);
-      if (exitTimeout) clearTimeout(exitTimeout);
-    });
-  })
+    const ignoreSelectors = [
+      "#search_wrapper",
+      "#search_btn",
+      "#abort-service-update",
+      "#inner_search_wrapper",
+      "#yeardropdown",
+      "#modal",
+    ];
+
+    const isIgnoredId = ignoreIds.includes(event.target.id);
+    const isInsideModal = event.target.closest("#modal");
+    const isInsideToast = event.target.closest("#toast-parentDiv");
+
+    const isInsideIgnoredSelector = ignoreSelectors.some((selector) =>
+      event.target.closest(selector)
+    );
+
+    if (
+      isInsideModal ||
+      isInsideToast ||
+      isIgnoredId ||
+      isInsideIgnoredSelector
+    ) {
+      return;
+    }
+
+    setModal(null);
+  };
 
   createEffect(() => {
     document.addEventListener("click", clickFN);
@@ -84,9 +92,11 @@ const Xelosani = (props) => {
     });
   });
 
+  console.log(user())
+
   return (
     <MetaProvider>
-        <Header />
+      <Header />
       <div class="relative">
         <div class="w-[90%] mx-auto relative mt-8">
           <Show when={user()}>
@@ -97,17 +107,15 @@ const Xelosani = (props) => {
               >
                 <Switch>
                   <Match when={modal() === "ლოკაცია"}>
-                    <ModifyLocaitonModal
+                    {/* <ModifyLocaitonModal
                       setModal={setModal}
-                      setIsExiting={setIsExiting}
                       setToast={setToast}
                       location={user().location}
-                    ></ModifyLocaitonModal>
+                    ></ModifyLocaitonModal> */}
                   </Match>
                   <Match when={modal() === "ასაკი"}>
                     <ModifyAge
                       setModal={setModal}
-                      setIsExiting={setIsExiting}
                       setToast={setToast}
                       date={user().date}
                     ></ModifyAge>
@@ -115,18 +123,28 @@ const Xelosani = (props) => {
                   <Match when={modal() === "განრიგი"}>
                     <ModifyWorkSchedule
                       setModal={setModal}
-                      setIsExiting={setIsExiting}
                       setToast={setToast}
-                      schedule={user().schedule}
+                      schedules={user().schedules}
                     ></ModifyWorkSchedule>
                   </Match>
                   <Match when={modal() === "სპეციალობა"}>
                     <ModifySkill
                       setModal={setModal}
-                      setIsExiting={setIsExiting}
                       setToast={setToast}
                       skills={user().skills}
+                      parent={user().parent}
+                      child={user().child} 
+                      main={user().main}
                     ></ModifySkill>
+                  </Match>
+                  <Match when={modal() === "სერვისები"}>
+                    <ModifyServiceFront
+                      setModal={setModal}
+                      profileId={user().profId}
+                      editingService={editingService}
+                      setToast={setToast}
+                      setEditingServiceTarget={setEditingServiceTarget}
+                    ></ModifyServiceFront>
                   </Match>
                 </Switch>
               </div>
@@ -164,23 +182,28 @@ const Xelosani = (props) => {
               <ProfileLeft
                 setToast={setToast}
                 setModal={setModal}
-                setIsExiting={setIsExiting}
                 user={user}
               />
-              <ProfileRight user={user} setModal={setModal} />
+              <ProfileRight
+                user={user}
+                setEditingServiceTarget={setEditingServiceTarget}
+                setModal={setModal}
+              />
             </div>
             <Show when={!user().setupDone && user().stepPercent === 100}>
               <FireworkConfetti></FireworkConfetti>
-                <div
-                  id="completed-message"
-                  class="fixed bottom-5 z-[200] left-1/2 -translate-x-1/2"
-                  role="alert"
-                >
-                  <div class="border-dark-green-hover border gap-x-1 flex relative bg-white space-x-4 rtl:space-x-reverse text-gray-500 border rounded-lg p-4 shadow items-center">
-                    <img src={checkedGreen}></img>
-                    <p class="font-[thin-font] font-bold text-xs">გილოცავთ სეტაპი დასრულებულია.</p>
-                  </div>
+              <div
+                id="completed-message"
+                class="fixed bottom-5 z-[200] left-1/2 -translate-x-1/2"
+                role="alert"
+              >
+                <div class="border-dark-green-hover border gap-x-1 flex relative bg-white space-x-4 rtl:space-x-reverse text-gray-500 border rounded-lg p-4 shadow items-center">
+                  <img src={checkedGreen}></img>
+                  <p class="font-[thin-font] font-bold text-xs">
+                    გილოცავთ სეტაპი დასრულებულია.
+                  </p>
                 </div>
+              </div>
             </Show>
             <Review></Review>
           </Show>
@@ -189,28 +212,8 @@ const Xelosani = (props) => {
           </div>
         </div>
         <Show when={toast()}>
-        <div
-          class={`${
-            isExiting() ? "toast-exit" : "toast-enter"
-          } fixed bottom-5 z-[200] left-1/2 -translate-x-1/2`}
-          role="alert"
-        >
-          <div class={`${!toast().type ? "border-red-400" : "border-dark-green-hover"} border flex relative bg-white space-x-4 rtl:space-x-reverse text-gray-500 border rounded-lg p-4 shadow items-center`}>
-            <button
-              class="absolute top-1 right-3"
-              onClick={() => setToast(null)}
-            >
-              <img width={14} height={14} src={closeIcon}></img>
-            </button>
-              {!toast().type ? <div class="bg-red-500 rounded-full">
-                <img src={exclamationWhite} />
-                </div> : <img class="rotate-[40deg]" src={airPlane} />}
-            <div class={`${!toast().type  && "text-red-600"} ps-4 border-l text-sm font-[normal-font]`}>
-              {toast().message}
-            </div>
-          </div>
-        </div>
-      </Show>
+          <Toast toast={toast} setToast={setToast}></Toast>
+        </Show>
       </div>
     </MetaProvider>
   );

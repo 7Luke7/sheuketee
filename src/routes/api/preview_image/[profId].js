@@ -19,7 +19,7 @@ export async function POST({request, params}) {
   
       const bytes = await file.arrayBuffer(file);
       const buffer = Buffer.from(bytes);
-      const compressed_buffer = await compress_image(buffer, 80, 140, 140);
+      const compressed_buffer = await compress_image(buffer, 50, 140, 140);
       const base64 = Buffer.from(compressed_buffer, "binary").toString("base64");
       return `data:image/png;base64,${base64}`;
     } catch (error) {

@@ -1,5 +1,4 @@
 "use server"
-import sharp from "sharp"
 
 export const compress_image = async (buffer, quality, width, height) => {
     try {

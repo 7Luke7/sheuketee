@@ -14,7 +14,7 @@ export const Hero = () => {
                 დაივიწყე ძველი წესები. შეხვდი დამკვეთებს. აიმაღლე რეპუტაცია. გამოიმუშავე თანხა.
             </p>
             <div class="mt-4">
-                <A href="/choose" class="font-[thin-font] font-bold bg-dark-green hover:bg-dark-green-hover transition ease-in delay-20 text-white px-4 py-2 rounded-[16px]">დაიწყე ახლა</A>
+                <A href="/register" class="font-[thin-font] font-bold bg-dark-green hover:bg-dark-green-hover transition ease-in delay-20 text-white px-4 py-2 rounded-[16px]">დაიწყე ახლა</A>
             </div>
             </div>
             <div class="mt-5 border-t border-slate-200 w-[620px]">
