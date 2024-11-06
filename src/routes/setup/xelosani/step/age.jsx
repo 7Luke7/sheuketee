@@ -91,6 +91,7 @@ const Age = () => {
   const handleDateSelect = async () => {
     try {
       const response = await handle_date_select(currentDate())
+      console.log(response)
       if (response.status !== 200) throw new Error(response.status) 
       if (response.stepPercent === 100) {
         return navigate(`/xelosani/${response.profId}`); //ჩანიშვნა
@@ -108,7 +109,7 @@ const Age = () => {
   return (
     <div className="flex p-10 items-center justify-center">
       <Switch>
-        <Match when={!get_user_age() && !submitted()}>
+        <Match when={get_user_age() === 400 && !submitted()}>
         <div className="w-full max-w-[328px] flex flex-col justify-between h-[400px] p-3 border border-gray-300 rounded-2xl">
         <div className="flex items-center justify-between gap-2 mb-2">
           <div className="flex items-center justify-between w-full gap-8 border border-gray-300 rounded-md py-0.5 px-0.5 text-xs font-medium text-gray-900">
@@ -188,7 +189,7 @@ const Age = () => {
         </button>
       </div>
         </Match>
-        <Match when={get_user_age() || submitted()}>
+        <Match when={get_user_age() === 200 || submitted()}>
           <div class="flex flex-col justify-center w-full items-center">
             <p class="text-sm font-[normal-font] font-bold text-gray-700">დაბადების თარიღი დამატებული გაქვთ გთხოვთ განაგრძოთ.</p>
             <A className="py-2 mt-3 text-center w-full rounded-md text-sm font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover" href="/setup/xelosani/step/gender">გაგრძელება</A>

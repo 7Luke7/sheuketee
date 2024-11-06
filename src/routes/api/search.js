@@ -23,7 +23,7 @@ import { verify_user } from "./session_management";
 // }
 
 export const isUserNearby = async (lon, lat, role, id) => {
-  if (role === 1) {
+  if (role === "xelosani") {
     const xelosani = await Xelosani.findById(id, "location -_id -__t")
     return {
       distance: getDistance([lon, lat], [xelosani.location.lon, xelosani.location.lat]),

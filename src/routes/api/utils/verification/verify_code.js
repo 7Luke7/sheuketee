@@ -8,42 +8,32 @@ const code_regex = /^\d{6}$/;
 export async function POST({ request }) {
   try {
     const body = await request.json();
-    const role = body.role;
     const profId = body.profId;
     const verify_input = body.code;
     const randomId = body.randomId;
-
-    let user;
-
-    if (role === "xelosani") {
-      const data = await postgresql_server_request(
-        "GET",
-        `xelosani/find_email_by_profId/${profId}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      user = data;
-    } else if (role === "damkveti") {
-      user = await Damkveti.findOne({ profId: profId }, "email -__t -_id");
-    } else {
-      throw new Error("როლი არ არსებობს.");
-    }
-
-    if (!user.email) {
-      return json("წარმოშვა შეფერხება.", {
-        status: 500,
-      });
-    }
 
     if (!code_regex.test(verify_input)) {
       return json("თქვენს მიერ შევსებული კოდი არასწორია.", {
         status: 400,
       });
     }
+
+    const data = await postgresql_server_request(
+      "GET",
+      `user/find_email_by_profId/${profId}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (data.status === 400) {
+      return json({redirect: data.redirect, message: data.message}, {
+        status: 400,
+      });
+    }
+
     const vsession = await memcached_server_request(
       "GET",
       `validate_id/${profId}`,
@@ -55,7 +45,6 @@ export async function POST({ request }) {
     );
 
     if (!vsession) {
-      console.log("hello world")
       return json("კოდი არ არსებობს, გთხოვთ ხელახლა გაიგზავნოთ.", {
         status: 400,
       });
@@ -72,7 +61,6 @@ export async function POST({ request }) {
     }
 
     if (parsed_object.code !== verify_input) {
-      console.log("hi");
       return json("თქვენს მიერ შევსებული კოდი არასწორია.", {
         status: 400,
       });

@@ -13,6 +13,7 @@ export async function POST({request, params}) {
       const formData = await request.formData();
       const file = formData.get("profile_image")
 
+      // this check should be done on client side as well
       if (file.size > MAX_SINGLE_FILE_SIZE) {
         throw new Error(`${file.name}, ფაილის ზომა აჭარბებს 5მბ ლიმიტს.`)
       }

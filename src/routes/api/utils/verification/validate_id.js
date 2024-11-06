@@ -19,7 +19,7 @@ export async function POST({request}) {
             }
         )
 
-        if (vsession === "empty") {
+        if (vsession === "empty" || !vsession) {
             throw new Error(400)
         }
         const parsed_session = JSON.parse(vsession)
@@ -32,6 +32,7 @@ export async function POST({request}) {
             status: 200
         })
     } catch (error) {
+        console.log(error)
         if (error.message === "400") {
             return json("თქვენ მოხვდით არასწორ გვერდზე, დაბრუნდით უკან.", {status: 400})
         }

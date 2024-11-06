@@ -35,7 +35,7 @@ const About = () => {
     return (
         <div class="flex p-10 flex-col items-center mb-4">
             <Switch>
-                <Match when={!get_about() && !submitted()}>
+                <Match when={get_about() === 400 && !submitted()}>
                     <form onSubmit={textTest}>
                         <textarea
                             name="about"
@@ -54,10 +54,10 @@ const About = () => {
                         </Show>
                     </form>
                 </Match>
-                <Match when={get_about() || submitted()}>
+                <Match when={get_about() === 200 || submitted()}>
                     <div class="flex flex-col w-full items-center">
                         <p class="text-sm font-[normal-font] font-bold text-gray-700">თქვენ შესახებ დამატებული გაქვთ გთხოვთ განაგრძოთ.</p>
-                        <A className="py-2 mt-3 text-center w-full rounded-md text-sm font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover" href="/setup/damkveti/step/age">გაგრძელება</A>
+                        <A className="py-2 mt-3 text-center w-full rounded-md text-sm font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover" href="/setup/xelosani/step/age">გაგრძელება</A>
                     </div>
                 </Match>
             </Switch>

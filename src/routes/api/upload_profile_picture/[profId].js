@@ -52,7 +52,7 @@ export async function POST({request, params}) {
       const buffer = Buffer.from(bytes);
       const compressed_buffer = await compress_image(buffer, 50, 140, 140);
 
-      if (redis_user.role === 1) {
+      if (redis_user.role === "xelosani") {
         await Xelosani.updateOne(
           { _id: redis_user.userId },
           {

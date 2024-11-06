@@ -3,15 +3,6 @@ import closeIcon from "../../../svg-images/svgexport-12.svg"
 import {modify_user_schedule} from "~/routes/api/xelosani/modify/schedule"
 
 export const ModifyWorkSchedule = (props) => {    
-    const week_days = [
-        "ორშაბათი", 
-        "სამშაბათი",
-        "ოთხშაბათი",
-        "ხუთშაბათი",
-        "პარასკევი",
-        "შაბათი",
-        "კვირა"
-    ]     
     const handle_user_schedule = async (e) => {
         e.preventDefault()
         try {
@@ -45,13 +36,13 @@ export const ModifyWorkSchedule = (props) => {
                 </div>
             </div>
             <form onSubmit={handle_user_schedule} class="flex flex-col gap-y-2 py-2 justify-between w-full">
-                {week_days.map((a, i) => {
+                {props.schedules.map((sc, i) => {
                     return <div class="flex items-center w-full justify-between border-b pb-2">
-                        <p class="font-[normal-font] text-xl w-[100px] font-bold text-gray-800 tracking-wider">{a}</p>
+                        <p class="font-[normal-font] text-xl w-[100px] font-bold text-gray-800 tracking-wider">{sc.day_of_week}</p>
                         <span class="font-[boldest-font] text-3xl font-bold">-</span>
                         <div class="flex items-center gap-x-2 ml-2">
-                            <input type="time" name={`${a}-საწყისი-დრო`} class="outline-none bg-gray-50 border leading-none border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" value={props.schedule[i].startTime} />
-                            <input type="time" name={`${a}-სასრული-დრო`} class="outline-none bg-gray-50 border leading-none border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" value={props.schedule[i].endTime} />
+                            <input type="time" name={`${sc.day_of_week}-საწყისი-დრო`} class="outline-none bg-gray-50 border leading-none border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" value={sc.available_from} />
+                            <input type="time" name={`${sc.day_of_week}-სასრული-დრო`} class="outline-none bg-gray-50 border leading-none border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" value={sc.available_to} />
                         </div>
                     </div>
                 })}

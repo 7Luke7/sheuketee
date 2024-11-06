@@ -27,7 +27,7 @@ export const get_location = async () => {
     const event = getRequestEvent();
     const user = await verify_user(event);
 
-    if (user === 401 || user.role === 1) {
+    if (user === 401 || user.role === "xelosani") {
       return 401;
     }
 

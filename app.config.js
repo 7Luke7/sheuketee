@@ -1,6 +1,9 @@
 import { defineConfig } from "@solidjs/start/config";
 
 export default defineConfig({
+  optimizeDeps: {
+    exclude: ['js-big-decimal']
+  },
   vite({ router }) {
     if (router === "server") {
       // You might want to add server-specific configurations here

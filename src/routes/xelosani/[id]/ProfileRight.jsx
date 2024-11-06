@@ -8,9 +8,21 @@ export const ProfileRight = (props) => {
   return (
     <div class="flex flex-1 flex-col border-r px-3">
       <div class="flex justify-between items-center">
+        <div class="flex items-center gap-x-1">
         <h2 class="font-[bolder-font] font-bold text-gray-900 text-lg">
           ჩემს შესახებ
         </h2>
+        <Show
+          when={
+            props.user().status === 200 &&
+            props.user().about
+          }
+        >
+          <button onClick={() => props.setModal("აღწერა")}>
+            <img id="locationButton" src={pen} />
+          </button>
+        </Show>
+        </div>
         <p class="text-xs font-[thin-font] font-bold">
           შემოუერთდა {props.user().creationDateDisplayable}
         </p>

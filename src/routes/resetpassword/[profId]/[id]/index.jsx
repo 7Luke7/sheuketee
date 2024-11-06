@@ -7,10 +7,11 @@ import {
   onCleanup,
   onMount,
 } from "solid-js";
-import eyeFillSVG from "../../../../../svg-images/eye-fill.svg";
-import eyeSlashSVG from "../../../../../svg-images/eye-slash.svg";
+import eyeFillSVG from "../../../../svg-images/eye-fill.svg";
+import eyeSlashSVG from "../../../../svg-images/eye-slash.svg";
 import { Toast } from "~/Components/ToastComponent";
 import { CustomError } from "~/Components/errors/ExtendedErrorFrontend";
+import { useNavigate } from "@solidjs/router";
 
 const ResetPassword = (props) => {
   const [showPasswordForm, setShowPasswordForm] = createSignal(false);
@@ -28,7 +29,7 @@ const ResetPassword = (props) => {
 
   let input1, input2, input3, input4, input5, input6, submitButton;
   let inputs;
-
+  const navigate = useNavigate()
   onMount(async () => {
     try {
       const response = await fetch(`/api/utils/verification/validate_id`, {
@@ -51,7 +52,6 @@ const ResetPassword = (props) => {
         input.addEventListener("paste", handlePaste);
       });
     } catch (error) {
-      console.log(error);
       if (error.message === "400") {
         alert(400)
       } else {
@@ -111,7 +111,6 @@ const ResetPassword = (props) => {
         method: "POST",
         body: JSON.stringify({
           randomId: props.params.id,
-          role: props.params.role,
           profId: props.params.profId,
           code: otp1() + otp2() + otp3() + otp4() + otp5() + otp6(),
         }),
@@ -120,10 +119,12 @@ const ResetPassword = (props) => {
         },
       });
       if (!response.ok) {
-        throw new CustomError(
-          response.status,
-          "კოდი არ არსებობს, გთხოვთ ხელახლა გაიგზავნოთ."
-        ).ExntendToErrorName();
+        const data = await response.json()
+        if (data.redirect) return navigate(data.redirect)
+        setToast({
+          type: false,
+          message: data.message
+        })
       }
 
       setShowPasswordForm(true);
@@ -151,7 +152,6 @@ const ResetPassword = (props) => {
           message: "პაროლები არ ემთხვევა.",
         });
       }
-      formData.append("role", JSON.stringify(props.params.role));
       formData.append("profId", JSON.stringify(props.params.profId));
       const response = await fetch("/api/password/reset", {
         method: "POST",
@@ -176,7 +176,6 @@ const ResetPassword = (props) => {
         {
           method: "POST",
           body: JSON.stringify({
-            role: props.params.role,
             profId: props.params.profId,
             randomId: props.params.id,
           }),
@@ -239,7 +238,6 @@ const ResetPassword = (props) => {
         {
           method: "POST",
           body: JSON.stringify({
-            role: props.params.role,
             profId: props.params.profId,
             randomId: props.params.id,
           }),

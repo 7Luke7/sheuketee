@@ -6,14 +6,10 @@ import { postgresql_server_request } from "../ext_requests/posgresql_server_requ
 export async function POST({request}) {
     try {
         const body = await request.json();
-        const role = body.role
         const profId = body.profId
 
         if (!profId) {
             return json({ message: "პროფილის id სავალდებულოა." }, { status: 400 });
-        }
-        if (!role) {
-            return json({ message: "როლი არ არის მითითებული" }, { status: 400 });
         }
 
         // const RATE_LIMIT = 3;
@@ -41,35 +37,27 @@ export async function POST({request}) {
                     random_id, 
                     profId,
                     verificationCode,
-                    role,
                 }),
                 headers: {
                     "Content-Type": "application/json"
                 }
             }
         )
-
-        let user
         
-        if (role === "xelosani") {
-            const data = await postgresql_server_request(
-                "GET",
-                `xelosani/find_email_by_profId/${profId}`,
-                {
-                    headers: {
-                        "Content-Type": "application/json"
-                    }
+        const data = await postgresql_server_request(
+            "GET",
+            `user/find_email_by_profId/${profId}`,
+            {
+                headers: {
+                    "Content-Type": "application/json"
                 }
-            )   
+            }
+        )   
 
-            user = data
-        } else if (role === "damkveti") {
-            user = await Damkveti.findOne({profId: profId}, 'email -__t -_id')
-        } else {
-            throw new Error("როლი არ შეესაბამება.")
+        if (data.status !== 200) {
+            throw new Error("Error!!!!!!!11")
         }
-
-        const mail = await send_email(user.email, verificationCode)
+        const mail = await send_email(data.email, verificationCode)
 
         if (mail === 500) {
             throw new Error("დაფიქსირდა შეცდომა მეილის გაგზავნის დროს.")

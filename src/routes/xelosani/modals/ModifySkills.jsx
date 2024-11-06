@@ -10,7 +10,6 @@ export const ModifySkill = (props) => {
   const [childChecked, setChildChecked] = createSignal(props.child)
   const [parentChecked, setParentChecked] = createSignal(props.parent)
   const [mainChecked, setMainChecked] = createSignal(props.main)
-  console.log(props.child, props.main)
 
   const toggleParentAccordion = (index) => {
     if (activeParentIndex() === index) {

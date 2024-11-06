@@ -17,7 +17,7 @@ export const get_account = cache(async () => {
       throw new Error(401);
     }
 
-    if (session.role === 1) {
+    if (session.role === "xelosani") {
       const data = await postgresql_server_request("POST", `xelosani/account`, {
         body: JSON.stringify({
           userId: session.userId,
@@ -28,7 +28,7 @@ export const get_account = cache(async () => {
       });
 
       return data;
-    } else if (session.role === 2) {
+    } else if (session.role === "damkveti") {
       const user = await Damkveti.findById(
         session.userId,
         "-_id -__v -skills -updatedAt -notificationDevices -createdAt -password -gender -date -about -stepPercent -profId"
@@ -60,7 +60,7 @@ export const get_xelosani = async (prof_id) => {
     });
 
     let displayBirthDate;
-    if (user.date && user.privacy && user.privacy.birthDate !== "private") {
+    if (user.date && user.privacy && user.privacy.birthDate !== "დამალვა") {
       displayBirthDate = new Date(user["date"]).toLocaleDateString("ka-GE", {
         weekday: "long",
         year: "numeric",
@@ -271,7 +271,6 @@ export const get_notification_targets = async () => {
     const event = getRequestEvent();
     const session = await verify_user(event);
 
-    console.log(session)
     const data = await postgresql_server_request("POST", `xelosani/notification_targets`, {
       body: JSON.stringify({
         userId: session.userId,
@@ -280,7 +279,7 @@ export const get_notification_targets = async () => {
         "Content-Type": "application/json",
       },
     });
-    return data.notificationDevices;
+    return data.notificationdevices;
   } catch (error) {
     console.log(error);
   }
@@ -533,7 +532,7 @@ export const setup_done = async () => {
       throw new Error(401);
     }
 
-    if (redis_user.role === 1) {
+    if (redis_user.role === "xelosani") {
       await Xelosani.updateOne(
         { _id: redis_user.userId },
         {

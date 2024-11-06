@@ -1,9 +1,9 @@
 'use server'
 
-export const postgresql_server_request = async (method, params, headers) => {
+export const fileserver_request = async (method, params, headers) => {
     try {
-        const response = await fetch(`${process.env.POSTGRES_SERVER_DOMAIN}:${process.env.POSTGRES_SERVER_PORT}/${params}`, {
-            method: method, 
+        const response = await fetch(`${process.env.FILESERVER_SERVER_DOMAIN}:${process.env.FILESERVER_SERVER_PORT}/${params}`, {
+            method: method,
             ...headers
         })
 

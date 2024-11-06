@@ -8,9 +8,9 @@ import { CustomError } from "../../utils/errors/custom_errors";
 export const get_xelosani_step = async () => {
   try {
     const event = getRequestEvent();
-    const redis_user = await verify_user(event);
+    const session = await verify_user(event);
 
-    const user = await postgresql_server_request("GET", `xelosani/step_percent/${redis_user.profId}`, {
+    const user = await postgresql_server_request("GET", `xelosani/step_percent/${session.profId}`, {
       headers: {
         "Content-Type": "application/json",
       },
@@ -22,37 +22,6 @@ export const get_xelosani_step = async () => {
     };
   } catch (error) {
     console.log(error);
-  }
-};
-
-export const profile_image_no_id = async () => {
-  let id
-  try {
-    const event = getRequestEvent();
-    const redis_user = await verify_user(event);
-
-    id = redis_user.profId
-    const params = {
-      Bucket: process.env.S3_BUCKET_NAME,
-      Region: "eu-central-1",
-      Key: `${redis_user.profId}-profpic`,
-    };
-    const headCommand = new HeadObjectCommand(params);
-    await s3.send(headCommand);
-
-    const command = new GetObjectCommand(params);
-    const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
-    return {
-      url,
-      profId: id
-    };
-  } catch (error) {
-    if (error.name === "NotFound") {
-      return {
-        url: null,
-        profId: id
-      }
-    }
   }
 };
 
@@ -70,13 +39,13 @@ export const handle_contact = async (formData, contact) => {
     }
 
     const event = getRequestEvent();
-    const redis_user = await verify_user(event);
+    const session = await verify_user(event);
 
-    if (redis_user === 401) {
+    if (session === 401) {
       throw new Error(401);
     }
 
-    const user = await postgresql_server_request("PUT", `xelosani/update_${contact}/${redis_user.profId}`, {
+    const user = await postgresql_server_request("PUT", `xelosani/update_${contact}/${session.profId}`, {
       body: JSON.stringify({[contact]: inputText}),
       headers: {
         "Content-Type": "application/json",
@@ -108,21 +77,21 @@ const phoneRegex = /^\d{9}$/;
 export const check_contact = async () => {
   try {
     const event = getRequestEvent();
-    const redis_user = await verify_user(event);
+    const session = await verify_user(event);
 
-    if (redis_user === 401) {
+    if (session === 401) {
       throw new Error(401);
     }
 
-    const user = await postgresql_server_request("GET", `xelosani/get_contact/${redis_user.profId}`, {
+    const user = await postgresql_server_request("GET", `xelosani/check_contact/${session.profId}`, {
       headers: {
         "Content-Type": "application/json",
       },
     });
 
-    if (user.email && !user.phone) {
+    if (user.email_exists && !user.phone_exists) {
       return "phone";
-    } else if (user.phone && !user.email) {
+    } else if (user.phone_exists && !user.email_exists) {
       return "email";
     } else {
       return "fine";
@@ -138,19 +107,24 @@ export const check_contact = async () => {
 export const check_about = async () => {
   try {
     const event = getRequestEvent();
-    const redis_user = await verify_user(event);
+    const session = await verify_user(event);
 
-    if (redis_user === 401) {
+    if (session === 401) {
       throw new Error(401);
     }
 
-    const user = await postgresql_server_request("GET", `xelosani/about/${redis_user.profId}`, {
+    const user = await postgresql_server_request("GET", `xelosani/about/${session.profId}`, {
       headers: {
         "Content-Type": "application/json",
       },
     });
 
-    return user.about;
+    console.log("about: ", user)
+    if (user.status === 400) {
+      return 400
+    }
+
+    return 200
   } catch (error) {
     if (error.message === "401") {
       return 401;
@@ -162,9 +136,9 @@ export const handle_about = async (formData) => {
   try {
     const about = formData.get("about");
     const event = getRequestEvent();
-    const redis_user = await verify_user(event);
+    const session = await verify_user(event);
 
-    if (redis_user === 401) {
+    if (session === 401) {
       throw new Error(401);
     }
 
@@ -175,7 +149,7 @@ export const handle_about = async (formData) => {
       throw new CustomError("about", "აღწერა უნდა შეიცავდეს მაქსიმუმ 600 ასოს.")
     }
 
-    const user = await postgresql_server_request("PUT", `xelosani/about/${redis_user.profId}`, {
+    const user = await postgresql_server_request("PUT", `xelosani/about/${session.profId}`, {
       body: JSON.stringify({about}),
       headers: {
         "Content-Type": "application/json",
@@ -193,19 +167,23 @@ export const handle_about = async (formData) => {
 export const check_user_age = async () => {
   try {
     const event = getRequestEvent();
-    const redis_user = await verify_user(event);
+    const session = await verify_user(event);
 
-    if (redis_user === 401) {
+    if (session === 401) {
       throw new Error(401);
     }
 
-    const user = await postgresql_server_request("GET", `xelosani/get_age/${redis_user.profId}`, {
+    const user = await postgresql_server_request("GET", `xelosani/check_date/${session.profId}`, {
       headers: {
         "Content-Type": "application/json",
       },
     });
 
-    return user.date;
+    if (user.status === 400) {
+      return 400
+    }
+
+    return 200
   } catch (error) {
     if (error) {
       return error.message;
@@ -216,13 +194,13 @@ export const check_user_age = async () => {
 export const handle_date_select = async (date) => {
   try {
     const event = getRequestEvent();
-    const redis_user = await verify_user(event);
+    const session = await verify_user(event);
 
-    if (redis_user === 401) {
+    if (session === 401) {
       throw new Error(401);
     }
 
-    const user = await postgresql_server_request("PUT", `xelosani/update_date/${redis_user.profId}`, {
+    const user = await postgresql_server_request("PUT", `xelosani/update_date/${session.profId}`, {
       body: JSON.stringify({
         date
       }),
@@ -242,20 +220,20 @@ export const handle_date_select = async (date) => {
 export const check_selected_jobs = async () => {
   try {
     const event = getRequestEvent();
-    const redis_user = await verify_user(event);
+    const session = await verify_user(event);
 
-    if (redis_user === 401) {
+    if (session === 401) {
       throw new Error(401);
     }
 
-    const user = await postgresql_server_request("GET", `xelosani/get_skills/${redis_user.profId}`, {
+    const user = await postgresql_server_request("GET", `xelosani/check_skills/${session.profId}`, {
       headers: {
         "Content-Type": "application/json",
       },
     });
 
-    if (!user.skills) {
-      return 400;
+    if (user.status === 400) {
+      return 400
     }
 
     return 200
@@ -269,13 +247,13 @@ export const check_selected_jobs = async () => {
 export const handle_selected_skills = async (skills) => {
   try {
     const event = getRequestEvent();
-    const redis_user = await verify_user(event);
+    const session = await verify_user(event);
 
-    if (redis_user === 401) {
+    if (session === 401) {
       throw new Error(401);
     }
 
-    const user = await postgresql_server_request("POST", `xelosani/insert_skills/${redis_user.profId}`, {
+    const user = await postgresql_server_request("POST", `xelosani/insert_skills/${session.profId}`, {
       body: JSON.stringify({
         skills
       }),
@@ -296,13 +274,13 @@ export const handle_selected_skills = async (skills) => {
 export const handle_user_gender = async (gender) => {
   try {
     const event = getRequestEvent();
-    const redis_user = await verify_user(event);
+    const session = await verify_user(event);
 
-    if (redis_user === 401) {
+    if (session === 401) {
       throw new Error(401);
     }
 
-    const user = await postgresql_server_request("PUT", `xelosani/update_gender/${redis_user.profId}`, {
+    const user = await postgresql_server_request("PUT", `xelosani/update_gender/${session.profId}`, {
       body: JSON.stringify({
         gender
       }),
@@ -322,19 +300,23 @@ export const handle_user_gender = async (gender) => {
 export const check_user_gender = async () => {
   try {
     const event = getRequestEvent();
-    const redis_user = await verify_user(event);
+    const session = await verify_user(event);
 
-    if (redis_user === 401) {
+    if (session === 401) {
       throw new Error(401);
     }
 
-    const user = await postgresql_server_request("GET", `xelosani/get_gender/${redis_user.profId}`, {
+    const user = await postgresql_server_request("GET", `xelosani/check_gender/${session.profId}`, {
       headers: {
         "Content-Type": "application/json",
       },
     });
 
-    return user.gender;
+    if (user.status === 400) {
+      return 400
+    }
+
+    return 200
   } catch (error) {
     if (error) {
       return error.message;
@@ -345,27 +327,20 @@ export const check_user_gender = async () => {
 export const handle_location = async (location) => {
   try {
     const event = getRequestEvent();
-    const redis_user = await verify_user(event);
+    const session = await verify_user(event);
 
-    if (redis_user === 401) {
+    if (session === 401) {
       throw new Error(401);
     }
     if (!location) {
       throw new Error("აირჩიე ლოკაცია");
     }
 
-    const user = await Xelosani.findOneAndUpdate(
-      { _id: redis_user.userId },
-      {
-        $set: {
-          location: location,
-        },
-        $inc: {
-          stepPercent: 12.5,
-        },
+    const user = await postgresql_server_request("GET", `xelosani/handle_location/${session.profId}`, {
+      headers: {
+        "Content-Type": "application/json",
       },
-      { runValidators: true, new: true}
-    ).select("stepPercent profId -_id -__t").lean()
+    });
 
     return { ...user, status: 200 };
   } catch (error) {
@@ -376,24 +351,23 @@ export const handle_location = async (location) => {
 export const check_location = async () => {
   try {
     const event = getRequestEvent();
-    const redis_user = await verify_user(event);
+    const session = await verify_user(event);
 
-    if (redis_user === 401) {
+    if (session === 401) {
       throw new Error(401);
     }
 
-    console.log(redis_user)
-    const user = await postgresql_server_request("GET", `xelosani/get_location/${redis_user.profId}`, {
+    const user = await postgresql_server_request("GET", `xelosani/check_location/${session.profId}`, {
       headers: {
         "Content-Type": "application/json",
       },
     });
 
-    if (user.location) {
-      return 400;
+    if (user.status === 400) {
+      return 400
     }
 
-    return 200;
+    return 200
   } catch (error) {
     if (error) {
       return error.message;
@@ -404,20 +378,20 @@ export const check_location = async () => {
 export const check_user_schedule = async () => {
   try {
     const event = getRequestEvent();
-    const redis_user = await verify_user(event);
+    const session = await verify_user(event);
 
-    if (redis_user === 401) {
+    if (session === 401) {
       throw new Error(401);
     }
 
-    const user = await postgresql_server_request("GET", `xelosani/get_schedule/${redis_user.profId}`, {
+    const user = await postgresql_server_request("GET", `xelosani/check_schedule/${session.profId}`, {
       headers: {
         "Content-Type": "application/json",
       },
     });
 
-    if (!user.schedule) {
-      return 400;
+    if (user.status === 400) {
+      return 400
     }
 
     return 200
@@ -429,55 +403,56 @@ export const check_user_schedule = async () => {
 };
 
 export const add_user_schedule = async (formData) => {
-  const schedule = [
-    {
-      startTime: formData.get("ორშაბათი-საწყისი-დრო"),
-      endTime: formData.get("ორშაბათი-სასრული-დრო"),
-      day: "ორშაბათი",
-    },
-    {
-      startTime: formData.get("სამშაბათი-საწყისი-დრო"),
-      endTime: formData.get("სამშაბათი-სასრული-დრო"),
-      day: "სამშაბათი",
-    },
-    {
-      startTime: formData.get("ოთხშაბათი-საწყისი-დრო"),
-      endTime: formData.get("ოთხშაბათი-სასრული-დრო"),
-      day: "ოთხშაბათი",
-    },
-    {
-      startTime: formData.get("ხუთშაბათი-საწყისი-დრო"),
-      endTime: formData.get("ხუთშაბათი-სასრული-დრო"),
-      day: "ხუთშაბათი",
-    },
-    {
-      startTime: formData.get("პარასკევი-საწყისი-დრო"),
-      endTime: formData.get("პარასკევი-სასრული-დრო"),
-      day: "პარასკევი",
-    },
-    {
-      startTime: formData.get("შაბათი-საწყისი-დრო"),
-      endTime: formData.get("შაბათი-სასრული-დრო"),
-      day: "შაბათი",
-    },
-    {
-      startTime: formData.get("კვირა-საწყისი-დრო"),
-      endTime: formData.get("კვირა-სასრული-დრო"),
-      day: "კვირა",
-    },
-  ];
-
   try {
     const event = getRequestEvent();
-    const redis_user = await verify_user(event);
+    const session = await verify_user(event);
 
-    if (redis_user === 401) {
+    if (session === 401) {
       throw new Error(401);
     }
 
-    const user = await postgresql_server_request("POST", `xelosani/insert_schedule/${redis_user.profId}`, {
+    const schedule = [
+      {
+        startTime: formData.get("ორშაბათი-საწყისი-დრო"),
+        endTime: formData.get("ორშაბათი-სასრული-დრო"),
+        day: "ორშაბათი",
+      },
+      {
+        startTime: formData.get("სამშაბათი-საწყისი-დრო"),
+        endTime: formData.get("სამშაბათი-სასრული-დრო"),
+        day: "სამშაბათი",
+      },
+      {
+        startTime: formData.get("ოთხშაბათი-საწყისი-დრო"),
+        endTime: formData.get("ოთხშაბათი-სასრული-დრო"),
+        day: "ოთხშაბათი",
+      },
+      {
+        startTime: formData.get("ხუთშაბათი-საწყისი-დრო"),
+        endTime: formData.get("ხუთშაბათი-სასრული-დრო"),
+        day: "ხუთშაბათი",
+      },
+      {
+        startTime: formData.get("პარასკევი-საწყისი-დრო"),
+        endTime: formData.get("პარასკევი-სასრული-დრო"),
+        day: "პარასკევი",
+      },
+      {
+        startTime: formData.get("შაბათი-საწყისი-დრო"),
+        endTime: formData.get("შაბათი-სასრული-დრო"),
+        day: "შაბათი",
+      },
+      {
+        startTime: formData.get("კვირა-საწყისი-დრო"),
+        endTime: formData.get("კვირა-სასრული-დრო"),
+        day: "კვირა",
+      },
+    ];
+
+    const user = await postgresql_server_request("POST", `xelosani/insert_schedule/${session.profId}`, {
       body: JSON.stringify({
-        schedule
+        schedule,
+        xelosaniId: session.userId
       }),
       headers: {
         "Content-Type": "application/json",

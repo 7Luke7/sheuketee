@@ -26,7 +26,7 @@ const Gender = () => {
 
   return (
     <Switch>
-      <Match when={!user_gender() && !submitted()}>
+      <Match when={user_gender() === 400 && !submitted()}>
         <div class="flex flex-col p-10 justify-center mb-4">
           <div class="flex gap-x-5 items-center">
             <button onClick={() => setCurrent("კაცი")} class="h-[220px] border w-1/2 flex flex-col items-start cursor-pointer gap-y-2 p-5 border-slate-300 rounded border-2">
@@ -49,10 +49,10 @@ const Gender = () => {
           </button>
         </div>
       </Match>
-      <Match when={user_gender() || submitted()}>
+      <Match when={user_gender() === 200 || submitted()}>
         <div class="flex p-10 flex-col w-full items-center">
           <p class="text-sm font-[normal-font] font-bold text-gray-700">თქვენ სქესი დამატებული გაქვთ გთხოვთ განაგრძოთ.</p>
-          <A className="py-2 mt-3 text-center w-1/2 rounded-md text-sm font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover" href="/setup/xelosani/step/skills">გაგრძელება</A>
+          <A className="py-2 mt-3 text-center w-1/2 rounded-md text-sm font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover" href="/setup/xelosani/step/schedule">გაგრძელება</A>
         </div>
       </Match>
     </Switch>

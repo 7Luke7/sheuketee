@@ -27,7 +27,6 @@ export const SkillCarousel = (props) => {
     });
   });
 
-  console.log(props.skills)
   return (
     <section class="relative w-full max-w-[1440px] mx-auto">
       <div ref={swiperSkillEl} class="swiper w-full">

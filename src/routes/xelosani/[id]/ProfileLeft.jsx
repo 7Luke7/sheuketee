@@ -227,13 +227,13 @@ export const ProfileLeft = (props) => {
           </div>
           <div class="flex pb-1 px-2 border-b items-center gap-x-1">
           <Switch>
-              <Match when={props.user().phone && props.user().privacy.phone !== "private"}>
+              <Match when={props.user().phone && props.user().privacy.phone !== "დამალვა"}>
                 <img src={telephone}></img>
                 <p class="text-gr text-xs ml-1 font-[thin-font] font-bold">
                   {props.user().phone}
                 </p>
               </Match>
-              <Match when={props.user().status === 200 && !props.user().phone && props.user().privacy.phone !== "private"}>
+              <Match when={props.user().status === 200 && !props.user().phone && props.user().privacy.phone !== "დამალვა"}>
                 <A
                   href="/setup/xelosani/step/contact"
                   class="bg-dark-green w-full py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]"
@@ -241,13 +241,13 @@ export const ProfileLeft = (props) => {
                   დაამატე ტელ. ნომერი
                 </A>
               </Match>
-              <Match when={props.user().status === 401 && props.user().privacy.phone !== "private"}>
+              <Match when={props.user().status === 401 && props.user().privacy.phone !== "დამალვა"}>
                 <img src={telephone}></img>
                 <p class="text-gr ml-1 text-xs font-[thin-font] font-bold">
                   ტელ.ნომერი არ არის დამატებული
                 </p>
               </Match>
-              <Match when={props.user().privacy.phone === "private"}>
+              <Match when={props.user().privacy.phone === "დამალვა"}>
                 <img src={telephone}></img>
                 <p class="text-gr ml-1 text-xs font-[thin-font] font-bold">
                   ტელ.ნომერი დამალულია
@@ -257,13 +257,13 @@ export const ProfileLeft = (props) => {
           </div>
           <div class="flex px-2 pb-1 border-b items-center gap-x-1">
           <Switch>
-              <Match when={props.user().email && props.user().privacy.email !== "private"}>
+              <Match when={props.user().email && props.user().privacy.email !== "დამალვა"}>
                 <img src={envelope}></img>
                 <p class="text-gr ml-1 text-xs font-[thin-font] font-bold">
                   {props.user().email}
                 </p>
               </Match>
-              <Match when={props.user().status === 200 && !props.user().email && props.user().privacy.email !== "private"}>
+              <Match when={props.user().status === 200 && !props.user().email && props.user().privacy.email !== "დამალვა"}>
                 <A
                   href="/setup/xelosani/step/contact"
                   class="bg-dark-green w-full py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]"
@@ -271,13 +271,13 @@ export const ProfileLeft = (props) => {
                   დაამატე მეილი
                 </A>
               </Match>
-              <Match when={props.user().status === 401 && props.user().privacy.email !== "private"}>
+              <Match when={props.user().status === 401 && props.user().privacy.email !== "დამალვა"}>
                 <img src={envelope}></img>
                 <p class="text-gr ml-1 text-xs font-[thin-font] font-bold">
                   მეილი არ არის დამატებული
                 </p>
               </Match>
-              <Match when={props.user().privacy.email === "private"}>
+              <Match when={props.user().privacy.email === "დამალვა"}>
                 <img src={envelope}></img>
                 <p class="text-gr ml-1 text-xs font-[thin-font] font-bold">
                   მეილი დამალულია
@@ -287,7 +287,7 @@ export const ProfileLeft = (props) => {
           </div>
           <div class="flex pb-1 border-b px-2 items-center gap-x-1">
           <Switch>
-              <Match when={props.user().date && props.user().privacy.birthDate !== "private"}>
+              <Match when={props.user().date && props.user().privacy.birthDate !== "დამალვა"}>
                 <div class="flex justify-between w-full items-center">
                   <div class="flex items-end pr-1 gap-x-2">
                     <img src={cake} />
@@ -302,7 +302,7 @@ export const ProfileLeft = (props) => {
                   </Show>
                 </div>
               </Match>
-              <Match when={props.user().status === 200 && !props.user().date && props.user().privacy.birthDate !== "private"}>
+              <Match when={props.user().status === 200 && !props.user().date && props.user().privacy.birthDate !== "დამალვა"}>
                 <A
                   href="/setup/xelosani/step/age"
                   class="bg-dark-green w-full py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]"
@@ -310,7 +310,7 @@ export const ProfileLeft = (props) => {
                   დაამატე დაბ. თარიღი
                 </A>
               </Match>
-              <Match when={props.user().status === 401 && props.user().privacy.birthDate !== "private"}>
+              <Match when={props.user().status === 401 && props.user().privacy.birthDate !== "დამალვა"}>
               <div class="flex items-center">
               <div class="flex items-end gap-x-2">
                     <img src={cake} />
@@ -323,7 +323,7 @@ export const ProfileLeft = (props) => {
                 </p>
                 </div>
               </Match>
-              <Match when={props.user().privacy.birthDate === "private"}>
+              <Match when={props.user().privacy.birthDate === "დამალვა"}>
               <div class="flex items-center">
               <div class="flex items-end gap-x-2">
                     <img src={cake} />

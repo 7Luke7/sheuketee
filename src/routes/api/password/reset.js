@@ -6,7 +6,6 @@ import { postgresql_server_request } from "../utils/ext_requests/posgresql_serve
 export async function POST({request}) {
     try {
         const fd = await request.formData()
-        const role = JSON.parse(fd.get("role"))
         const new_password = fd.get("new_password");
         const profId = JSON.parse(fd.get("profId"));
 
@@ -16,27 +15,18 @@ export async function POST({request}) {
         const salt = await bcrypt.genSalt(8);
         const hash = await bcrypt.hash(new_password, salt);
 
-    
-        if (role === "xelosani") {
-            await postgresql_server_request(
-                "PUT",
-                `${role}/password/${profId}`,
-                {
-                    body: JSON.stringify({
-                        password: hash
-                    }),
-                    headers: {
-                        "Content-Type": "application/json"
-                    }
+        await postgresql_server_request(
+            "PUT",
+            `user/password/${profId}`,
+            {
+                body: JSON.stringify({
+                    password: hash
+                }),
+                headers: {
+                    "Content-Type": "application/json"
                 }
-            )
-        } else if (role === "damkveti") {
-            await Damkveti.updateOne({profId: profId}, 
-                {$set: {password: hash}}
-            )
-        } else {
-            throw new Error("როლი არ არსებობს")
-        }
+            }
+        )
 
         return json("პაროლი განახლებულია", {status: 200})
     } catch (error) {

@@ -4,24 +4,23 @@ import { postgresql_server_request } from "../utils/ext_requests/posgresql_serve
 import { HandleError } from "../utils/errors/handle_errors"
 import { json } from "@solidjs/router"
 
+const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+const phoneRegex = /^\d{9}$/
+
 export async function POST({request}) {
     try {
         const fd = await request.formData()
-        const role = fd.get("role")
-
         const phoneEmail = fd.get("phoneEmail")
-        const field = /^\d{9}$/.test(phoneEmail) ? "phone" : "email"
 
         let user
 
-        //profId, firstname, lastname
-        if (role === "xelosani") {
+        if (emailRegex.test(phoneEmail)) {
             const data = await postgresql_server_request(
                 "POST",
-                `xelosani/find_by_phone_email`,
+                "user/find_by_phone_email",
                 {
                     body: JSON.stringify({
-                        [field]: phoneEmail,
+                        email: phoneEmail,
                     }),
                     headers: {
                         "Content-Type": "application/json"
@@ -33,12 +32,26 @@ export async function POST({request}) {
             }
 
             user = data
-        } else if (role === "damkveti") {
-            user = await Damkveti.findOne(
-                {...(isPhone ? { phone: phoneEmail } : { email: phoneEmail })}
-            , "profId firstname -_id lastname -__t").lean()
+        } else if (phoneRegex.test(phoneEmail)) {
+            const data = await postgresql_server_request(
+                "POST",
+                "user/find_by_phone_email",
+                {
+                    body: JSON.stringify({
+                        phone: phoneEmail,
+                    }),
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                }
+            )
+            if (data.status !== 200) {
+                throw new CustomError(data.field, data.message)
+            }
+
+            user = data
         } else {
-            throw new Error("როლები არ შეესაბამება")
+            throw new CustomError("phoneEmail", "მეილი ან ტელეფონის ნომერი არასწორია.")
         }
         if (!user) {
             throw new Error(400)

@@ -16,7 +16,7 @@ export async function POST({request}) {
         const field = privacyData[0]
         const value = privacyData[1]
         
-        if (user.role === 2) {
+        if (user.role === "damkveti") {
             await Damkveti.findByIdAndUpdate(user.userId, {
                 $set: { [`privacy.${field}`]: value } 
             }, {$new: false})
@@ -58,7 +58,7 @@ export const get_privacy = async () => {
              return 401
         }
 
-        if (user.role === 2) {
+        if (user.role === "damkveti") {
             const privacy = await postgresql_server_request(
                 "POST",
                 `xelosani/privacy`,

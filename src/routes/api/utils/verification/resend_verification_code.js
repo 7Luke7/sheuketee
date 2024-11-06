@@ -6,16 +6,13 @@ import { postgresql_server_request } from "../ext_requests/posgresql_server_requ
 export async function POST({request}) {
     try {
         const body = await request.json();  
-        const role = body.role
         const profId = body.profId
         const randomId = body.randomId
 
         if (!profId) {
             return json({ message: "პროფილის id სავალდებულოა." }, { status: 400 });
         }
-        if (!role) {
-            return json({ message: "როლი არ არის მითითებული" }, { status: 400 });
-        }
+
 
         // const RATE_LIMIT = 3;
         // const RATE_LIMIT_WINDOW = 60 * 60 * 1000;
@@ -41,33 +38,25 @@ export async function POST({request}) {
                     random_id: randomId, 
                     profId,
                     verificationCode,
-                    role,
                 }),
                 headers: {
                     "Content-Type": "application/json"
                 }
             }
         )
-        
-        let user
-        
-        if (role === "xelosani") {
-            const data = await postgresql_server_request(
-                "GET",
-                `xelosani/find_email_by_profId/${profId}`,
-                {
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                }
-              );
-        
-            user = data;
-        } else {
-            user = await Damkveti.findOne({profId: profId}, 'email -__t -_id')
-        }
+                
+        const data = await postgresql_server_request(
+            "GET",
+            `user/find_email_by_profId/${profId}`,
+            {
+                headers: {
+                "Content-Type": "application/json",
+                },
+            }
+            );    
 
-        const mail = await send_email(user.email, verificationCode)
+            console.log("prof", data)
+        const mail = await send_email(data.email, verificationCode)
 
         if (mail === 500) {
             throw new Error("დაფიქსირდა შეცდომა მეილის გაგზავნის დროს.")

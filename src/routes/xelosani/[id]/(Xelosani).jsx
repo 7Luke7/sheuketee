@@ -23,6 +23,7 @@ import { FireworkConfetti } from "~/Components/FireworkConfetti";
 import { Review } from "./Review";
 import { ModifyServiceFront } from "../modals/ModifyServiceFront";
 import { Toast } from "~/Components/ToastComponent";
+import { ModifyAbout } from "../modals/ModifyAbout";
 
 const Xelosani = (props) => {
   const user = createAsync(() => get_xelosani(props.params.id))
@@ -93,7 +94,6 @@ const Xelosani = (props) => {
   });
 
   console.log(user())
-
   return (
     <MetaProvider>
       <Header />
@@ -119,6 +119,13 @@ const Xelosani = (props) => {
                       setToast={setToast}
                       date={user().date}
                     ></ModifyAge>
+                  </Match>
+                  <Match when={modal() === "აღწერა"}>
+                    <ModifyAbout
+                      setModal={setModal}
+                      setToast={setToast}
+                      about={user().about}
+                    ></ModifyAbout>
                   </Match>
                   <Match when={modal() === "განრიგი"}>
                     <ModifyWorkSchedule
