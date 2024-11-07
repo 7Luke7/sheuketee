@@ -1,6 +1,7 @@
 export class CustomError extends Error {
-    constructor(fieldName, message) {
+    constructor(fieldName, code, message) {
         super(message);
-        this.fieldName = fieldName
+        this.fieldName = fieldName,
+        this.code = code
     }
 }

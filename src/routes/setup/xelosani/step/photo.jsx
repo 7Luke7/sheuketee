@@ -41,17 +41,14 @@ const ProfilePictureStep = () => {
 
       const data = await response.json();
 
-      console.log(data)
       if (data.stepPercent === 100) {
         return navigate(`/xelosani/${data.profId}`);
       }
 
-      if (data.imageResponse) {
-        batch(() => {
-          setFile(null);
-          setSubmitted(true);
-        });
-      }
+      batch(() => {
+        setFile(null);
+        setSubmitted(true);
+      });
     } catch (error) {
       if (error.name === "AbortError") {
         filterErrors(error);

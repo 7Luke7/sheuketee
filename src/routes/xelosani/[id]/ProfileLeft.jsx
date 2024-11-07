@@ -1,4 +1,4 @@
-import { Index, Match, createSignal, Show, Switch, batch } from "solid-js";
+import { Index, Match, createSignal, Show, Switch, batch, onMount } from "solid-js";
 import location from "../../../svg-images/location.svg";
 import telephone from "../../../svg-images/telephone.svg";
 import envelope from "../../../svg-images/envelope.svg";
@@ -9,104 +9,99 @@ import cake from "../../../svg-images/cake.svg";
 import spinnerSVG from "../../../svg-images/spinner.svg";
 import { A } from "@solidjs/router";
 import { makeAbortable } from "@solid-primitives/resource";
+import {Buffer} from "buffer"
 
 export const ProfileLeft = (props) => {
   const [imageLoading, setImageLoading] = createSignal(false);
-  const [imageUrl, setImageUrl] = createSignal(
-    props.user().profile_image || defaultProfileSVG
-  );
+  const [imageUrl, setImageUrl] = createSignal(defaultProfileSVG);
   const [file, setFile] = createSignal();
   const [signal,abort,filterErrors] = makeAbortable({timeout: 0, noAutoAbort: true});
   const MAX_SINGLE_FILE_SIZE = 5 * 1024 * 1024;
 
+  onMount(async () => {
+    const response = await fetch(`http://localhost:5555/get_profile_image`, {
+      method: "POST",
+      body: JSON.stringify({
+        role: "xelosani",
+        profId: props.profileId
+      }),
+      headers: {
+        'Content-Type': "application/json",
+      }
+    })
+    
+    if (response.status === 200 ){
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      setImageUrl(url)
+    }
+  })
   const handleProfileImageChange = async () => {
-    setImageLoading(true)
-    if (file().size > MAX_SINGLE_FILE_SIZE) {
-      setImageLoading(false)
-      return props.setToast({
-        type: false,
-        message: `${file().name}, ფაილის ზომა აჭარბებს 5მბ ლიმიტს.`
-      });
-    }
-    const formData = new FormData();
-    formData.append('profile_image', file());
-
-    try {
-      const response = await fetch(`/api/upload_profile_picture/${props.user().profId}`, {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-        signal: signal()
-      });
-
-      if (!response.ok) {
-        setImageLoading(false)
-        return props.setToast({
-          message: "პროფილის ფოტო ვერ განახლდა, სცადეთ თავიდან.",
-          type: false,
-        });
-      }
-
-      const data = await response.text()
-      if (data) {
-        batch(() => {
-          setFile(null);
-          setImageLoading(false);
-          props.setToast({
-            message: "პროფილის ფოტო განახლებულია.",
-            type: true,
-          });
-        });
-      }
-    } catch (error) {
-      if (error.name === "AbortError") {
-        filterErrors(error);
-        setImageLoading(false)
-      }
-    }
-  };
-
-  const handleFilePreview = async (file) => {
     setImageLoading(true);
-    if (file.size > MAX_SINGLE_FILE_SIZE) {
-      setImageLoading(false)
-      return props.setToast({
-        type: false,
-        message: `${file.name}, ფაილის ზომა აჭარბებს 5მბ ლიმიტს.`
-      });
-    }
     const formData = new FormData();
-    formData.append('profile_image', file);
-  
+    formData.append("profile_image", file());
+
     try {
-      const response = await fetch(`/api/preview_image/${props.user().profId}`, {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-        signal: signal()
-      });      
+      const response = await fetch(
+        `http://localhost:5555/profile_picture/${props.profileId}`,
+        {
+          method: "POST",
+          body: formData,
+          signal: signal(),
+          credentials: "include"
+        }
+      );
 
       if (!response.ok) {
         return props.setToast({
-          message: "ფოტო ვერ აიტვირთა, სცადეთ თავიდან.",
           type: false,
-        });
+          message: "პროფილის ფოტო ვერ განახლდა, სცადეთ თავიდან."
+        })
       }
 
-      const data = await response.text()
-  
-      if (data) {
-        batch(() => {
-          setFile(file);
-          setImageUrl(data);
-        });
+      const data = await response.json()
+      if (data.stepPercent === 100) {
+        console.log("show fireworks!")
+        props.setToast({
+          type: true,
+          message: data.message
+        })
       }
+      batch(() => {
+        setFile(null);
+        props.setToast({
+          type: true,
+          message: data.message
+        })
+      });
     } catch (error) {
       if (error.name === "AbortError") {
         filterErrors(error);
       }
     } finally {
-      setImageLoading(false)
+      setImageLoading(false);
+    }
+  };
+
+  const handleFilePreview = async (file) => {
+    setImageLoading(true);
+    try {
+      const worker = new Worker(
+        new URL("../../../Components/readImagesWorker.js", import.meta.url)
+      );
+
+      worker.onmessage = async (e) => {
+        const buffer = e.data;
+        const base64string = Buffer.from(buffer, "utf-8").toString("base64");
+        batch(() => {
+          setFile(file);
+          setImageLoading(false);
+          setImageUrl(`data:image/png;base64,${base64string}`);
+        });
+      };
+      worker.postMessage(file);
+    } catch (error) {
+      console.log(error);
     }
   };
 

@@ -17,11 +17,13 @@ const Contact = () => {
     try {
       const formData = new FormData(event.target);
       const response = await handle_contact(formData, contact());
+      if (response.status === 400) {
+        return setError(response.message)
+      }
       if (response.status !== 200) throw new Error(response);
       if (response.stepPercent === 100) {
         return navigate(`/xelosani/${response.profId}`); //ჩანიშვნა
       }
-      console.log(response)
       setSubmitted(true);
     } catch (error) {
       if (error.message === "401") {
@@ -34,7 +36,7 @@ const Contact = () => {
   return (
     <Switch>
       <Match
-        when={contact() === "email" || (contact() === "phone" && !submitted())}
+        when={(contact() === "email" && !submitted()) || (contact() === "phone" && !submitted())}
       >
         <form class="w-full p-10" onSubmit={handleContact}>
           <div class="flex items-center justify-between">

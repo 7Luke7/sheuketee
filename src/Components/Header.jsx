@@ -8,6 +8,7 @@ import {
   createEffect,
   createSignal,
   onCleanup,
+  onMount,
 } from "solid-js";
 import peopleIcon from "../svg-images/svgexport-9.svg";
 import jobsIcon from "../svg-images/svgexport-11.svg";
@@ -27,6 +28,7 @@ export const Header = () => {
   const [chosenQuery, setChosenQuery] = createSignal("ხელოსანი");
   const [value, setValue] = createSignal("");
   const [display, setDisplay] = createSignal(null);
+  const [profileImage, setProfileImage] = createSignal(defaultProfileSVG)
 
   const switch_query_options = (query) => {
     if (query === "ხელოსანი" || query === "სამუშაო") {
@@ -39,6 +41,24 @@ export const Header = () => {
       alert("მოძებნა ვერ მოხერხდება ცადეთ თავიდან");
     }
   };
+
+  onMount(async () => {
+    const response = await fetch(`http://localhost:5555/get_profile_image`, {
+      method: "POST",
+      body: JSON.stringify({
+        role: user().role,
+        profId: user().profId
+      }),
+      headers: {
+        'Content-Type': "application/json",
+      }
+    })
+    if (response.status === 200 ){
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      setProfileImage(url)
+    }
+  })
 
   const handleBodyClick = (event) => {
     if (
@@ -145,7 +165,7 @@ export const Header = () => {
                   <button onClick={() => setDisplay("account")}>
                     <img
                       class="rounded-[50%] border-2 w-[25px] h-[25px]"
-                      src={user()?.profile_image || defaultProfileSVG}
+                      src={profileImage()}
                     ></img>
                   </button>
                 </div>

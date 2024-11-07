@@ -93,7 +93,6 @@ const Xelosani = (props) => {
     });
   });
 
-  console.log(user())
   return (
     <MetaProvider>
       <Header />
@@ -147,7 +146,7 @@ const Xelosani = (props) => {
                   <Match when={modal() === "სერვისები"}>
                     <ModifyServiceFront
                       setModal={setModal}
-                      profileId={user().profId}
+                      profileId={props.params.id}
                       editingService={editingService}
                       setToast={setToast}
                       setEditingServiceTarget={setEditingServiceTarget}
@@ -189,6 +188,7 @@ const Xelosani = (props) => {
               <ProfileLeft
                 setToast={setToast}
                 setModal={setModal}
+                profileId={props.params.id}
                 user={user}
               />
               <ProfileRight
@@ -197,7 +197,7 @@ const Xelosani = (props) => {
                 setModal={setModal}
               />
             </div>
-            <Show when={!user().setupDone && user().stepPercent === 100}>
+            <Show when={!user().setup_done && user().stepPercent === 100}>
               <FireworkConfetti></FireworkConfetti>
               <div
                 id="completed-message"

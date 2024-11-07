@@ -41,6 +41,7 @@ export const handle_contact = async (formData, contact) => {
     const event = getRequestEvent();
     const session = await verify_user(event);
 
+    console.log(session)
     if (session === 401) {
       throw new Error(401);
     }
@@ -61,6 +62,7 @@ export const handle_contact = async (formData, contact) => {
       status: 200
     };
   } catch (error) {
+    console.log(error)
     if (error.message === "11000") {
       return new HandleError().duplicate_error(
         contact === "phone" ? "ტელეფონის ნომრით" : "მეილით"

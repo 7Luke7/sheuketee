@@ -19,8 +19,8 @@ const Account = () => {
         const formData = new FormData(event.target);
         const firstname = formData.get("firstname");
         const lastname = formData.get("lastname");
-        const email = user().email || formData.get("email");
-        const phone = user().phone || formData.get("mobile");
+        const email = formData.get("email");
+        const phone = formData.get("mobile");
 
         if (!firstname.length) {
           return setError([
@@ -40,7 +40,7 @@ const Account = () => {
           ]);
         }
 
-        if (!user().email && email.length && !emailRegex.test(email)) {
+        if (!user().email && (email && !emailRegex.test(email) || !email || email.length === 0)) {
           return setError([
             {
               field: "მეილი",
@@ -49,7 +49,7 @@ const Account = () => {
           ]);
         }
 
-        if (!user().phone && phone.length && !phoneRegex.test(phone)) {
+        if (!user().phone && (phone && !phoneRegex.test(phone) || !phone || phone.length === 0)) {
           return setError([
             {
               field: "მობილური",
@@ -58,7 +58,7 @@ const Account = () => {
           ]);
         }
 
-        const response = await modify_user(firstname, lastname, email, phone);
+        const response = await modify_user(firstname, lastname, !user().email && email, !user().phone && phone);
 
         if (response.status === 400) {
           return setError(response.errors);

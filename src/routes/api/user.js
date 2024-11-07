@@ -7,6 +7,7 @@ import { HandleError } from "./utils/errors/handle_errors";
 import { hide_email, hide_mobile_number } from "./utils/hide/mail";
 import { memcached_server_request } from "./utils/ext_requests/memcached_server_request";
 import { postgresql_server_request } from "./utils/ext_requests/posgresql_server_request";
+import { fileserver_request } from "./utils/ext_requests/fileserver_request";
 
 export const get_account = cache(async () => {
   try {
@@ -69,7 +70,6 @@ export const get_xelosani = async (prof_id) => {
       });
     }
 
-    const profile_image = await get_user_profile_image(prof_id);
     if (user.services) {
       for (let i = 0; i < user.services.length; i++) {
         const service_thumbnail = await get_s3_image(
@@ -104,7 +104,6 @@ export const get_xelosani = async (prof_id) => {
 
     return {
       ...user,
-      profile_image,
       displayBirthDate,
       creationDateDisplayable,
       status: 200,
@@ -200,26 +199,6 @@ export const getTimeAgo = (createdAt) => {
   }
 };
 
-export const get_user_profile_image = async (id) => {
-  try {
-    const params = {
-      Bucket: process.env.S3_BUCKET_NAME,
-      Region: "eu-central-1",
-      Key: `${id}-profpic`,
-    };
-    const headCommand = new HeadObjectCommand(params);
-    await s3.send(headCommand);
-
-    const command = new GetObjectCommand(params);
-    const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
-    return url;
-  } catch (error) {
-    if (error.name === "NotFound") {
-      return null;
-    }
-  }
-};
-
 export const logout_user = async () => {
   try {
     const event = getRequestEvent();
@@ -306,35 +285,36 @@ export const modify_user = async (firstname, lastname, email, phone) => {
       )
     }
 
-    if (!emailRegex.test(email)) {
+    if (email && !emailRegex.test(email)) {
       throw new CustomError("მეილი", "მეილი არასწორია.")
     }
 
-    if (!phoneRegex.test(phone)) {
+    if (phone && !phoneRegex.test(phone)) {
       throw new CustomError(
         "მობილური",
         "მობილურის ნომერი არასწორია."
       )
     }
 
-    const data = await postgresql_server_request("PUT", `xelosani/account`, {
+    const data = await postgresql_server_request("PUT", `${session.role}/account`, {
       body: JSON.stringify({
         userId: session.userId,
         firstname,
         lastname,
-        email,
-        phone
+        ...(email && {email}),
+        ...(phone && {phone})
       }),
       headers: {
         "Content-Type": "application/json",
       },
     });
 
-    return {
-      status: 200,
-    };
+    if (data.status === 400) {
+      throw new CustomError(data.message.split('-')[1], 11000, data.message.split('-')[0])
+    }
+
+    return data
   } catch (error) {
-    console.log(error);
     if (error.name === "ValidationError") {
       const errors = new HandleError(error).validation_error();
       return {
@@ -343,11 +323,12 @@ export const modify_user = async (firstname, lastname, email, phone) => {
       };
     }
     if (error.code === 11000) {
+      console.log("FIELDNAME: ", error.fieldName, "MESSAGE: ", error.message)
       const errors = new HandleError({
-        field: "phoneEmailRegister",
-        message: "მომხმარებელი მეილით ან ტელეფონის ნომრით უკვე არსებობს.",
-        name: "ValidationError",
+        fieldName: error.fieldName,
+        message: error.message,
       }).validation_error();
+      console.log(errors)
       return {
         errors,
         status: 400,
@@ -526,31 +507,19 @@ export const get_damkveti = async (prof_id) => {
 export const setup_done = async () => {
   try {
     const event = getRequestEvent();
-    const redis_user = await verify_user(event);
+    const session = await verify_user(event);
 
-    if (redis_user === 401) {
+    if (session === 401) {
       throw new Error(401);
     }
 
-    if (redis_user.role === "xelosani") {
-      await Xelosani.updateOne(
-        { _id: redis_user.userId },
-        {
-          $set: {
-            setupDone: true,
-          },
-        }
-      );
-    } else {
-      await Damkveti.updateOne(
-        { _id: redis_user.userId },
-        {
-          $set: {
-            setupDone: true,
-          },
-        }
-      );
+    const response = await postgresql_server_request("GET", `${session.role}/setup_done/${session.profId}`)
+
+    if (!response.ok) {
+      throw new Error("Something went wrong in postgresql server")
     }
+    
+    return "success"
   } catch (error) {
     console.log(error);
   }
