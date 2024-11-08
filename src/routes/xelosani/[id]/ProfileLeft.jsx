@@ -13,7 +13,7 @@ import {Buffer} from "buffer"
 
 export const ProfileLeft = (props) => {
   const [imageLoading, setImageLoading] = createSignal(false);
-  const [imageUrl, setImageUrl] = createSignal(defaultProfileSVG);
+  const [imageUrl, setImageUrl] = createSignal();
   const [file, setFile] = createSignal();
   const [signal,abort,filterErrors] = makeAbortable({timeout: 0, noAutoAbort: true});
   const MAX_SINGLE_FILE_SIZE = 5 * 1024 * 1024;
@@ -34,6 +34,8 @@ export const ProfileLeft = (props) => {
       const blob = await response.blob()
       const url = URL.createObjectURL(blob)
       setImageUrl(url)
+    } else {
+      setImageUrl(defaultProfileSVG)
     }
   })
   const handleProfileImageChange = async () => {
@@ -107,7 +109,7 @@ export const ProfileLeft = (props) => {
 
   return (
     <div class="flex sticky top-[50px] gap-y-3 flex-col">
-      <div class="border-2 py-2 flex flex-col min-w-[240px] px-2 items-center flex-[2]">
+      <div class="border-2 py-2 flex flex-col min-w-[262px] px-2 items-center flex-[2]">
         <Switch>
           <Match when={props.user().status !== 401}>
             <Switch>
@@ -129,12 +131,12 @@ export const ProfileLeft = (props) => {
                       <img
                         id="prof_pic"
                         src={imageUrl()}
-                        alt="Profile"
+                        alt="profilis foto"
                         class="border-2 rounded-[50%] w-[140px] h-[140px] border-solid border-[#14a800] mb-4"
                       />
                       <img
                         src={CameraSVG}
-                        alt="camera"
+                        alt="კამერის აიქონი"
                         class="absolute transform opacity-50 -translate-x-1/2 -translate-y-1/2 absolute top-[50%] left-[50%]"
                       />
                       <span class="bottom-1 right-4 absolute w-5 h-5 bg-[#14a800] border-2 border-indigo-100 rounded-full"></span>
@@ -228,7 +230,13 @@ export const ProfileLeft = (props) => {
                   {props.user().phone}
                 </p>
               </Match>
-              <Match when={props.user().status === 200 && !props.user().phone && props.user().privacy.phone !== "დამალვა"}>
+              <Match when={props.user().privacy.phone === "დამალვა"}>
+                <img src={telephone}></img>
+                <p class="text-gr ml-1 text-xs font-[thin-font] font-bold">
+                  ტელ.ნომერი დამალულია
+                </p>
+              </Match>
+              <Match when={props.user().status === 200 && !props.user().phone}>
                 <A
                   href="/setup/xelosani/step/contact"
                   class="bg-dark-green w-full py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]"
@@ -242,12 +250,6 @@ export const ProfileLeft = (props) => {
                   ტელ.ნომერი არ არის დამატებული
                 </p>
               </Match>
-              <Match when={props.user().privacy.phone === "დამალვა"}>
-                <img src={telephone}></img>
-                <p class="text-gr ml-1 text-xs font-[thin-font] font-bold">
-                  ტელ.ნომერი დამალულია
-                </p>
-              </Match>
             </Switch>
           </div>
           <div class="flex px-2 pb-1 border-b items-center gap-x-1">
@@ -258,7 +260,13 @@ export const ProfileLeft = (props) => {
                   {props.user().email}
                 </p>
               </Match>
-              <Match when={props.user().status === 200 && !props.user().email && props.user().privacy.email !== "დამალვა"}>
+              <Match when={props.user().privacy.email === "დამალვა"}>
+                <img src={envelope}></img>
+                <p class="text-gr ml-1 text-xs font-[thin-font] font-bold">
+                  მეილი დამალულია
+                </p>
+              </Match>
+              <Match when={props.user().status === 200 && !props.user().email}>
                 <A
                   href="/setup/xelosani/step/contact"
                   class="bg-dark-green w-full py-1 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]"
@@ -270,12 +278,6 @@ export const ProfileLeft = (props) => {
                 <img src={envelope}></img>
                 <p class="text-gr ml-1 text-xs font-[thin-font] font-bold">
                   მეილი არ არის დამატებული
-                </p>
-              </Match>
-              <Match when={props.user().privacy.email === "დამალვა"}>
-                <img src={envelope}></img>
-                <p class="text-gr ml-1 text-xs font-[thin-font] font-bold">
-                  მეილი დამალულია
                 </p>
               </Match>
             </Switch>
@@ -360,21 +362,21 @@ export const ProfileLeft = (props) => {
       <div class="border-2 px-2 py-2">
         <div class="flex items-center border-b justify-between">
           <h2 class="text-lg font-[bolder-font]">სამუშაო განრიგი</h2>
-          <Show when={props.user().status === 200 && props.user().schedules}>
+          <Show when={props.user().status === 200 && props.user().schedule}>
             <button onClick={() => props.setModal("განრიგი")}>
               <img src={pen} id="schedule" />
             </button>
           </Show>
         </div>
         <Switch>
-          <Match when={props.user().schedules}>
+          <Match when={props.user().schedule}>
             <ul class="mt-1">
-              <For each={props.user().schedules}>
+              <For each={props.user().schedule}>
                 {(s, i) => (
                   <li class="font-[thin-font] w-full items-center justify-between text-sm font-bold flex gap-x-2">
-                    <p>{s.day_of_week}</p>
+                    <p>{s.day}</p>
                     <div class="flex items-center">
-                      <p>{s.available_from}</p>-<p>{s.available_to}</p>
+                      <p>{s.startTime}</p>-<p>{s.endTime}</p>
                     </div>
                   </li>
                 )}

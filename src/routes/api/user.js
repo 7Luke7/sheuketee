@@ -7,7 +7,6 @@ import { HandleError } from "./utils/errors/handle_errors";
 import { hide_email, hide_mobile_number } from "./utils/hide/mail";
 import { memcached_server_request } from "./utils/ext_requests/memcached_server_request";
 import { postgresql_server_request } from "./utils/ext_requests/posgresql_server_request";
-import { fileserver_request } from "./utils/ext_requests/fileserver_request";
 
 export const get_account = cache(async () => {
   try {
@@ -48,20 +47,19 @@ export const get_account = cache(async () => {
 export const get_xelosani = async (prof_id) => {
   try {
     const event = getRequestEvent();
-    const redis_user = await verify_user(event);
-
-    if (redis_user.profId !== prof_id) {
+    const session = await verify_user(event);
+    if (session.profId !== prof_id) {
       throw new Error(401);
     }
 
-    const user = await postgresql_server_request("GET", `xelosani/${redis_user.profId}`, {
+    const user = await postgresql_server_request("GET", `xelosani/${session.profId}`, {
       headers: {
         "Content-Type": "application/json",
       },
     });
 
     let displayBirthDate;
-    if (user.date && user.privacy && user.privacy.birthDate !== "დამალვა") {
+    if (user.date) {
       displayBirthDate = new Date(user["date"]).toLocaleDateString("ka-GE", {
         weekday: "long",
         year: "numeric",
@@ -89,16 +87,6 @@ export const get_xelosani = async (prof_id) => {
         if (keys[i] === "phone" && user.phone) {
           user["phone"] = hide_mobile_number(user.phone);
         }
-      } else if (user.privacy[keys[i]] === "დამალვა") {
-        if (keys[i] === "email") {
-          delete user["email"];
-        }
-        if (keys[i] === "phone") {
-          delete user["phone"];
-        }
-        if (keys[i] === "birthDate") {
-          delete user["date"];
-        }
       }
     }
 
@@ -110,18 +98,14 @@ export const get_xelosani = async (prof_id) => {
     };
   } catch (error) {
     if (error.message === "401") {
-      const user = await Xelosani.findOne(
-        { profId: prof_id },
-        "-_id -__v -stepPercent -setupDone -skills.displayableSkills._id -__v -updatedAt -notificationDevices -__t -password"
-      )
-        .populate(
-          "services",
-          "-_id -__v -display -_creator -createdAt -updatedAt"
-        )
-        .lean();
-
+      const user = await postgresql_server_request("GET", `xelosani/not_authorized/${prof_id}`, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+  
       let displayBirthDate;
-      if (user.date && user.privacy.birthDate !== "private") {
+      if (user.date) {
         displayBirthDate = new Date(user["date"]).toLocaleDateString("ka-GE", {
           weekday: "long",
           year: "numeric",
@@ -129,7 +113,7 @@ export const get_xelosani = async (prof_id) => {
           day: "numeric",
         });
       }
-      const profile_image = await get_user_profile_image(prof_id);
+  
       if (user.services) {
         for (let i = 0; i < user.services.length; i++) {
           const service_thumbnail = await get_s3_image(
@@ -138,31 +122,22 @@ export const get_xelosani = async (prof_id) => {
           user.services[i]["service_thumbnail"] = service_thumbnail;
         }
       }
-      const creationDateDisplayable = getTimeAgo(user.createdAt);
+      const creationDateDisplayable = getTimeAgo(user.created_at);
+  
       const keys = Object.keys(user.privacy);
       for (let i = 0; i < keys.length; i++) {
-        if (user.privacy[keys[i]] === "semipublic") {
-          if (keys[i] === "email") {
+        if (user.privacy[keys[i]] === "ნახევრად დამალვა") {
+          if (keys[i] === "email" && user.email) {
             user["email"] = hide_email(user.email);
           }
-          if (keys[i] === "phone") {
+          if (keys[i] === "phone" && user.phone) {
             user["phone"] = hide_mobile_number(user.phone);
-          }
-        } else if (user.privacy[keys[i]] === "private") {
-          if (keys[i] === "email") {
-            delete user["email"];
-          }
-          if (keys[i] === "phone") {
-            delete user["phone"];
-          }
-          if (keys[i] === "birthDate") {
-            delete user["date"];
           }
         }
       }
+  
       return {
         ...user,
-        profile_image,
         displayBirthDate,
         creationDateDisplayable,
         status: 401,
@@ -310,7 +285,7 @@ export const modify_user = async (firstname, lastname, email, phone) => {
     });
 
     if (data.status === 400) {
-      throw new CustomError(data.message.split('-')[1], 11000, data.message.split('-')[0])
+      throw new CustomError(data.message.split('-')[1], data.message.split('-')[0], 11000)
     }
 
     return data

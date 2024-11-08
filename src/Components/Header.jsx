@@ -28,7 +28,7 @@ export const Header = () => {
   const [chosenQuery, setChosenQuery] = createSignal("ხელოსანი");
   const [value, setValue] = createSignal("");
   const [display, setDisplay] = createSignal(null);
-  const [profileImage, setProfileImage] = createSignal(defaultProfileSVG)
+  const [profileImage, setProfileImage] = createSignal()
 
   const switch_query_options = (query) => {
     if (query === "ხელოსანი" || query === "სამუშაო") {
@@ -57,6 +57,8 @@ export const Header = () => {
       const blob = await response.blob()
       const url = URL.createObjectURL(blob)
       setProfileImage(url)
+    } else {
+      setProfileImage(defaultProfileSVG)
     }
   })
 
@@ -165,6 +167,7 @@ export const Header = () => {
                   <button onClick={() => setDisplay("account")}>
                     <img
                       class="rounded-[50%] border-2 w-[25px] h-[25px]"
+                      alt="პროფილის ფოტო სათავე"
                       src={profileImage()}
                     ></img>
                   </button>

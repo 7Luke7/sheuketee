@@ -17,7 +17,7 @@ import { navigateToStep } from "~/routes/api/xelosani/setup/step";
 // import { ModifyLocaitonModal } from "../modals/ModifyLocationModal";
 import { ModifyWorkSchedule } from "../modals/ModifyWorkSchedule";
 import { ModifyAge } from "../modals/ModifyAge";
-import { MetaProvider } from "@solidjs/meta";
+import { Meta, MetaProvider, Title } from "@solidjs/meta";
 import { ModifySkill } from "../modals/ModifySkills";
 import { FireworkConfetti } from "~/Components/FireworkConfetti";
 import { Review } from "./Review";
@@ -26,7 +26,7 @@ import { Toast } from "~/Components/ToastComponent";
 import { ModifyAbout } from "../modals/ModifyAbout";
 
 const Xelosani = (props) => {
-  const user = createAsync(() => get_xelosani(props.params.id))
+  const user = createAsync(() => get_xelosani(props.params.id), {deferStream: true})
   const navigate = useNavigate();
   const [modal, setModal] = createSignal(null);
   const [toast, setToast] = createSignal();
@@ -95,10 +95,19 @@ const Xelosani = (props) => {
 
   return (
     <MetaProvider>
+      <Title>{`${user()?.firstname} ${user()?.lastname} | პროფილი`}</Title>
+      <Meta name="description" content={`Profile of ${user()?.firstname} ${user()?.lastname}`} />
+      <Meta property="og:title" content={`${user()?.firstname} ${user()?.lastname} | პროფილი`} />
+      <Meta property="og:description" content={`Discover the profile of ${user()?.firstname}.`} />
+      <Meta property="og:image" content={user()?.profileImageUrl} />
+      <Meta property="og:type" content="profile" />
+      <Meta name="twitter:card" content="summary_large_image" />
+      <Meta name="twitter:title" content={`${user()?.firstname} ${user()?.lastname} | პროფილი`} />
+      <Meta name="twitter:description" content={`View the profile of ${user()?.firstname}.`} />
+      <Meta name="twitter:image" content={user()?.profileImageUrl} />
       <Header />
       <div class="relative">
         <div class="w-[90%] mx-auto relative mt-8">
-          <Show when={user()}>
             <Show when={modal()}>
               <div
                 id="modal"
@@ -130,7 +139,7 @@ const Xelosani = (props) => {
                     <ModifyWorkSchedule
                       setModal={setModal}
                       setToast={setToast}
-                      schedules={user().schedules}
+                      schedule={user().schedule}
                     ></ModifyWorkSchedule>
                   </Match>
                   <Match when={modal() === "სპეციალობა"}>
@@ -155,7 +164,7 @@ const Xelosani = (props) => {
                 </Switch>
               </div>
             </Show>
-            <Show when={user().status === 200 && user().stepPercent !== 100}>
+            <Show when={user()?.status === 200 && user()?.stepPercent !== 100}>
               <div
                 class={`${
                   modal() && "blur-[0.8px] pointer-events-none"
@@ -185,12 +194,12 @@ const Xelosani = (props) => {
                 modal() && "blur-[0.8px] pointer-events-none"
               } flex items-start`}
             >
-              <ProfileLeft
+              {user() && <ProfileLeft
                 setToast={setToast}
                 setModal={setModal}
                 profileId={props.params.id}
                 user={user}
-              />
+              />}
               <ProfileRight
                 user={user}
                 setEditingServiceTarget={setEditingServiceTarget}
@@ -212,8 +221,7 @@ const Xelosani = (props) => {
                 </div>
               </div>
             </Show>
-            <Review></Review>
-          </Show>
+            {/*<Review></Review>*/}
           <div class={`${modal() && "pointer-events-none blur-[0.8px]"}`}>
             <Footer />
           </div>

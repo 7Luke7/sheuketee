@@ -41,7 +41,6 @@ export const handle_contact = async (formData, contact) => {
     const event = getRequestEvent();
     const session = await verify_user(event);
 
-    console.log(session)
     if (session === 401) {
       throw new Error(401);
     }
@@ -62,11 +61,15 @@ export const handle_contact = async (formData, contact) => {
       status: 200
     };
   } catch (error) {
-    console.log(error)
     if (error.message === "11000") {
-      return new HandleError().duplicate_error(
+      console.log(contact)
+      const message = new HandleError().duplicate_error(
         contact === "phone" ? "ტელეფონის ნომრით" : "მეილით"
       );
+      return {
+        message, 
+        status:400
+      }
     }
     if (error.message === "401") {
       return 401;
@@ -140,6 +143,7 @@ export const handle_about = async (formData) => {
     const event = getRequestEvent();
     const session = await verify_user(event);
 
+    console.log(about.length)
     if (session === 401) {
       throw new Error(401);
     }
@@ -386,7 +390,7 @@ export const check_user_schedule = async () => {
       throw new Error(401);
     }
 
-    const user = await postgresql_server_request("GET", `xelosani/check_schedule/${session.profId}`, {
+    const user = await postgresql_server_request("GET", `xelosani/check_schedule/${session.userId}`, {
       headers: {
         "Content-Type": "application/json",
       },
@@ -451,7 +455,7 @@ export const add_user_schedule = async (formData) => {
       },
     ];
 
-    const user = await postgresql_server_request("POST", `xelosani/insert_schedule/${session.profId}`, {
+    const user = await postgresql_server_request("POST", "xelosani/insert_schedule", {
       body: JSON.stringify({
         schedule,
         xelosaniId: session.userId
@@ -461,7 +465,7 @@ export const add_user_schedule = async (formData) => {
       },
     });
 
-    return { ...user, status: 200 };
+    return {...user, profId: session.profId}
   } catch (error) {
     console.log(error);
   }

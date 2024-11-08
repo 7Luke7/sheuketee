@@ -13,7 +13,7 @@ export const ModifyAbout = (props) => {
             if (response !== 200) throw new Error(response)
             batch(() => {
                 props.setToast({
-                    message: "აღწერა განახლებულია.",
+                    message: "აღწერა წარმატებით განახლდა.",
                     type: true,
                 });
                 props.setModal(null);

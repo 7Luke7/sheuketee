@@ -191,7 +191,7 @@ export const ModifySkill = (props) => {
       if (response !== 200) throw new Error(response);
       batch(() => {
         props.setToast({
-          message: "სპეციალობა განახლებულია.",
+          message: "სპეციალობა წარმატებით განახლდა.",
           type: true,
         });
         props.setModal(null);

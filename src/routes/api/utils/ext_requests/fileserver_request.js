@@ -7,7 +7,6 @@ export const fileserver_request = async (method, params, headers) => {
             ...headers
         })
 
-        console.log(response)
         if (!response.ok) { 
             const data = await response.json()
             return {status: response.status, ...data}

@@ -14,46 +14,47 @@ export const modify_user_schedule = async (formData) => {
 
         const schedule = [
             {
-                available_from: formData.get("ორშაბათი-საწყისი-დრო"),
-                available_to: formData.get("ორშაბათი-სასრული-დრო"),
-                day_of_week: "ორშაბათი"
+              startTime: formData.get("ორშაბათი-საწყისი-დრო"),
+              endTime: formData.get("ორშაბათი-სასრული-დრო"),
+              day: "ორშაბათი",
             },
             {
-                available_from: formData.get("სამშაბათი-საწყისი-დრო"),
-                available_to: formData.get("სამშაბათი-სასრული-დრო"),
-                day_of_week: "სამშაბათი"
+              startTime: formData.get("სამშაბათი-საწყისი-დრო"),
+              endTime: formData.get("სამშაბათი-სასრული-დრო"),
+              day: "სამშაბათი",
             },
             {
-                available_from: formData.get("ოთხშაბათი-საწყისი-დრო"),
-                available_to: formData.get("ოთხშაბათი-სასრული-დრო"),
-                day_of_week: "ოთხშაბათი"
+              startTime: formData.get("ოთხშაბათი-საწყისი-დრო"),
+              endTime: formData.get("ოთხშაბათი-სასრული-დრო"),
+              day: "ოთხშაბათი",
             },
             {
-                available_from: formData.get("ხუთშაბათი-საწყისი-დრო"),
-                available_to: formData.get("ხუთშაბათი-სასრული-დრო"),
-                day_of_week: "ხუთშაბათი"
+              startTime: formData.get("ხუთშაბათი-საწყისი-დრო"),
+              endTime: formData.get("ხუთშაბათი-სასრული-დრო"),
+              day: "ხუთშაბათი",
             },
             {
-                available_from: formData.get("პარასკევი-საწყისი-დრო"),
-                available_to: formData.get("პარასკევი-სასრული-დრო"),
-                day_of_week: "პარასკევი"
+              startTime: formData.get("პარასკევი-საწყისი-დრო"),
+              endTime: formData.get("პარასკევი-სასრული-დრო"),
+              day: "პარასკევი",
             },
             {
-                available_from: formData.get("შაბათი-საწყისი-დრო"),
-                available_to: formData.get("შაბათი-სასრული-დრო"),
-                day_of_week: "შაბათი"
+              startTime: formData.get("შაბათი-საწყისი-დრო"),
+              endTime: formData.get("შაბათი-სასრული-დრო"),
+              day: "შაბათი",
             },
             {
-                available_from: formData.get("კვირა-საწყისი-დრო"),
-                available_to: formData.get("კვირა-სასრული-დრო"),
-                day_of_week: "კვირა"
-            }
-        ]
+              startTime: formData.get("კვირა-საწყისი-დრო"),
+              endTime: formData.get("კვირა-სასრული-დრო"),
+              day: "კვირა",
+            },
+          ];
+      
 
         const data = await postgresql_server_request("PUT", `xelosani/modify_xelosani_schedule`, {
             body: JSON.stringify({
                 schedule,
-                userId: session.userId
+                xelosaniId: session.userId
             }),
             headers: {  
                 "Content-Type": "application/json",

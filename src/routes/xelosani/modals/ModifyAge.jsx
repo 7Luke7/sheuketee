@@ -112,7 +112,7 @@ export const ModifyAge = (props) => {
       if (response !== 200) throw new Error(response);
       batch(() => {
         props.setToast({
-          message: "ასაკი განახლებულია.",
+          message: "ასაკი წარმატებით განახლდა.",
           type: true,
         });
         props.setModal(null);

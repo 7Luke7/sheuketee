@@ -11,7 +11,7 @@ export const ModifyWorkSchedule = (props) => {
             if (response !== 200) throw new Error(response)
             batch(() => {
                 props.setToast({
-                  message: "განრიგი განახლებულია.",
+                  message: "განრიგი წარმატებით განახლდა.",
                   type: true
                 })
                 props.setModal(null)
@@ -36,13 +36,13 @@ export const ModifyWorkSchedule = (props) => {
                 </div>
             </div>
             <form onSubmit={handle_user_schedule} class="flex flex-col gap-y-2 py-2 justify-between w-full">
-                {props.schedules.map((sc, i) => {
+                {props.schedule.map((sc, i) => {
                     return <div class="flex items-center w-full justify-between border-b pb-2">
-                        <p class="font-[normal-font] text-xl w-[100px] font-bold text-gray-800 tracking-wider">{sc.day_of_week}</p>
+                        <p class="font-[normal-font] text-xl w-[100px] font-bold text-gray-800 tracking-wider">{sc.day}</p>
                         <span class="font-[boldest-font] text-3xl font-bold">-</span>
                         <div class="flex items-center gap-x-2 ml-2">
-                            <input type="time" name={`${sc.day_of_week}-საწყისი-დრო`} class="outline-none bg-gray-50 border leading-none border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" value={sc.available_from} />
-                            <input type="time" name={`${sc.day_of_week}-სასრული-დრო`} class="outline-none bg-gray-50 border leading-none border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" value={sc.available_to} />
+                            <input type="time" name={`${sc.day}-საწყისი-დრო`} class="outline-none bg-gray-50 border leading-none border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" value={sc.startTime} />
+                            <input type="time" name={`${sc.day}-სასრული-დრო`} class="outline-none bg-gray-50 border leading-none border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" value={sc.endTime} />
                         </div>
                     </div>
                 })}

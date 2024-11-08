@@ -248,7 +248,7 @@ export const ModifyLocaitonModal = (props) => {
       if (response !== 200) throw new Error(response);
       batch(() => {
         props.setToast({
-          message: "მისამართი განახლებულია.",
+          message: "მისამართი წარმატებით განახლდა.",
           type: true,
         });
         props.setModal(null);
