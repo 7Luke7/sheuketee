@@ -1,5 +1,5 @@
 import { Header } from "~/Components/Header";
-import { get_xelosani } from "../../api/user";
+import { get_skills, get_xelosani } from "../../api/user";
 import { createAsync, useNavigate } from "@solidjs/router";
 import { Footer } from "~/Components/Footer";
 import checkedGreen from "../../../svg-images/checkedGreen.svg";
@@ -10,6 +10,7 @@ import {
   Match,
   onCleanup,
   createSignal,
+  Suspense,
 } from "solid-js";
 import { ProfileLeft } from "./ProfileLeft";
 import { ProfileRight } from "./ProfileRight";
@@ -26,7 +27,13 @@ import { Toast } from "~/Components/ToastComponent";
 import { ModifyAbout } from "../modals/ModifyAbout";
 
 const Xelosani = (props) => {
-  const user = createAsync(() => get_xelosani(props.params.id), {deferStream: true})
+  const user = createAsync(async () => {
+    const [userData, userSkills] = await Promise.all([
+      get_xelosani(props.params.id),
+      get_skills(props.params.id)
+    ]);
+    return { userData, userSkills };
+  }, { deferStream: true });
   const navigate = useNavigate();
   const [modal, setModal] = createSignal(null);
   const [toast, setToast] = createSignal();
@@ -94,32 +101,68 @@ const Xelosani = (props) => {
   });
 
   return (
-    <MetaProvider>
-      <Title>{`${user()?.firstname} ${user()?.lastname} | პროფილი`}</Title>
-      <Meta name="description" content={`Profile of ${user()?.firstname} ${user()?.lastname}`} />
-      <Meta property="og:title" content={`${user()?.firstname} ${user()?.lastname} | პროფილი`} />
-      <Meta property="og:description" content={`Discover the profile of ${user()?.firstname}.`} />
-      <Meta property="og:image" content={user()?.profileImageUrl} />
-      <Meta property="og:type" content="profile" />
-      <Meta name="twitter:card" content="summary_large_image" />
-      <Meta name="twitter:title" content={`${user()?.firstname} ${user()?.lastname} | პროფილი`} />
-      <Meta name="twitter:description" content={`View the profile of ${user()?.firstname}.`} />
-      <Meta name="twitter:image" content={user()?.profileImageUrl} />
+    <MetaProvider>    
       <Header />
       <div class="relative">
         <div class="w-[90%] mx-auto relative mt-8">
-            <Show when={modal()}>
+          <Show when={!user()}>Loading</Show>
+          <Suspense fallback={<h1>Loading...</h1>}>
+            {JSON.stringify(user())}
+          </Suspense>
+        <Show when={user()?.userData?.status === 200 && user()?.userData?.stepPercent !== 100}>
+              <div
+                class={`${
+                  modal() && "blur-[0.8px] pointer-events-none"
+                } flex items-center justify-between mb-3`}
+              >
+                <div class="flex items-center w-full">
+                  <div class="h-5 w-full rounded-[16px] bg-[#E5E7EB] relative">
+                    <div
+                      class="bg-dark-green rounded-[16px] h-full absolute"
+                      style={{ width: `${user()?.userData?.stepPercent}%` }}
+                    ></div>
+                    <span class="font-[thin-font] text-[11px] text-green-800 font-bold absolute right-2 top-1/2 transform -translate-y-1/2">
+                      {user()?.userData?.stepPercent}%
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={handlenavigateToStep}
+                  class="py-1 w-1/6 text-center rounded-md text-xs font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover ml-2"
+                >
+                  სეტაპის გაგრძელება
+                </button>
+              </div>
+            </Show>
+        <div
+              class={`${
+                modal() && "blur-[0.8px] pointer-events-none"
+              } flex items-start`}
+            >
+              {/* {user() && <ProfileLeft
+                setToast={setToast}
+                setModal={setModal}
+                profileId={props.params.id}
+                user={user}
+              />} */}
+              <ProfileRight
+                user={user}
+                setEditingServiceTarget={setEditingServiceTarget}
+                setModal={setModal}
+              />
+            </div>
+            {/* <Show when={modal()}>
               <div
                 id="modal"
                 class="bg-white shadow-2xl z-[10] top-1/2 transform -translate-y-1/2 -translate-x-1/2 left-1/2  border fixed p-4"
               >
                 <Switch>
                   <Match when={modal() === "ლოკაცია"}>
-                    {/* <ModifyLocaitonModal
+                    <ModifyLocaitonModal
                       setModal={setModal}
                       setToast={setToast}
                       location={user().location}
-                    ></ModifyLocaitonModal> */}
+                    ></ModifyLocaitonModal>
                   </Match>
                   <Match when={modal() === "ასაკი"}>
                     <ModifyAge
@@ -163,50 +206,8 @@ const Xelosani = (props) => {
                   </Match>
                 </Switch>
               </div>
-            </Show>
-            <Show when={user()?.status === 200 && user()?.stepPercent !== 100}>
-              <div
-                class={`${
-                  modal() && "blur-[0.8px] pointer-events-none"
-                } flex items-center justify-between mb-3`}
-              >
-                <div class="flex items-center w-full">
-                  <div class="h-5 w-full rounded-[16px] bg-[#E5E7EB] relative">
-                    <div
-                      class="bg-dark-green rounded-[16px] h-full absolute"
-                      style={{ width: `${user().stepPercent}%` }}
-                    ></div>
-                    <span class="font-[thin-font] text-[11px] text-green-800 font-bold absolute right-2 top-1/2 transform -translate-y-1/2">
-                      {user().stepPercent}%
-                    </span>
-                  </div>
-                </div>
-                <button
-                  onClick={handlenavigateToStep}
-                  class="py-1 w-1/6 text-center rounded-md text-xs font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover ml-2"
-                >
-                  სეტაპის გაგრძელება
-                </button>
-              </div>
-            </Show>
-            <div
-              class={`${
-                modal() && "blur-[0.8px] pointer-events-none"
-              } flex items-start`}
-            >
-              {user() && <ProfileLeft
-                setToast={setToast}
-                setModal={setModal}
-                profileId={props.params.id}
-                user={user}
-              />}
-              <ProfileRight
-                user={user}
-                setEditingServiceTarget={setEditingServiceTarget}
-                setModal={setModal}
-              />
-            </div>
-            <Show when={!user().setup_done && user().stepPercent === 100}>
+            </Show> */}
+            {/* <Show when={!user()?.setup_done && user()?.stepPercent === 100}>
               <FireworkConfetti></FireworkConfetti>
               <div
                 id="completed-message"
@@ -220,7 +221,7 @@ const Xelosani = (props) => {
                   </p>
                 </div>
               </div>
-            </Show>
+            </Show> */}
             {/*<Review></Review>*/}
           <div class={`${modal() && "pointer-events-none blur-[0.8px]"}`}>
             <Footer />

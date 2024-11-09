@@ -1,5 +1,5 @@
 import { A } from "@solidjs/router";
-import { Match, Suspense, Switch } from "solid-js";
+import { ErrorBoundary, Match, Suspense, Switch } from "solid-js";
 import { Services } from "./Services";
 import { SkillCarousel } from "./SkillCarousel";
 import pen from "../../../svg-images/pen.svg";
@@ -13,115 +13,57 @@ export const ProfileRight = (props) => {
           <h2 class="font-[bolder-font] font-bold text-gray-900 text-lg">
             ჩემს შესახებ
           </h2>
-          <Show when={props.user()?.status === 200 && props.user()?.about}>
+          <Show when={props.user()?.userData?.status === 200 && props.user()?.userData?.about}>
             <button onClick={() => props.setModal("აღწერა")}>
               <img id="locationButton" src={pen} />
             </button>
           </Show>
         </div>
+
         <Suspense
           fallback={
-            <TextLoading
-              marginValue="2"
-              width="100px"
-              roundValue="md"
-              backgroundValue="200"
-              height="10px"
-              backgroundColor="gray"
-            />
+            <p>Loading...</p>
           }
         >
           <p class="text-xs font-[thin-font] font-bold">
-            შემოუერთდა {props.user()?.creationDateDisplayable}
+            შემოუერთდა {props.user()?.userData?.creationDateDisplayable}
           </p>
         </Suspense>
       </div>
-      <Switch>
       <Suspense
-    fallback={
-        <TextLoading
-            marginValue="2"
-            width="100%"
-            roundValue="md"
-            backgroundValue="200"
-            height="10px"
-            backgroundColor="gray"
-        />
-    }
->
-    <p class="text-sm mt-2 font-[thin-font] break-all text-gr font-bold">
-        {props.user()?.about}
-    </p>
-</Suspense>
-        <Match when={props.user().status === 200}>
-          <div class="flex items-center justify-between">
-            <A
-              href="/setup/xelosani/step/about"
-              class="px-4 py-2 mt-2 bg-dark-green font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]"
-            >
-              დაამატე აღწერა
-            </A>
-          </div>
-        </Match>
-        <Match when={props.user().status === 401}>
-          <p class="text-gr text-xs font-[thin-font] font-bold">
-            მომხმარებელს ინფორმაცია არ აქვს დამატებული.
+          fallback={
+              <div>Loading...</div>
+          }
+      >
+          <p class="text-sm mt-2 font-[thin-font] break-all text-gr font-bold">
+              {props.user()?.userData?.about}
           </p>
-        </Match>
-      </Switch>
-      <div class="flex items-center gap-x-1 mt-5">
+      </Suspense>
+      {/* <div class="flex items-center gap-x-1 mt-5">
         <h2 class="font-[bolder-font] font-bold text-gray-900 text-lg">
           ხელობა/სპეციალობა
         </h2>
-        <Show when={props.user().status === 200 && props.user().skills?.length}>
+        <Show when={props.user().userData?.status === 200 && props.user().userSkills?.length}>
           <button onClick={() => props.setModal("სპეციალობა")}>
             <img id="locationButton" src={pen} />
           </button>
         </Show>
-      </div>
+      </div> */}
       <div class="mt-2">
         <section class="w-full flex">
-          <Switch>
-            <Match
-              when={!props.user().skills?.length && props.user().setupDone}
-            >
-              <button
-                id="locationButton"
-                type="button"
-                onClick={() => props.setModal("სპეციალობა")}
-                class="px-4 py-2 bg-dark-green font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]"
-              >
-                დაამატე სპეციალობა
-              </button>
-            </Match>
-            <Match when={props.user().skills}>
-              <SkillCarousel skills={props.user().skills}></SkillCarousel>
-            </Match>
-            <Match when={!props.user().skills}>
-              <A
-                href="/setup/xelosani/step/skills"
-                class="px-4 py-2 mt-2 bg-dark-green font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]"
-              >
-                დაამატე სპეციალობა
-              </A>
-            </Match>
-            <Match when={!props.user().skills && !props.user().setupDone}>
-              <A
-                href="/setup/xelosani/step/skills"
-                class="px-4 py-2 mt-2 bg-dark-green font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]"
-              >
-                დაამატე სპეციალობა
-              </A>
-            </Match>
-          </Switch>
+          <Suspense fallback={<div>
+            Loading...
+          </div>}>
+              <SkillCarousel skills={props.user()?.userSkills?.skills}></SkillCarousel>
+          </Suspense>
         </section>
       </div>
-      <div class="flex items-center gap-x-1 mt-5">
+      {/* <div class="flex items-center gap-x-1 mt-5">
         <h2 class="font-[bolder-font] font-bold text-gray-900 text-lg">
           სერვისები
         </h2>
-      </div>
-      <div class="mt-2">
+      </div> */}
+      {/* <div class="mt-2">
         <Switch>
           <Match when={props.user().services}>
             <Services
@@ -145,7 +87,7 @@ export const ProfileRight = (props) => {
             </p>
           </Match>
         </Switch>
-      </div>
+      </div> */}
     </div>
   );
 };
