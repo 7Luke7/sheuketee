@@ -1,6 +1,8 @@
 import { Header } from "~/Components/Header";
 import { get_xelosani } from "../../api/user";
 import { createAsync, useNavigate } from "@solidjs/router";
+import { Footer } from "~/Components/Footer";
+import checkedGreen from "../../../svg-images/checkedGreen.svg"
 import {
   Show,
   createEffect,
@@ -8,31 +10,30 @@ import {
   Match,
   onCleanup,
   createSignal,
-  lazy,
-  Suspense
 } from "solid-js";
 import { ProfileLeft } from "./ProfileLeft";
 import { ProfileRight } from "./ProfileRight";
 import { navigateToStep } from "~/routes/api/xelosani/setup/step";
+import { ModifyLocaitonModal } from "../modals/ModifyLocationModal";
+import { ModifyWorkSchedule } from "../modals/ModifyWorkSchedule";
+import { ModifyAge } from "../modals/ModifyAge";
 import { MetaProvider } from "@solidjs/meta";
-import { SmallFooter } from "~/Components/SmallFooter";
-
-const FireworkConfetti = lazy(() => import("~/Components/FireworkConfetti"));
-const Toast = lazy(() => import("~/Components/ToastComponent"));
-const ModifyAge = lazy(() => import("../modals/ModifyAge"));
-const ModifySkill = lazy(() => import("../modals/ModifySkills"));
-const ModifyAbout = lazy(() => import("../modals/ModifyAbout"));
-const ModifyWorkSchedule = lazy(() => import("../modals/ModifyWorkSchedule"));
-const ModifyServiceFront = lazy(() => import("../modals/ModifyServiceFront"));
-
-import checkedGreen from "../../../svg-images/checkedGreen.svg";
+import { ModifySkill } from "../modals/ModifySkills";
+import { FireworkConfetti } from "~/Components/FireworkConfetti";
+import airPlane from "../../../svg-images/airplane.svg";
+import closeIcon from "../../../svg-images/svgexport-12.svg";
+import exclamationWhite from "../../../svg-images/exclamationWhite.svg";
+import { Review } from "./Review";
+import ModifyAbout from "../modals/ModifyAbout";
 
 const Xelosani = (props) => {
-  const user = createAsync(() => get_xelosani(props.params.id), {deferStream: true})
+  const user = createAsync(async () =>
+    JSON.parse(await get_xelosani(props.params.id))
+  );
   const navigate = useNavigate();
   const [modal, setModal] = createSignal(null);
   const [toast, setToast] = createSignal();
-  const [editingService, setEditingServiceTarget] = createSignal();
+  const [isExiting, setIsExiting] = createSignal(false);
 
   const handlenavigateToStep = async () => {
     try {
@@ -43,52 +44,40 @@ const Xelosani = (props) => {
       alert("წარმოიშვა შეცდომა გთხოვთ ცადოთ მოგვიანებით.");
     }
   };
-
   const clickFN = (event) => {
-    const ignoreIds = [
-      "daynumber",
-      "locationButton",
-      "schedule",
-      "approve-modify",
-      "delete-thumbnail-button",
-      "div-button",
-      "toast-button2",
-      "toast-button",
-      "age",
-      "cancel-service-file-preview",
-      "service_btn",
-    ];
-
-    const ignoreSelectors = [
-      "#search_wrapper",
-      "#search_btn",
-      "#abort-service-update",
-      "#inner_search_wrapper",
-      "#yeardropdown",
-      "#modal",
-    ];
-
-    const isIgnoredId = ignoreIds.includes(event.target.id);
-    const isInsideModal = event.target.closest("#modal");
-    const isInsideToast = event.target.closest("#toast-parentDiv");
-    const isInsideIgnoredSelector = ignoreSelectors.some((selector) =>
-      event.target.closest(selector)
-    );
-
     if (
-      isInsideModal ||
-      isInsideToast ||
-      isIgnoredId ||
-      isInsideIgnoredSelector
+      !event.target.closest("#search_wrapper") &&
+      !event.target.closest("#search_btn") &&
+      !event.target.closest("#inner_search_wrapper") &&
+      event.target.id !== "daynumber" &&
+      !event.target.closest("#yeardropdown") &&
+      event.target.id !== "locationButton" &&
+      event.target.id !== "schedule" &&
+      !event.target.closest("#modal") &&
+      event.target.id !== "age"
     ) {
-      return;
+      setModal(null);
     }
-
-    setModal(null);
   };
 
   createEffect(() => {
-    if (!modal()) return
+    if (!toast()) return
+    let toastTimeout;
+    let exitTimeout;
+    toastTimeout = setTimeout(() => {
+      setIsExiting(true);
+      exitTimeout = setTimeout(() => {
+        setIsExiting(false);
+        setToast(null);
+      }, 500);
+    }, 5000);
+    onCleanup(() => {
+      if (toastTimeout) clearTimeout(toastTimeout);
+      if (exitTimeout) clearTimeout(exitTimeout);
+    });
+  })
+
+  createEffect(() => {
     document.addEventListener("click", clickFN);
 
     onCleanup(() => {
@@ -97,11 +86,60 @@ const Xelosani = (props) => {
   });
 
   return (
-    <MetaProvider>    
-      <Header />
-      <Show when={user()} fallback={<div>Loading...</div>}>
-        <div class="relative">
-          <div class="w-[90%] mx-auto relative mt-8">
+    <MetaProvider>
+        <Header />
+      <div class="relative">
+        <div class="w-[90%] mx-auto relative mt-8">
+          <Show when={user()}>
+            <Show when={modal()}>
+              <div
+                id="modal"
+                class="bg-white shadow-2xl z-[10] top-1/2 transform -translate-y-1/2 -translate-x-1/2 left-1/2  border fixed p-4"
+              >
+                <Switch>
+                  <Match when={modal() === "ლოკაცია"}>
+                    <ModifyLocaitonModal
+                      setModal={setModal}
+                      setIsExiting={setIsExiting}
+                      setToast={setToast}
+                      location={user().location}
+                    ></ModifyLocaitonModal>
+                  </Match>
+                  <Match when={modal() === "ასაკი"}>
+                    <ModifyAge
+                      setModal={setModal}
+                      setIsExiting={setIsExiting}
+                      setToast={setToast}
+                      date={user().date}
+                    ></ModifyAge>
+                  </Match>
+                  <Match when={modal() === "განრიგი"}>
+                    <ModifyWorkSchedule
+                      setModal={setModal}
+                      setIsExiting={setIsExiting}
+                      setToast={setToast}
+                      schedule={user().schedule}
+                    ></ModifyWorkSchedule>
+                  </Match>
+                  <Match when={modal() === "სპეციალობა"}>
+                    <ModifySkill
+                      setModal={setModal}
+                      setIsExiting={setIsExiting}
+                      setToast={setToast}
+                      skills={user().skills}
+                    ></ModifySkill>
+                  </Match>
+                  <Match when={modal() === "აღწერა"}>
+                    <ModifyAbout
+                      setModal={setModal}
+                      setIsExiting={setIsExiting}
+                      setToast={setToast}
+                      skills={user().about}
+                    ></ModifyAbout>
+                  </Match>
+                </Switch>
+              </div>
+            </Show>
             <Show when={user().status === 200 && user().stepPercent !== 100}>
               <div
                 class={`${
@@ -135,101 +173,57 @@ const Xelosani = (props) => {
               <ProfileLeft
                 setToast={setToast}
                 setModal={setModal}
-                profileId={props.params.id}
+                setIsExiting={setIsExiting}
                 user={user}
               />
-              <ProfileRight
-                user={user}
-                setEditingServiceTarget={setEditingServiceTarget}
-                setModal={setModal}
-              />
+              <ProfileRight user={user} setModal={setModal} />
             </div>
-            <Suspense fallback={<div>Loading...</div>}>
-
-            <Show when={modal()}>
-              <div
-                id="modal"
-                class="bg-white shadow-2xl z-[10] top-1/2 transform -translate-y-1/2 -translate-x-1/2 left-1/2 border fixed p-4"
-              >
-                <Switch>
-                  <Match when={modal() === "ლოკაცია"}>
-                    <ModifyLocaitonModal
-                      setModal={setModal}
-                      setToast={setToast}
-                      location={user().location}
-                    ></ModifyLocaitonModal>
-                  </Match>
-                  <Match when={modal() === "ასაკი"}>
-                    <ModifyAge
-                      setModal={setModal}
-                      setToast={setToast}
-                      date={user().date}
-                    ></ModifyAge>
-                  </Match>
-                  <Match when={modal() === "აღწერა"}>
-                    <ModifyAbout
-                      setModal={setModal}
-                      setToast={setToast}
-                      id={props.params.id}
-                      about={user().about}
-                    ></ModifyAbout>
-                  </Match>
-                  <Match when={modal() === "განრიგი"}>
-                    <ModifyWorkSchedule
-                      setModal={setModal}
-                      setToast={setToast}
-                      schedule={user().schedule}
-                    ></ModifyWorkSchedule>
-                  </Match>
-                  <Match when={modal() === "სპეციალობა"}>
-                    <ModifySkill
-                      setModal={setModal}
-                      setToast={setToast}
-                      skills={user().skills}
-                      parent={user().parent}
-                      child={user().child} 
-                      main={user().main}
-                    ></ModifySkill>
-                  </Match>
-                  <Match when={modal() === "სერვისები"}>
-                    <ModifyServiceFront
-                      setModal={setModal}
-                      profileId={props.params.id}
-                      editingService={editingService}
-                      setToast={setToast}
-                      setEditingServiceTarget={setEditingServiceTarget}
-                    ></ModifyServiceFront>
-                  </Match>
-                </Switch>
-              </div>
-            </Show>
-            </Suspense>
-            <Show when={!user().setup_done && user().stepPercent === 100}>
+            <Show when={!user().setupDone && user().stepPercent === 100}>
               <FireworkConfetti></FireworkConfetti>
-              <div
-                id="completed-message"
-                class="fixed bottom-5 z-[200] left-1/2 -translate-x-1/2"
-                role="alert"
-              >
-                <div class="border-dark-green-hover border gap-x-1 flex relative bg-white space-x-4 rtl:space-x-reverse text-gray-500 border rounded-lg p-4 shadow items-center">
-                  <img loading="lazy" src={checkedGreen}></img>
-                  <p class="font-[thin-font] font-bold text-xs">
-                    გილოცავთ სეტაპი დასრულებულია.
-                  </p>
+                <div
+                  id="completed-message"
+                  class="fixed bottom-5 z-[200] left-1/2 -translate-x-1/2"
+                  role="alert"
+                >
+                  <div class="border-dark-green-hover border gap-x-1 flex relative bg-white space-x-4 rtl:space-x-reverse text-gray-500 border rounded-lg p-4 shadow items-center">
+                    <img src={checkedGreen}></img>
+                    <p class="font-[thin-font] font-bold text-xs">გილოცავთ სეტაპი დასრულებულია.</p>
+                  </div>
                 </div>
-              </div>
             </Show>
-            <div class={`mt-16 ${modal() && "pointer-events-none blur-[0.8px]"}`}>
-              <SmallFooter></SmallFooter>
+            <Review></Review>
+          </Show>
+          <div class={`${modal() && "pointer-events-none blur-[0.8px]"}`}>
+            <Footer />
+          </div>
+        </div>
+        <Show when={toast()}>
+        <div
+          class={`${
+            isExiting() ? "toast-exit" : "toast-enter"
+          } fixed bottom-5 z-[200] left-1/2 -translate-x-1/2`}
+          role="alert"
+        >
+          <div class={`${!toast().type ? "border-red-400" : "border-dark-green-hover"} border flex relative bg-white space-x-4 rtl:space-x-reverse text-gray-500 border rounded-lg p-4 shadow items-center`}>
+            <button
+              class="absolute top-1 right-3"
+              onClick={() => setToast(null)}
+            >
+              <img width={14} height={14} src={closeIcon}></img>
+            </button>
+              {!toast().type ? <div class="bg-red-500 rounded-full">
+                <img src={exclamationWhite} />
+                </div> : <img class="rotate-[40deg]" src={airPlane} />}
+            <div class={`${!toast().type  && "text-red-600"} ps-4 border-l text-sm font-[normal-font]`}>
+              {toast().message}
             </div>
           </div>
-          <Show when={toast()}>
-            <Toast toast={toast} setToast={setToast}></Toast>
-          </Show>
         </div>
       </Show>
+      </div>
     </MetaProvider>
   );
 };
 
 export default Xelosani;
+gi
