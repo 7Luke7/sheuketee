@@ -1,5 +1,5 @@
 import { A } from "@solidjs/router"
-import fullStar from "../../public/svg-images/svgexport-19.svg"
+import fullStar from "../svg-images/svgexport-19.svg"
 
 export const Categories = () => {
     return <section class="mt-24 w-full">

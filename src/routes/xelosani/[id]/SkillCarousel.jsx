@@ -1,83 +1,49 @@
-import { For, createSignal, onMount } from "solid-js";
-import ChevronLeftBlack from "../../../../public/svg-images/ChevronLeftBlack.svg";
-import ChevronRightBlack from "../../../../public/svg-images/ChevronRightBlack.svg";
-import createEmblaCarousel from "embla-carousel-solid";
-import emptyStar from "../../../../public/svg-images/svgexport-24.svg";
-import fullStar from "../../../../public/svg-images/svgexport-19.svg";
+import { For, Index, lazy, onMount } from "solid-js";
+import ChevronLeftBlack from "../../../svg-images/ChevronLeftBlack.svg";
+import ChevronRightBlack from "../../../svg-images/ChevronRightBlack.svg";
+import emptyStar from "../../../svg-images/svgexport-24.svg";
+import fullStar from "../../../svg-images/svgexport-19.svg";
+import Swiper from "swiper"
 
 export const SkillCarousel = (props) => {
-  const [currentIndex, setCurrentIndex] = createSignal(0);
-  const [emblaRef, embla] = createEmblaCarousel(() => ({ loop: true, speed: 10 }));
-  let emblaDotsContainer;
+  let swiperContainer;
+  let navigateRightSkill;
+  let navigateLeftSkill;
 
-  onMount(() => {
-    if (embla()) {
-      const emblaApi = embla();
-
-      emblaApi.on("select", () => {
-        setCurrentIndex(emblaApi.selectedScrollSnap());
-      });
-
-      const dots = [];
-      for (let i = 0; i < emblaApi.scrollSnapList().length; i++) {
-          const button = document.createElement("button");
-          button.className = "border-[rgb(209,213,219)] rounded-full border-2 w-[14px] h-[14px]";
-          button.addEventListener("click", () => {
-              emblaApi.scrollTo(i, false);
-          });
-          emblaDotsContainer.appendChild(button);
-          dots.push(button);
-      }
-
-      emblaApi.on("select", () => {
-          const previousIndex = currentIndex();
-          if (dots[previousIndex]) {
-              dots[previousIndex].style.borderColor = "rgb(209,213,219)";
-          }
-          const newIndex = emblaApi.selectedScrollSnap();
-          setCurrentIndex(newIndex);
-          if (dots[newIndex]) {
-              dots[newIndex].style.borderColor = "rgb(55,65,81)";
-          }
-      });
-
-      if (dots[0]) {
-          dots[0].style.borderColor = "rgb(55,65,81)";
-      }
-    }
+  onMount(async () => {
+    new Swiper(swiperContainer, {
+      spaceBetween: 10,
+      slidesPerView: 4,
+      grid: {
+        fill: "row",
+        rows: 2,
+      },
+      navigation: {
+        nextEl: navigateRightSkill,
+        prevEl: navigateLeftSkill,
+      },
+    });
   });
 
-  const nextSlide = () => {
-    embla().scrollNext()
-};
-
-const prevSlide = () => {
-    embla().scrollPrev()
-};
-
   return (
-    <section class="embla overflow-x-hidden" ref={emblaRef}>
-      <div class="embla__container flex">
-        <For each={Array(Math.ceil(props.skills.displayableSkills.length / 10))} children={(_, index) => (
-          <div class="flex-100 flex flex-col">
-            <div class="grid grid-cols-5 gap-x-4">
-              {props.skills.displayableSkills.slice(index() * 10, index() * 10 + 5).map(skill => (
-                <div class="flex bg-slate-200 flex-col border-2 rounded-[16px] p-5 border-slate-300">
-                  <h2 class="font-[medium-font] text-lg text-gray-800 font-bold">
+    <section class="relative max-w-[1440px] mx-auto">
+      <div ref={(el) => (swiperContainer = el)} class="swiper" style={{ minHeight: "800px" }}>
+        <div class="swiper-wrapper" style={{ display: "flex", flexWrap: "wrap" }}>
+          <For each={props.skills}>
+            {(skill) => (
+              <div class="swiper-slide" style={{ width: "calc(25% - 10px)", height: "auto" }}>
+                <div class="bg-slate-200 border-2 rounded-[16px] border-slate-300 flex flex-col p-5 h-full">
+                  <h2 class="font-[medium-font] text-md text-gray-800 font-bold">
                     {skill.displaySkills}
                   </h2>
-                  <div class="flex mt-2 justify-between items-center">
+                  <div class="flex justify-between items-center">
                     <div class="flex items-center">
-                      <For each={new Array(skill.reviews)}>
-                        {() => (
-                          <img src={fullStar} width={28} height={28}></img>
-                        )}
-                      </For>
-                      <For each={new Array(5 - skill.reviews)}>
-                        {() => (
-                          <img src={emptyStar} width={28} height={28}></img>
-                        )}
-                      </For>
+                      <Index each={new Array(skill.reviews)}>
+                        {() => <img loading="lazy" src={fullStar} width={28} height={28} alt="Full star" />}
+                      </Index>
+                      <Index each={new Array(5 - skill.reviews)}>
+                        {() => <img loading="lazy" src={emptyStar} width={28} height={28} alt="Empty star" />}
+                      </Index>
                     </div>
                     <div class="flex items-center">
                       <p class="text-dark-green font-bold font-[normal-font]">
@@ -86,53 +52,29 @@ const prevSlide = () => {
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-            {/* Second row with items 5–10 */}
-            <div class="grid grid-cols-5 gap-x-4 mt-4">
-              {props.skills.displayableSkills.slice(index() * 10 + 5, index() * 10 + 10).map(skill => (
-                <div class="flex bg-slate-200 flex-col border-2 rounded-[16px] p-5 border-slate-300">
-                  <h2 class="font-[medium-font] text-lg text-gray-800 font-bold">
-                    {skill.displaySkills}
-                  </h2>
-                  <div class="flex mt-2 justify-between items-center">
-                    <div class="flex items-center">
-                      <For each={new Array(skill.reviews)}>
-                        {() => (
-                          <img src={fullStar} width={28} height={28}></img>
-                        )}
-                      </For>
-                      <For each={new Array(5 - skill.reviews)}>
-                        {() => (
-                          <img src={emptyStar} width={28} height={28}></img>
-                        )}
-                      </For>
-                    </div>
-                    <div class="flex items-center">
-                      <p class="text-dark-green font-bold font-[normal-font]">
-                        {skill.completedJobs} სამუშაო
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )} />
+              </div>
+            )}
+          </For>
+        </div>
       </div>
 
       {/* Navigation buttons */}
-      <div class="flex items-center justify-between mt-2">
-                <div class="flex items-center gap-x-1">
-                    <button onClick={prevSlide} class="border-2 rounded-full p-1 border-gray-300" type="button">
-                        <img src={ChevronLeftBlack} />
-                    </button>
-                    <button onClick={nextSlide} class="border-2 rounded-full p-1 border-gray-300" type="button">
-                        <img src={ChevronRightBlack} />
-                    </button>
-                </div>
-                <div ref={(el) => (emblaDotsContainer = el)} class="flex items-center gap-x-2"></div>
-            </div>
+      <div class="absolute top-1/2 left-2 -translate-y-1/2 z-[10] flex items-center">
+        <button
+          ref={(el) => (navigateLeftSkill = el)}
+          class="cursor-pointer bg-white rounded-full p-2 shadow hover:bg-gray-200 transition"
+        >
+          <img loading="lazy" src={ChevronLeftBlack} width={36} alt="Previous slide" />
+        </button>
+      </div>
+      <div class="absolute top-1/2 right-2 -translate-y-1/2 z-[10] flex items-center">
+        <button
+          ref={(el) => (navigateRightSkill = el)}
+          class="cursor-pointer bg-white rounded-full p-2 shadow hover:bg-gray-200 transition"
+        >
+          <img loading="lazy" src={ChevronRightBlack} width={36} alt="Next slide" />
+        </button>
+      </div>
     </section>
   );
 };

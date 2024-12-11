@@ -34,7 +34,7 @@ const schedule = () => {
 
     return <div  class='flex flex-col w-full px-4 py-2 h-full'>
         <Switch>
-            <Match when={schedule() !== 200 && !submitted()}>
+            <Match when={schedule() === 400 && !submitted()}>
                 <div class="flex items-center justify-between border-b pb-2">
                     <p class="font-bold font-[normal-font] text-md">კვირის დღეები</p>
                     <div class="flex items-center w-[235px] justify-around">
@@ -48,8 +48,8 @@ const schedule = () => {
                             <p class="font-[normal-font] text-xl w-[100px] font-bold text-gray-800 tracking-wider">{a}</p>
                             <span class="font-[boldest-font] text-3xl font-bold">-</span>
                             <div class="flex items-center gap-x-2 ml-2">
-                                <input type="time" name={`${a}-საწყისი-დრო`} class="outline-none bg-gray-50 border leading-none border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"  value="00:00" />
-                                <input type="time" name={`${a}-სასრული-დრო`} class="outline-none bg-gray-50 border leading-none border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"  value="00:00" />
+                                <input type="time" name={`${a}-საწყისი-დრო`} class="outline-none bg-gray-50 border leading-none border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"  value="00:00" />
+                                <input type="time" name={`${a}-სასრული-დრო`} class="outline-none bg-gray-50 border leading-none border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"  value="00:00" />
                             </div>
                         </div>
                     })}
@@ -61,7 +61,7 @@ const schedule = () => {
             <Match when={schedule() === 200 || submitted()}>
                 <div class="flex flex-col justify-center h-full items-center">
                     <p class="text-sm font-[normal-font] font-bold text-gray-700">განრიგი დამატებული გაქვთ გთხოვთ განაგრძოთ.</p>
-                    <A className="py-2 mt-3 text-center w-1/2 rounded-md text-sm font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover" href="/setup/xelosani/step/about">გაგრძელება</A>
+                    <A className="py-2 mt-3 text-center w-1/2 rounded-md text-sm font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover" href="/setup/xelosani/step/skills">გაგრძელება</A>
                 </div>
             </Match>
         </Switch>

@@ -13,9 +13,9 @@ export const EmailPassword = (props) => {
                 name="phoneEmail"
                 placeholder="example@gmail.com ან 555555555"
                 />
-            <Show when={props.error()?.some(a => a.field === "phoneEmail")}>
-                <p class="text-xs mb-2 text-red-500 mt-1 font-[thin-font] font-bold">
-                    {props.error().find(a => a.field === "phoneEmail").message}
+            <Show when={props.error()?.some((a) => a.field === "phoneEmail")}>
+                <p class="text-xs text-red-500 mt-1 font-[thin-font] font-bold">
+                    {props.error().find((a) => a.field === "phoneEmail").message}
                 </p>
             </Show>
         </div>

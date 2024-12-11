@@ -1,5 +1,5 @@
 import { A } from "@solidjs/router"
-import PitchHirerSVG from "../../public/svg-images/pitch-hirer.svg"
+import PitchHirerSVG from "../svg-images/pitch-hirer.svg"
 
 export const HirerLanding = () => {
     return <section class="mt-24 w-full">

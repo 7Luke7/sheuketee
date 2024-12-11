@@ -1,7 +1,8 @@
 import { A } from "@solidjs/router"
-import arrowLeft from "../../public/svg-images/arrow-left.svg"
-import bell from "../../public/svg-images/bell.svg"
-import person from "../../public/svg-images/person.svg"
+import arrowLeft from "../svg-images/arrow-left.svg"
+import bell from "../svg-images/bell.svg"
+import person from "../svg-images/person.svg"
+import shield from "../svg-images/shield.svg"
 
 const Account = (props) => {
     return <div class="m-5">
@@ -23,6 +24,12 @@ const Account = (props) => {
                         <img src={bell}></img>
                         <p>
                             შეტყობინებები
+                        </p>
+                    </A>
+                    <A href="/account/privacy" class={`text-left text-xl py-2 px-4 flex items-center gap-x-2 rounded-[16px] font-[thin-font] font-bold ease-in duration-100 ${props.location.pathname  === "/account/privacy" ? "bg-gray-200 hover-none" : "hover:bg-gray-100"}`}>
+                        <img src={shield}></img>
+                        <p>
+                            პირადი სივრცე
                         </p>
                     </A>
                 </ul>

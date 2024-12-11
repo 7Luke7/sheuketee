@@ -1,5 +1,5 @@
 import { createSignal } from "solid-js"
-import locationWhite from "../../../../../public/svg-images/locationWhite.svg"
+import locationWhite from "../../../../svg-images/locationWhite.svg"
 import cities from "./cities.json"
 
 export const Location = ({findLocation, marker, map}) => {

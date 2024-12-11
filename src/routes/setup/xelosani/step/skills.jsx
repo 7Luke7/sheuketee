@@ -5,7 +5,7 @@ import {
   handle_selected_skills,
 } from "~/routes/api/xelosani/setup/setup";
 import { createAsync, useNavigate } from "@solidjs/router";
-import dropdownSVG from "../../../../../public/svg-images/svgexport-8.svg";
+import dropdownSVG from "../../../../svg-images/svgexport-8.svg";
 
 const Skills = () => {
   const check_jobs = createAsync(check_selected_jobs);

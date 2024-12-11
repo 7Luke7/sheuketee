@@ -1,6 +1,6 @@
 import { A } from "@solidjs/router"
 import { For, Show, batch, createSignal } from "solid-js"
-import dropdownGreenSVG from "../../../public/svg-images/svgexport-13.svg"
+import dropdownGreenSVG from "../../svg-images/svgexport-13.svg"
 import jobs from "./jobs_list"
 
 export const WorkDropdown = () => {
@@ -22,7 +22,7 @@ export const WorkDropdown = () => {
             setShowChildCat(null)
             setShowGrandChildCat(null)
         })
-    }} class="hidden pt-[13px] group-hover:block absolute top-full left-0 z-50">
+    }} class="hidden pt-[13px] group-hover:block absolute top-full left-0 z-[100]">
         <ul class="rounded-b-lg flex shadow-2xl bg-white pt-3 pb-5 px-2">
             <Show when={jobs}>
                 <div class="w-[400px]">

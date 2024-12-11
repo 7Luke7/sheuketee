@@ -7,7 +7,6 @@ body {
   padding: 0;
   box-sizing: border-box;
 }
-
 * {
   scroll-behavior: smooth;
 }
@@ -63,9 +62,27 @@ body {
 }
 
 .toast-enter {
-  animation: fadeIn 1.5s ease-in;
+  animation: fadeIn 0.5s ease-in;
 }
 
 .toast-exit {
-  animation: fadeOut 1.5s ease-out;
+  animation: fadeOut 0.5s ease-out;
+}
+
+@keyframes scroll-banner {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.banner {
+  animation: scroll-banner 30s linear infinite;
+  white-space: nowrap;
+}
+
+.banner-wrapper:hover > .banner {
+  animation-play-state: paused;
 }

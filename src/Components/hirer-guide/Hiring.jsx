@@ -1,5 +1,5 @@
 import { A } from "@solidjs/router"
-import HiringSVG from "../../../public/svg-images/hiring.svg"
+import HiringSVG from "../../svg-images/hiring.svg"
 
 export const Hiring = () => {
     return <section class="bg-pink-100 rounded-[16px] py-8 px-12 w-full mt-24">

@@ -6,7 +6,7 @@ export class HandleError {
     validation_error() {
         if (!this.error.errors) {
             return [{
-                field: this.error.field,
+                field: this.error.fieldName,
                 message: this.error.message
             }]
         }

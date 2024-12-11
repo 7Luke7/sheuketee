@@ -2,7 +2,7 @@ import { Header } from "~/Components/Header";
 import { get_xelosani } from "../../api/user";
 import { createAsync, useNavigate } from "@solidjs/router";
 import { Footer } from "~/Components/Footer";
-import checkedGreen from "../../../../public/svg-images/checkedGreen.svg"
+import checkedGreen from "../../../svg-images/checkedGreen.svg"
 import {
   Show,
   createEffect,
@@ -20,9 +20,11 @@ import { ModifyAge } from "../modals/ModifyAge";
 import { MetaProvider } from "@solidjs/meta";
 import { ModifySkill } from "../modals/ModifySkills";
 import { FireworkConfetti } from "~/Components/FireworkConfetti";
-import airPlane from "../../../../public/svg-images/airplane.svg";
-import closeIcon from "../../../../public/svg-images/svgexport-12.svg";
-import exclamationWhite from "../../../../public/svg-images/exclamationWhite.svg";
+import airPlane from "../../../svg-images/airplane.svg";
+import closeIcon from "../../../svg-images/svgexport-12.svg";
+import exclamationWhite from "../../../svg-images/exclamationWhite.svg";
+import { Review } from "./Review";
+import ModifyAbout from "../modals/ModifyAbout";
 
 const Xelosani = (props) => {
   const user = createAsync(async () =>
@@ -57,6 +59,24 @@ const Xelosani = (props) => {
       setModal(null);
     }
   };
+
+  createEffect(() => {
+    if (!toast()) return
+    let toastTimeout;
+    let exitTimeout;
+    toastTimeout = setTimeout(() => {
+      setIsExiting(true);
+      exitTimeout = setTimeout(() => {
+        setIsExiting(false);
+        setToast(null);
+      }, 500);
+    }, 5000);
+    onCleanup(() => {
+      if (toastTimeout) clearTimeout(toastTimeout);
+      if (exitTimeout) clearTimeout(exitTimeout);
+    });
+  })
+
   createEffect(() => {
     document.addEventListener("click", clickFN);
 
@@ -67,24 +87,14 @@ const Xelosani = (props) => {
 
   return (
     <MetaProvider>
-      <script
-        defer
-        src="https://unpkg.com/embla-carousel/embla-carousel.umd.js"
-      ></script>
-      <script
-        defer
-        src="https://unpkg.com/embla-carousel-autoplay/embla-carousel-autoplay.umd.js"
-      ></script>
-      <div class={`${modal() && "pointer-events-none blur-[0.8px]"}`}>
         <Header />
-      </div>
       <div class="relative">
         <div class="w-[90%] mx-auto relative mt-8">
           <Show when={user()}>
             <Show when={modal()}>
               <div
                 id="modal"
-                class="bg-white shadow-2xl z-[50] top-1/2 transform -translate-y-1/2 -translate-x-1/2 left-1/2  border fixed p-4"
+                class="bg-white shadow-2xl z-[10] top-1/2 transform -translate-y-1/2 -translate-x-1/2 left-1/2  border fixed p-4"
               >
                 <Switch>
                   <Match when={modal() === "ლოკაცია"}>
@@ -118,6 +128,14 @@ const Xelosani = (props) => {
                       setToast={setToast}
                       skills={user().skills}
                     ></ModifySkill>
+                  </Match>
+                  <Match when={modal() === "აღწერა"}>
+                    <ModifyAbout
+                      setModal={setModal}
+                      setIsExiting={setIsExiting}
+                      setToast={setToast}
+                      skills={user().about}
+                    ></ModifyAbout>
                   </Match>
                 </Switch>
               </div>
@@ -155,6 +173,7 @@ const Xelosani = (props) => {
               <ProfileLeft
                 setToast={setToast}
                 setModal={setModal}
+                setIsExiting={setIsExiting}
                 user={user}
               />
               <ProfileRight user={user} setModal={setModal} />
@@ -172,6 +191,7 @@ const Xelosani = (props) => {
                   </div>
                 </div>
             </Show>
+            <Review></Review>
           </Show>
           <div class={`${modal() && "pointer-events-none blur-[0.8px]"}`}>
             <Footer />
@@ -206,3 +226,4 @@ const Xelosani = (props) => {
 };
 
 export default Xelosani;
+gi

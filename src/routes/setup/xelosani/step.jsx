@@ -1,7 +1,7 @@
 import { createSignal, createEffect, batch, Switch, Match } from "solid-js";
 import { A, useNavigate } from "@solidjs/router";
-import ChevronRightBlackSVG from "../../../../public/svg-images/ChevronRightBlack.svg";
-import ChevronLeftBlackSVG from "../../../../public/svg-images/ChevronLeftBlack.svg";
+import ChevronRightBlackSVG from "../../../svg-images/ChevronRightBlack.svg";
+import ChevronLeftBlackSVG from "../../../svg-images/ChevronLeftBlack.svg";
 import steps from "./steps.json"
 import { get_xelosani_step } from "~/routes/api/xelosani/setup/setup";
 
@@ -51,7 +51,7 @@ const Step = (props) => {
                 <Match when={display() && xelosaniStep().stepPercent > 100 || xelosaniStep().setupDone}>
                     <div class="flex h-full flex-col items-center justify-center">
                         <h1 class="font-[normal-font] font-bold text-lg">სეტაპი დასრულებულია.</h1>
-                        <A href="/" class="mt-2 bg-dark-green py-2 px-4 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]"                        >მთავარ გვერდზე გადასვლა</A>
+                        <A href="/" class="mt-2 bg-dark-green py-2 px-4 font-[thin-font] text-sm font-bold hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]">მთავარ გვერდზე გადასვლა</A>
                     </div>
                 </Match>
                 <Match when={display() && xelosaniStep().stepPercent < 100 || !xelosaniStep().setupDone}>

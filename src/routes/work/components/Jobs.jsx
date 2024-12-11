@@ -1,11 +1,10 @@
 import { A } from "@solidjs/router";
 import { For, Switch, createSignal } from "solid-js";
 import "./scrollbar.css";
-import dropdownSVG from "../../../../public/svg-images/svgexport-8.svg";
+import dropdownSVG from "../../../svg-images/svgexport-8.svg";
 import { JobType } from "./filter-comps/JobType";
 import { Pay } from "./filter-comps/Pay";
 import { Sort } from "./filter-comps/Sort";
-import { Location } from "./filter-comps/Location";
 import { Paginate } from "./Paginate";
 
 export const Jobs = (props) => {
@@ -96,7 +95,7 @@ export const Jobs = (props) => {
         <div class="sticky top-[41px] z-[10]">
           <Switch>
             <Match when={isOpen().jobType}>
-              <JobType></JobType>
+              {/* <JobType></JobType> */}
             </Match>
             <Match when={isOpen().location}>
               {/* <Location findLocation={props.findLocation} marker={props.marker} map={props.map}></Location> */}

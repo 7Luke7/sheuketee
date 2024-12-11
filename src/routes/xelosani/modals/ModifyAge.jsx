@@ -1,11 +1,11 @@
-import { createEffect, createSignal, batch, onCleanup } from "solid-js";
-import ChevronRightBlackSVG from "../../../../public/svg-images/ChevronRightBlack.svg";
-import ChevronLeftBlackSVG from "../../../../public/svg-images/ChevronLeftBlack.svg";
-import dropdownSVG from "../../../../public/svg-images/svgexport-8.svg";
-import closeIcon from "../../../../public/svg-images/svgexport-12.svg";
+import { createEffect, createSignal, batch } from "solid-js";
+import ChevronRightBlackSVG from "../../../svg-images/ChevronRightBlack.svg";
+import ChevronLeftBlackSVG from "../../../svg-images/ChevronLeftBlack.svg";
+import dropdownSVG from "../../../svg-images/svgexport-8.svg";
+import closeIcon from "../../../svg-images/svgexport-12.svg";
 import { modify_user_date } from "~/routes/api/xelosani/modify/date";
 
-export const ModifyAge = (props) => {
+const ModifyAge = (props) => {
   const [currentDate, setCurrentDate] = createSignal(new Date(props.date));
   const [showYearDropdown, setShowYearDropdown] = createSignal(false);
   const [weeks, setWeeks] = createSignal();
@@ -105,26 +105,22 @@ export const ModifyAge = (props) => {
     );
     return dateToCheck > today;
   };
-  let toastTimeout;
-  let exitTimeout;
 
   const handleDateSelect = async () => {
+    const initial_date = new Date(props.date)
+
     try {
+      if (initial_date.getFullYear() === currentDate().getFullYear() && initial_date.getMonth() === currentDate().getMonth() && initial_date.getDate() === currentDate().getDate()) {
+        return props.setModal(null)
+      }
       const response = await modify_user_date(currentDate());
       if (response !== 200) throw new Error(response);
       batch(() => {
         props.setToast({
-          message: "ასაკი განახლებულია.",
+          message: "ასაკი წარმატებით განახლდა.",
           type: true,
         });
         props.setModal(null);
-        toastTimeout = setTimeout(() => {
-          props.setIsExiting(true);
-          exitTimeout = setTimeout(() => {
-            props.setIsExiting(false);
-            props.setToast(null);
-          }, 500);
-        }, 5000);
       });
     } catch (error) {
       console.log(error.message);
@@ -133,10 +129,6 @@ export const ModifyAge = (props) => {
       }
       return alert("წარმოიშვა შეცდომა ცადეთ მოგვიანებით.");
     }
-    onCleanup(() => {
-      if (toastTimeout) clearTimeout(toastTimeout);
-      if (exitTimeout) clearTimeout(exitTimeout);
-    });
   };
 
   return (
@@ -254,9 +246,11 @@ export const ModifyAge = (props) => {
           onClick={handleDateSelect}
           className="py-2 mt-3 w-full px-3 rounded-md text-sm font-[thin-font] font-bold bg-dark-green text-white transition-all duration-500 hover:bg-dark-green-hover"
         >
-          შეცვლა
+          დადასტურება
         </button>
       </div>
     </div>
   );
 };
+
+export default ModifyAge

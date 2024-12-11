@@ -1,5 +1,5 @@
-import searchIcon from "../../../../public/svg-images/svgexport-5.svg"
-import clear from "../../../../public/svg-images/svgexport-12.svg"
+import searchIcon from "../../../svg-images/svgexport-5.svg"
+import clear from "../../../svg-images/svgexport-12.svg"
 
 export const SearchWork = () => {
     return <form class="flex mt-5 items-center border-dark-green border px-2 py-1 rounded-[16px]">
