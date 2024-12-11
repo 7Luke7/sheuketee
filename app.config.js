@@ -20,4 +20,4 @@ export default defineConfig({
     return { plugins: [] };
   },
   ssr: true
-});
+})

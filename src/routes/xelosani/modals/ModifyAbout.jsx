@@ -2,16 +2,19 @@ import { batch, createSignal } from "solid-js"
 import closeIcon from "../../../svg-images/svgexport-12.svg";
 import { modify_about } from "~/routes/api/xelosani/modify/about";
 
-export const ModifyAbout = (props) => {
+const ModifyAbout = (props) => {
     const [input, setInput] = createSignal(props.about)
 
     const modify_about_handler = async (e) => {
         e.preventDefault()
         try {
             const formData = new FormData(e.target)
+            if (input() === props.about) {
+                return props.setModal(null);
+            }
             const response = await modify_about(formData)
             if (response !== 200) throw new Error(response)
-            batch(() => {
+            batch(async () => {
                 props.setToast({
                     message: "აღწერა წარმატებით განახლდა.",
                     type: true,
@@ -51,3 +54,5 @@ export const ModifyAbout = (props) => {
             </form>
     </div>
 }
+
+export default ModifyAbout

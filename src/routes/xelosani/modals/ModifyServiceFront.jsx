@@ -7,7 +7,7 @@ import { makeAbortable } from "@solid-primitives/resource";
 import CameraSVG from "../../../svg-images/camera.svg";
 import spinnerSVG from "../../../svg-images/spinner.svg";
 
-export const ModifyServiceFront = (props) => {
+const ModifyServiceFront = (props) => {
   const [markedLocation, setMarkedLocation] = createSignal();
   const [error, setError] = createSignal(null);
   const [input, setInput] = createSignal(
@@ -678,3 +678,5 @@ export const ModifyServiceFront = (props) => {
     </div>
   );
 };
+
+export default ModifyServiceFront

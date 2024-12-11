@@ -1,7 +1,6 @@
 "use server"
 import { verify_user } from "./session_management"
 import { getRequestEvent } from "solid-js/web"
-import { get_user_profile_image } from "./user"
 
 export const header = async () => {
     try {   

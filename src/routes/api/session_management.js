@@ -1,5 +1,4 @@
-'use server'
-
+"use server"
 import { memcached_server_request } from "./utils/ext_requests/memcached_server_request"
 
 export const verify_user = async (event) => {

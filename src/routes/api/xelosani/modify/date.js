@@ -21,7 +21,6 @@ export const modify_user_date = async (date) => {
             },
         });
 
-        console.log("date: ", data)
         if (data.status === 400) {
             return 400
         }

@@ -1,5 +1,4 @@
-'use server'
-
+"use server"
 export const memcached_server_request = async (method, params, headers) => {
     try {
         const response = await fetch(`${process.env.MEMCACHED_SERVER_DOMAIN}:${process.env.MEMCACHED_SERVER_PORT}/${params}`, {

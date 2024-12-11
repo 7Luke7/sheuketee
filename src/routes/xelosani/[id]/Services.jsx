@@ -50,7 +50,7 @@ export const Services = (props) => {
                     <span class="absolute z-10 bg-dark-green text-white py-2 px-2 text-xs font-[thin-font] font-bold rounded-tl-[16px] top-0 left-0">
                       {a.mainCategory}
                     </span>
-                      <img title="სერვისი ხელმისაწვდომია" class="absolute z-20 bg-dark-green text-white py-2 px-4 text-xs font-[thin-font] font-bold rounded-bl-[16px] top-0 right-0" src={avialabilityIcon}></img>
+                      <img loading="lazy" title="სერვისი ხელმისაწვდომია" class="absolute z-20 bg-dark-green text-white py-2 px-4 text-xs font-[thin-font] font-bold rounded-bl-[16px] top-0 right-0" src={avialabilityIcon}></img>
                     <span class="absolute z-10 bg-dark-green text-white py-2 px-2 text-xs font-[thin-font] font-bold rounded-l-[16px] bottom-4 right-0">
                       თქვენთან ახლოს
                     </span>
@@ -84,12 +84,12 @@ export const Services = (props) => {
                         <div class="flex">
                           <Index each={new Array(a.ratings)}>
                             {() => (
-                              <img src={fullStar} width={18} height={18}></img>
+                              <img loading="lazy" src={fullStar} width={18} height={18}></img>
                             )}
                           </Index>
                           <Index each={new Array(5 - a.ratings)}>
                             {() => (
-                              <img src={emptyStar} width={18} height={18}></img>
+                              <img loading="lazy" src={emptyStar} width={18} height={18}></img>
                             )}
                           </Index>
                         </div>
@@ -101,7 +101,7 @@ export const Services = (props) => {
                         class="border flex items-center gap-x-1 text-gray-700 justify-center border-dark-green py-1 w-1/2 rounded-[16px] text-center"
                       >
                         იხილე მეტი
-                        <img src={ExternalLinkSVG} />
+                        <img loading="lazy" src={ExternalLinkSVG} />
                       </A>
                       <Switch>
                         <Match when={props.status === 401}>
@@ -123,7 +123,7 @@ export const Services = (props) => {
                             }}
                             class="bg-dark-green flex items-center gap-x-1 justify-center w-1/2 py-1 hover:bg-dark-green-hover transition ease-in delay-20 text-white text-center rounded-[16px]"
                           >
-                            <img src={EditSVG} />
+                            <img loading="lazy" src={EditSVG} />
                             შეასწორე
                           </button>
                         </Match>
@@ -142,7 +142,7 @@ export const Services = (props) => {
           ref={(el) => (navigateLeftService = el)}
           class="cursor-pointer bg-white rounded-full p-2 shadow hover:bg-gray-200 transition"
         >
-          <img src={ChevronLeftBlack} width={36} />
+          <img loading="lazy" src={ChevronLeftBlack} width={36} />
         </button>
       </div>
       <div class="absolute top-1/2 right-2 -translate-y-1/2 z-[10] flex items-center">
@@ -150,7 +150,7 @@ export const Services = (props) => {
           ref={(el) => (navigateRightService = el)}
           class="cursor-pointer bg-white rounded-full p-2 shadow hover:bg-gray-200 transition"
         >
-          <img src={ChevronRightBlack} width={36} />
+          <img loading="lazy" src={ChevronRightBlack} width={36} />
         </button>
       </div>
     </div>

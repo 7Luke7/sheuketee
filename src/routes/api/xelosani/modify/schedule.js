@@ -14,38 +14,38 @@ export const modify_user_schedule = async (formData) => {
 
         const schedule = [
             {
-              startTime: formData.get("ორშაბათი-საწყისი-დრო"),
-              endTime: formData.get("ორშაბათი-სასრული-დრო"),
+              startTime: formData.get("ორშაბათი-startTime"),
+              endTime: formData.get("ორშაბათი-endTime"),
               day: "ორშაბათი",
             },
             {
-              startTime: formData.get("სამშაბათი-საწყისი-დრო"),
-              endTime: formData.get("სამშაბათი-სასრული-დრო"),
+              startTime: formData.get("სამშაბათი-startTime"),
+              endTime: formData.get("სამშაბათი-endTime"),
               day: "სამშაბათი",
             },
             {
-              startTime: formData.get("ოთხშაბათი-საწყისი-დრო"),
-              endTime: formData.get("ოთხშაბათი-სასრული-დრო"),
+              startTime: formData.get("ოთხშაბათი-startTime"),
+              endTime: formData.get("ოთხშაბათი-endTime"),
               day: "ოთხშაბათი",
             },
             {
-              startTime: formData.get("ხუთშაბათი-საწყისი-დრო"),
-              endTime: formData.get("ხუთშაბათი-სასრული-დრო"),
+              startTime: formData.get("ხუთშაბათი-startTime"),
+              endTime: formData.get("ხუთშაბათი-endTime"),
               day: "ხუთშაბათი",
             },
             {
-              startTime: formData.get("პარასკევი-საწყისი-დრო"),
-              endTime: formData.get("პარასკევი-სასრული-დრო"),
+              startTime: formData.get("პარასკევი-startTime"),
+              endTime: formData.get("პარასკევი-endTime"),
               day: "პარასკევი",
             },
             {
-              startTime: formData.get("შაბათი-საწყისი-დრო"),
-              endTime: formData.get("შაბათი-სასრული-დრო"),
+              startTime: formData.get("შაბათი-startTime"),
+              endTime: formData.get("შაბათი-endTime"),
               day: "შაბათი",
             },
             {
-              startTime: formData.get("კვირა-საწყისი-დრო"),
-              endTime: formData.get("კვირა-სასრული-დრო"),
+              startTime: formData.get("კვირა-startTime"),
+              endTime: formData.get("კვირა-endTime"),
               day: "კვირა",
             },
           ];

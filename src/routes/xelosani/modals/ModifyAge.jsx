@@ -5,7 +5,7 @@ import dropdownSVG from "../../../svg-images/svgexport-8.svg";
 import closeIcon from "../../../svg-images/svgexport-12.svg";
 import { modify_user_date } from "~/routes/api/xelosani/modify/date";
 
-export const ModifyAge = (props) => {
+const ModifyAge = (props) => {
   const [currentDate, setCurrentDate] = createSignal(new Date(props.date));
   const [showYearDropdown, setShowYearDropdown] = createSignal(false);
   const [weeks, setWeeks] = createSignal();
@@ -107,7 +107,12 @@ export const ModifyAge = (props) => {
   };
 
   const handleDateSelect = async () => {
+    const initial_date = new Date(props.date)
+
     try {
+      if (initial_date.getFullYear() === currentDate().getFullYear() && initial_date.getMonth() === currentDate().getMonth() && initial_date.getDate() === currentDate().getDate()) {
+        return props.setModal(null)
+      }
       const response = await modify_user_date(currentDate());
       if (response !== 200) throw new Error(response);
       batch(() => {
@@ -247,3 +252,5 @@ export const ModifyAge = (props) => {
     </div>
   );
 };
+
+export default ModifyAge

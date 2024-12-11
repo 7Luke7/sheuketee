@@ -44,17 +44,7 @@ export const get_account = cache(async () => {
   }
 }, "account");
 
-export const get_skills = async (prof_id) => {
-  const user = await postgresql_server_request("GET", `xelosani/get_skills/${prof_id}`, {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-
-  return user
-}
-
-export const get_xelosani = async (prof_id) => {
+export const get_xelosani = cache(async (prof_id) => {
   try {
     const event = getRequestEvent();
     const session = await verify_user(event);
@@ -146,15 +136,15 @@ export const get_xelosani = async (prof_id) => {
         }
       }
   
-      return {
+      return json({
         ...user,
         displayBirthDate,
         creationDateDisplayable,
         status: 401,
-      };
+      }, {revalidate: "none"  });
     }
   }
-};
+}, "xelosani")
 
 export const getTimeAgo = (createdAt) => {
   const now = new Date();

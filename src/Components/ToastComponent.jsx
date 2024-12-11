@@ -3,7 +3,7 @@ import closeIcon from "../svg-images/svgexport-12.svg";
 import exclamationWhite from "../svg-images/exclamationWhite.svg";
 import { createEffect, createSignal, onCleanup } from "solid-js";
 
-export const Toast = (props) => {
+const Toast = (props) => {
     const [isExiting, setIsExiting] = createSignal(null)
     createEffect(() => {
     if (!props.toast()) return;
@@ -61,3 +61,5 @@ export const Toast = (props) => {
     </div>
   );
 };
+
+export default Toast

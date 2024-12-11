@@ -3,8 +3,9 @@ import { modify_user_skills } from "~/routes/api/xelosani/modify/skills";
 import dropdownSVG from "../../../svg-images/svgexport-8.svg";
 import jobs from "../../../Components/header-comps/jobs_list.json";
 import { For, Show, batch, createSignal } from "solid-js";
+import { revalidate } from "@solidjs/router";
 
-export const ModifySkill = (props) => {
+const ModifySkill = (props) => {
   const [activeParentIndex, setActiveParentIndex] = createSignal(null);
   const [activeChildIndex, setActiveChildIndex] = createSignal(null);
   const [childChecked, setChildChecked] = createSignal(props.child)
@@ -165,6 +166,9 @@ export const ModifySkill = (props) => {
 
   const handle_user_skills = async (e) => {
     e.preventDefault();
+    if (mainChecked() === props.main && parentChecked() === props.parent && childChecked() === props.child) {
+      return props.setModal(null)
+    }
     const displayableSkills = parentChecked().map((parent, i) => {
         if (props.skills.some(a => a.displaySkills === parent)) {
           return {
@@ -188,6 +192,7 @@ export const ModifySkill = (props) => {
       }
     try {
       const response = await modify_user_skills(skills);
+      revalidate()
       if (response !== 200) throw new Error(response);
       batch(() => {
         props.setToast({
@@ -333,3 +338,5 @@ export const ModifySkill = (props) => {
     </div>
   );
 };
+
+export default ModifySkill

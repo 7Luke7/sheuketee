@@ -1,4 +1,4 @@
-import { Index, Match, createSignal, Show, Switch, batch, onMount } from "solid-js";
+import { Index, Match, createSignal, Show, Switch, batch, onMount, startTransition } from "solid-js";
 import location from "../../../svg-images/location.svg";
 import telephone from "../../../svg-images/telephone.svg";
 import envelope from "../../../svg-images/envelope.svg";
@@ -16,7 +16,6 @@ export const ProfileLeft = (props) => {
   const [imageUrl, setImageUrl] = createSignal();
   const [file, setFile] = createSignal();
   const [signal,abort,filterErrors] = makeAbortable({timeout: 0, noAutoAbort: true});
-  const MAX_SINGLE_FILE_SIZE = 5 * 1024 * 1024;
 
   onMount(async () => {
     const response = await fetch(`http://localhost:5555/get_profile_image`, {
@@ -54,16 +53,16 @@ export const ProfileLeft = (props) => {
         }
       );
 
+      const data = await response.json()
+
       if (!response.ok) {
         return props.setToast({
           type: false,
-          message: "პროფილის ფოტო ვერ განახლდა, სცადეთ თავიდან."
+          message: data.message
         })
       }
 
-      const data = await response.json()
       if (data.stepPercent === 100) {
-        console.log("show fireworks!")
         props.setToast({
           type: true,
           message: data.message
@@ -86,7 +85,15 @@ export const ProfileLeft = (props) => {
   };
 
   const handleFilePreview = async (file) => {
-    setImageLoading(true);
+    if (file.size > 2 * 1024 * 1024) {
+      return batch(() => {
+        props.setToast({
+          type: false,
+          message: "ფაილის ზომა აღემატება 2მბ ლიმიტს."
+        })
+      })
+    }
+    setImageLoading(true)
     try {
       const worker = new Worker(
         new URL("../../../Components/readImagesWorker.js", import.meta.url)
@@ -121,7 +128,7 @@ export const ProfileLeft = (props) => {
                     class="hidden"
                     onChange={(e) => handleFilePreview(e.target.files[0])}
                     id="profilePic"
-                    accept="image/webp, image/png, image/jpeg, image/webp, image/avif, image/jpg"
+                    accept="image/webp, image/png, image/jpeg, image/avif, image/jpg"
                   />
                   <label
                     for="profilePic"
@@ -129,12 +136,14 @@ export const ProfileLeft = (props) => {
                   >
                     <div class="relative">
                       <img
+                        loading="lazy"
                         id="prof_pic"
                         src={imageUrl()}
                         alt="profilis foto"
                         class="border-2 rounded-[50%] w-[140px] h-[140px] border-solid border-[#14a800] mb-4"
                       />
                       <img
+                        loading="lazy"
                         src={CameraSVG}
                         alt="კამერის აიქონი"
                         class="absolute transform opacity-50 -translate-x-1/2 -translate-y-1/2 absolute top-[50%] left-[50%]"
@@ -147,6 +156,7 @@ export const ProfileLeft = (props) => {
               <Match when={imageLoading()}>
                 <div class="flex flex-col justify-center mb-4 items-center w-[140px] h-[140px] rounded-[50%] bg-[#E5E7EB]">
                   <img
+                    loading="lazy"
                     class="animate-spin"
                     src={spinnerSVG}
                     width={40}
@@ -178,6 +188,7 @@ export const ProfileLeft = (props) => {
           <Match when={props.user().status === 401}>
             <div class="relative">
               <img
+                loading="lazy"
                 id="prof_pic"
                 class="w-[130px] border-2 border-solid border-[#108a00] rounded-[50%] h-[130px]"
                 src={imageUrl()}
@@ -195,14 +206,14 @@ export const ProfileLeft = (props) => {
             <Switch>
               <Match when={props.user().location}>
                 <div class="flex items-center w-full gap-x-2">
-                  <img src={location}></img>
+                  <img loading="lazy" src={location}></img>
                   <p class="text-gr text-xs font-[thin-font] break-word font-bold">
                     {props.user().location.display_name.substr(0, 20)}.
                   </p>
                 </div>
                 <Show when={props.user().status === 200}>
-                  <button onClick={() => props.setModal("ლოკაცია")}>
-                    <img id="locationButton" src={pen} />
+                  <button onClick={() => startTransition(() => props.setModal("ლოკაცია"))}>
+                    <img loading="lazy" id="locationButton" src={pen} />
                   </button>
                 </Show>
               </Match>
@@ -215,7 +226,7 @@ export const ProfileLeft = (props) => {
                 </A>
               </Match>
               <Match when={props.user().status === 401}>
-                <img src={location}></img>
+                <img loading="lazy" src={location}></img>
                 <p class="text-gr text-xs font-[thin-font] font-bold">
                   არ არის დამატებული
                 </p>
@@ -225,13 +236,13 @@ export const ProfileLeft = (props) => {
           <div class="flex pb-1 px-2 border-b items-center gap-x-1">
           <Switch>
               <Match when={props.user().phone && props.user().privacy.phone !== "დამალვა"}>
-                <img src={telephone}></img>
+                <img loading="lazy" src={telephone}></img>
                 <p class="text-gr text-xs ml-1 font-[thin-font] font-bold">
                   {props.user().phone}
                 </p>
               </Match>
               <Match when={props.user().privacy.phone === "დამალვა"}>
-                <img src={telephone}></img>
+                <img loading="lazy" src={telephone}></img>
                 <p class="text-gr ml-1 text-xs font-[thin-font] font-bold">
                   ტელ.ნომერი დამალულია
                 </p>
@@ -245,7 +256,7 @@ export const ProfileLeft = (props) => {
                 </A>
               </Match>
               <Match when={props.user().status === 401 && props.user().privacy.phone !== "დამალვა"}>
-                <img src={telephone}></img>
+                <img loading="lazy" src={telephone}></img>
                 <p class="text-gr ml-1 text-xs font-[thin-font] font-bold">
                   ტელ.ნომერი არ არის დამატებული
                 </p>
@@ -255,13 +266,13 @@ export const ProfileLeft = (props) => {
           <div class="flex px-2 pb-1 border-b items-center gap-x-1">
           <Switch>
               <Match when={props.user().email && props.user().privacy.email !== "დამალვა"}>
-                <img src={envelope}></img>
+                <img loading="lazy" src={envelope}></img>
                 <p class="text-gr ml-1 text-xs font-[thin-font] font-bold">
                   {props.user().email}
                 </p>
               </Match>
               <Match when={props.user().privacy.email === "დამალვა"}>
-                <img src={envelope}></img>
+                <img loading="lazy" src={envelope}></img>
                 <p class="text-gr ml-1 text-xs font-[thin-font] font-bold">
                   მეილი დამალულია
                 </p>
@@ -275,7 +286,7 @@ export const ProfileLeft = (props) => {
                 </A>
               </Match>
               <Match when={props.user().status === 401 && props.user().privacy.email !== "დამალვა"}>
-                <img src={envelope}></img>
+                <img loading="lazy" src={envelope}></img>
                 <p class="text-gr ml-1 text-xs font-[thin-font] font-bold">
                   მეილი არ არის დამატებული
                 </p>
@@ -287,14 +298,14 @@ export const ProfileLeft = (props) => {
               <Match when={props.user().date && props.user().privacy.birthDate !== "დამალვა"}>
                 <div class="flex justify-between w-full items-center">
                   <div class="flex items-end pr-1 gap-x-2">
-                    <img src={cake} />
+                    <img loading="lazy" src={cake} />
                     <p class="text-gr text-xs font-[thin-font] font-bold">
                       {props.user().displayBirthDate}
                     </p>
                   </div>
                   <Show when={props.user().status === 200}>
-                    <button onClick={() => props.setModal("ასაკი")}>
-                      <img src={pen} id="age" width={14} />
+                    <button onClick={() => startTransition(() => props.setModal("ასაკი"))}>
+                      <img loading="lazy" src={pen} id="age" width={14} />
                     </button>
                   </Show>
                 </div>
@@ -310,7 +321,7 @@ export const ProfileLeft = (props) => {
               <Match when={props.user().status === 401 && props.user().privacy.birthDate !== "დამალვა"}>
               <div class="flex items-center">
               <div class="flex items-end gap-x-2">
-                    <img src={cake} />
+                    <img loading="lazy" src={cake} />
                     <p class="text-gr text-xs font-[thin-font] font-bold">
                       {props.user().displayBirthDate}
                     </p>
@@ -323,7 +334,7 @@ export const ProfileLeft = (props) => {
               <Match when={props.user().privacy.birthDate === "დამალვა"}>
               <div class="flex items-center">
               <div class="flex items-end gap-x-2">
-                    <img src={cake} />
+                    <img loading="lazy" src={cake} />
                     <p class="text-gr text-xs font-[thin-font] font-bold">
                       {props.user().displayBirthDate}
                     </p>
@@ -341,7 +352,7 @@ export const ProfileLeft = (props) => {
                 {() => {
                   return (
                     <div>
-                      <img src={fullStar}></img>
+                      <img loading="lazy" src={fullStar}></img>
                     </div>
                   );
                 }}
@@ -350,7 +361,7 @@ export const ProfileLeft = (props) => {
                 {() => {
                   return (
                     <div>
-                      <img src={emptyStar}></img>
+                      <img loading="lazy" src={emptyStar}></img>
                     </div>
                   );
                 }}
@@ -363,8 +374,8 @@ export const ProfileLeft = (props) => {
         <div class="flex items-center border-b justify-between">
           <h2 class="text-lg font-[bolder-font]">სამუშაო განრიგი</h2>
           <Show when={props.user().status === 200 && props.user().schedule}>
-            <button onClick={() => props.setModal("განრიგი")}>
-              <img src={pen} id="schedule" />
+            <button onClick={() => startTransition(() => props.setModal("განრიგი"))}>
+              <img loading="lazy" src={pen} id="schedule" />
             </button>
           </Show>
         </div>
@@ -409,11 +420,11 @@ export const ProfileLeft = (props) => {
           <Match when={false}>
             <div class="block mt-2">
               <div class="flex items-center mb-2">
-                <img src={fullStar} width={15} height={15}></img>
-                <img src={fullStar} width={15} height={15}></img>
-                <img src={fullStar} width={15} height={15}></img>
-                <img src={fullStar} width={15} height={15}></img>
-                <img src={fullStar} width={15} height={15}></img>
+                <img loading="lazy" src={fullStar} width={15} height={15}></img>
+                <img loading="lazy" src={fullStar} width={15} height={15}></img>
+                <img loading="lazy" src={fullStar} width={15} height={15}></img>
+                <img loading="lazy" src={fullStar} width={15} height={15}></img>
+                <img loading="lazy" src={fullStar} width={15} height={15}></img>
                 <div class="w-full h-2 mx-4 bg-gray-200 rounded-full">
                   <div
                     class="h-2 bg-dark-green-hover rounded-full"
@@ -425,10 +436,10 @@ export const ProfileLeft = (props) => {
                 </span>
               </div>
               <div class="flex items-center mb-2">
-                <img src={fullStar} width={15} height={15}></img>
-                <img src={fullStar} width={15} height={15}></img>
-                <img src={fullStar} width={15} height={15}></img>
-                <img src={fullStar} width={15} height={15}></img>
+                <img loading="lazy" src={fullStar} width={15} height={15}></img>
+                <img loading="lazy" src={fullStar} width={15} height={15}></img>
+                <img loading="lazy" src={fullStar} width={15} height={15}></img>
+                <img loading="lazy" src={fullStar} width={15} height={15}></img>
                 <div class="w-full h-2 mx-4 bg-gray-200 rounded-full">
                   <div
                     class="h-2 bg-dark-green-hover rounded-full"
@@ -440,9 +451,9 @@ export const ProfileLeft = (props) => {
                 </span>
               </div>
               <div class="flex items-center mb-2">
-                <img src={fullStar} width={15} height={15}></img>
-                <img src={fullStar} width={15} height={15}></img>
-                <img src={fullStar} width={15} height={15}></img>
+                <img loading="lazy" src={fullStar} width={15} height={15}></img>
+                <img loading="lazy" src={fullStar} width={15} height={15}></img>
+                <img loading="lazy" src={fullStar} width={15} height={15}></img>
                 <div class="w-full h-2 mx-4 bg-gray-200 rounded-full">
                   <div
                     class="h-2 bg-dark-green-hover rounded-full"
@@ -454,8 +465,8 @@ export const ProfileLeft = (props) => {
                 </span>
               </div>
               <div class="flex items-center mb-2">
-                <img src={fullStar} width={15} height={15}></img>
-                <img src={fullStar} width={15} height={15}></img>
+                <img loading="lazy" src={fullStar} width={15} height={15}></img>
+                <img loading="lazy" src={fullStar} width={15} height={15}></img>
                 <div class="w-full h-2 mx-4 bg-gray-200 rounded-full">
                   <div
                     class="h-2 bg-dark-green-hover rounded-full"
@@ -467,7 +478,7 @@ export const ProfileLeft = (props) => {
                 </span>
               </div>
               <div class="flex items-center mb-2">
-                <img src={fullStar} width={15} height={15}></img>
+                <img loading="lazy" src={fullStar} width={15} height={15}></img>
                 <div class="w-full h-2 mx-4 bg-gray-200 rounded-full">
                   <div
                     class="h-2 bg-dark-green-hover rounded-full"

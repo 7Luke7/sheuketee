@@ -1,7 +1,8 @@
 import { createAsync } from "@solidjs/router";
-import { createSignal, Suspense } from "solid-js";
-import { Toast } from "~/Components/ToastComponent";
+import { createSignal, lazy, Suspense } from "solid-js";
 import { get_privacy } from "../api/privacy";
+
+const Toast = lazy(() => import("~/Components/ToastComponent"))
 
 const Privacy = () => {
   const privacy = createAsync(get_privacy);
@@ -28,7 +29,6 @@ const Privacy = () => {
     }
   };
 
-  console.log(privacy())
   return (
     <div class="px-10 flex flex-col gap-y-4">
       <Suspense fallback={<p>Loading...</p>}>

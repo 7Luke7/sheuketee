@@ -1,8 +1,6 @@
 import { Header } from "~/Components/Header";
-import { get_skills, get_xelosani } from "../../api/user";
+import { get_xelosani } from "../../api/user";
 import { createAsync, useNavigate } from "@solidjs/router";
-import { Footer } from "~/Components/Footer";
-import checkedGreen from "../../../svg-images/checkedGreen.svg";
 import {
   Show,
   createEffect,
@@ -10,30 +8,27 @@ import {
   Match,
   onCleanup,
   createSignal,
-  Suspense,
+  lazy,
+  Suspense
 } from "solid-js";
 import { ProfileLeft } from "./ProfileLeft";
 import { ProfileRight } from "./ProfileRight";
 import { navigateToStep } from "~/routes/api/xelosani/setup/step";
-// import { ModifyLocaitonModal } from "../modals/ModifyLocationModal";
-import { ModifyWorkSchedule } from "../modals/ModifyWorkSchedule";
-import { ModifyAge } from "../modals/ModifyAge";
-import { Meta, MetaProvider, Title } from "@solidjs/meta";
-import { ModifySkill } from "../modals/ModifySkills";
-import { FireworkConfetti } from "~/Components/FireworkConfetti";
-import { Review } from "./Review";
-import { ModifyServiceFront } from "../modals/ModifyServiceFront";
-import { Toast } from "~/Components/ToastComponent";
-import { ModifyAbout } from "../modals/ModifyAbout";
+import { MetaProvider } from "@solidjs/meta";
+import { SmallFooter } from "~/Components/SmallFooter";
+
+const FireworkConfetti = lazy(() => import("~/Components/FireworkConfetti"));
+const Toast = lazy(() => import("~/Components/ToastComponent"));
+const ModifyAge = lazy(() => import("../modals/ModifyAge"));
+const ModifySkill = lazy(() => import("../modals/ModifySkills"));
+const ModifyAbout = lazy(() => import("../modals/ModifyAbout"));
+const ModifyWorkSchedule = lazy(() => import("../modals/ModifyWorkSchedule"));
+const ModifyServiceFront = lazy(() => import("../modals/ModifyServiceFront"));
+
+import checkedGreen from "../../../svg-images/checkedGreen.svg";
 
 const Xelosani = (props) => {
-  const user = createAsync(async () => {
-    const [userData, userSkills] = await Promise.all([
-      get_xelosani(props.params.id),
-      get_skills(props.params.id)
-    ]);
-    return { userData, userSkills };
-  }, { deferStream: true });
+  const user = createAsync(() => get_xelosani(props.params.id), {deferStream: true})
   const navigate = useNavigate();
   const [modal, setModal] = createSignal(null);
   const [toast, setToast] = createSignal();
@@ -48,6 +43,7 @@ const Xelosani = (props) => {
       alert("წარმოიშვა შეცდომა გთხოვთ ცადოთ მოგვიანებით.");
     }
   };
+
   const clickFN = (event) => {
     const ignoreIds = [
       "daynumber",
@@ -75,7 +71,6 @@ const Xelosani = (props) => {
     const isIgnoredId = ignoreIds.includes(event.target.id);
     const isInsideModal = event.target.closest("#modal");
     const isInsideToast = event.target.closest("#toast-parentDiv");
-
     const isInsideIgnoredSelector = ignoreSelectors.some((selector) =>
       event.target.closest(selector)
     );
@@ -93,6 +88,7 @@ const Xelosani = (props) => {
   };
 
   createEffect(() => {
+    if (!modal()) return
     document.addEventListener("click", clickFN);
 
     onCleanup(() => {
@@ -103,13 +99,10 @@ const Xelosani = (props) => {
   return (
     <MetaProvider>    
       <Header />
-      <div class="relative">
-        <div class="w-[90%] mx-auto relative mt-8">
-          <Show when={!user()}>Loading</Show>
-          <Suspense fallback={<h1>Loading...</h1>}>
-            {JSON.stringify(user())}
-          </Suspense>
-        <Show when={user()?.userData?.status === 200 && user()?.userData?.stepPercent !== 100}>
+      <Show when={user()} fallback={<div>Loading...</div>}>
+        <div class="relative">
+          <div class="w-[90%] mx-auto relative mt-8">
+            <Show when={user().status === 200 && user().stepPercent !== 100}>
               <div
                 class={`${
                   modal() && "blur-[0.8px] pointer-events-none"
@@ -119,10 +112,10 @@ const Xelosani = (props) => {
                   <div class="h-5 w-full rounded-[16px] bg-[#E5E7EB] relative">
                     <div
                       class="bg-dark-green rounded-[16px] h-full absolute"
-                      style={{ width: `${user()?.userData?.stepPercent}%` }}
+                      style={{ width: `${user().stepPercent}%` }}
                     ></div>
                     <span class="font-[thin-font] text-[11px] text-green-800 font-bold absolute right-2 top-1/2 transform -translate-y-1/2">
-                      {user()?.userData?.stepPercent}%
+                      {user().stepPercent}%
                     </span>
                   </div>
                 </div>
@@ -134,27 +127,29 @@ const Xelosani = (props) => {
                 </button>
               </div>
             </Show>
-        <div
+            <div
               class={`${
                 modal() && "blur-[0.8px] pointer-events-none"
               } flex items-start`}
             >
-              {/* {user() && <ProfileLeft
+              <ProfileLeft
                 setToast={setToast}
                 setModal={setModal}
                 profileId={props.params.id}
                 user={user}
-              />} */}
+              />
               <ProfileRight
                 user={user}
                 setEditingServiceTarget={setEditingServiceTarget}
                 setModal={setModal}
               />
             </div>
-            {/* <Show when={modal()}>
+            <Suspense fallback={<div>Loading...</div>}>
+
+            <Show when={modal()}>
               <div
                 id="modal"
-                class="bg-white shadow-2xl z-[10] top-1/2 transform -translate-y-1/2 -translate-x-1/2 left-1/2  border fixed p-4"
+                class="bg-white shadow-2xl z-[10] top-1/2 transform -translate-y-1/2 -translate-x-1/2 left-1/2 border fixed p-4"
               >
                 <Switch>
                   <Match when={modal() === "ლოკაცია"}>
@@ -175,6 +170,7 @@ const Xelosani = (props) => {
                     <ModifyAbout
                       setModal={setModal}
                       setToast={setToast}
+                      id={props.params.id}
                       about={user().about}
                     ></ModifyAbout>
                   </Match>
@@ -206,8 +202,9 @@ const Xelosani = (props) => {
                   </Match>
                 </Switch>
               </div>
-            </Show> */}
-            {/* <Show when={!user()?.setup_done && user()?.stepPercent === 100}>
+            </Show>
+            </Suspense>
+            <Show when={!user().setup_done && user().stepPercent === 100}>
               <FireworkConfetti></FireworkConfetti>
               <div
                 id="completed-message"
@@ -215,22 +212,22 @@ const Xelosani = (props) => {
                 role="alert"
               >
                 <div class="border-dark-green-hover border gap-x-1 flex relative bg-white space-x-4 rtl:space-x-reverse text-gray-500 border rounded-lg p-4 shadow items-center">
-                  <img src={checkedGreen}></img>
+                  <img loading="lazy" src={checkedGreen}></img>
                   <p class="font-[thin-font] font-bold text-xs">
                     გილოცავთ სეტაპი დასრულებულია.
                   </p>
                 </div>
               </div>
-            </Show> */}
-            {/*<Review></Review>*/}
-          <div class={`${modal() && "pointer-events-none blur-[0.8px]"}`}>
-            <Footer />
+            </Show>
+            <div class={`mt-16 ${modal() && "pointer-events-none blur-[0.8px]"}`}>
+              <SmallFooter></SmallFooter>
+            </div>
           </div>
+          <Show when={toast()}>
+            <Toast toast={toast} setToast={setToast}></Toast>
+          </Show>
         </div>
-        <Show when={toast()}>
-          <Toast toast={toast} setToast={setToast}></Toast>
-        </Show>
-      </div>
+      </Show>
     </MetaProvider>
   );
 };
